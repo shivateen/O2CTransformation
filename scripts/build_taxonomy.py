@@ -1179,13 +1179,13 @@ def build_o2c_value_chain():
                 area("Master Data", [
                     "Data Prep & Request Validation", "Data collection & validation",
                     "Approval & Syndication", "Ongoing Data Maintenance"],
-                    procId="o2c-arops"),
+                    procId="o2c-governance"),
             ]},
             {"id": "o2d", "name": "Order to Deliver", "tone": "o2d", "areas": [
                 area("Order Mgmt", [
                     "Order Intake & validation", "Order Modification / Cancellation",
                     "Credit Check & Approval", "Outbound Delivery & fulfilment"],
-                    procId="o2c-order"),
+                    procId="o2c-ordmgmt"),
                 area("Order Fulfilment", [
                     "Stock Allocation & Mgmt", "Delivery Creation",
                     "Logistics Operations", "Warehouse Mgmt & Logistics"]),
@@ -1203,7 +1203,7 @@ def build_o2c_value_chain():
                 area("Cash Application", [
                     "Payment Identification", "Payment matching & reconciliation",
                     "Deduction identification", "Cash posting & adjustment"],
-                    procId="o2c-cash"),
+                    procId="o2c-ar"),
             ]},
             {"id": "claims", "name": "Claims", "tone": "claims", "areas": [
                 area("Claims Mgmt", [
@@ -1520,102 +1520,263 @@ def build_icc_value_chain():
 
 
 def build_ar_function(patterns):
-    """Order-to-Cash, fully populated against the real 31-pattern library."""
-    cat = lambda c: ids_for_category(patterns, c)
+    """Order-to-Cash — full mission/capability structure from Aswin's O2C Excel:
+    8 process areas, 26 missions, 36 capabilities. Only O.6 Accounts Receivable
+    links the real 31-pattern behavioural library (patterns 1-31); every other
+    process area carries patternIds=[] — capability gaps Tiger would build next.
+    Capability ids (OC-*) are enterprise assets reused across missions."""
     return {
         "id": "o2c", "name": "Order-to-Cash", "short": "O2C", "icon": "💵",
         "accent": "#e67e22", "status": "live",
-        "tagline": "AR collections, disputes, credit risk — the fully-built core.",
+        "tagline": "From contract to cash — one leak-free standard across all routes to market.",
         "valueChain": build_o2c_value_chain(),
-        "processes": [{
-            "id": "o2c-ar", "name": "AR Collections & Dispute Management",
-            "desc": "Behavioural collections: read intent, sequence the right action, escalate only when warranted.",
-            "missions": [
-                {"id": "o2c-m-collections", "name": "Run Collections",
-                 "description": "Systematically collect outstanding receivables across markets and segments",
-                 "capabilities": [
-                    {"id": "o2c-c-prioritize", "name": "Prioritize collections worklist by value at risk",
-                     "kpi": "DSO (days)",
-                     "patternIds": cat("Intentional Stalling & Delay Tactics")},
-                    {"id": "o2c-c-project", "name": "Project receivables & DSO by market",
-                     "kpi": "Projected DSO", "patternIds": []},
-                    {"id": "o2c-c-measure-e2e", "name": "Measure end-to-end O2C cycle time",
-                     "kpi": "Cycle time (days)", "patternIds": []},
-                ]},
-                {"id": "o2c-m-cashapp", "name": "Apply Incoming Cash",
-                 "description": "Match and apply incoming payments accurately and on the same day",
-                 "capabilities": [
-                    {"id": "o2c-c-automatch", "name": "Lift auto-match / cash-application rate",
-                     "kpi": "Auto-match %",
-                     "patternIds": cat("Cash Application & Remittance Friction")},
-                ]},
-                {"id": "o2c-m-credit", "name": "Manage Credit Lines",
-                 "description": "Assess and manage customer credit risk proactively",
-                 "capabilities": [
-                    {"id": "o2c-c-risk", "name": "Detect insolvency & credit risk early",
-                     "kpi": "Bad-debt write-off $",
-                     "patternIds": cat("Credit Risk & Insolvency Indicators")},
-                ]},
-                {"id": "o2c-m-disputes", "name": "Process Disputes",
-                 "description": "Resolve disputes and deductions faster with root-cause intelligence",
-                 "capabilities": [
-                    {"id": "o2c-c-disputes", "name": "Resolve disputes & deductions faster",
-                     "kpi": "Dispute cycle time",
-                     "patternIds": cat("Dispute & Deduction Manipulation")},
-                    {"id": "o2c-c-leakage", "name": "Curb contractual & relationship abuse",
-                     "kpi": "Margin leakage $",
-                     "patternIds": cat("Relationship & Contractual Abuse")},
-                ]},
-            ],
-        }, {
-            "id": "o2c-order", "name": "Sales Order Processing & Credit Control",
-            "desc": "The front of the cycle: clean orders and disciplined credit so problems never enter billing or collections downstream.",
-            "missions": [
-                {"id": "o2c-om", "name": "Order Management Specialist", "capabilities": [
-                    {"id": "o2c-o-order", "name": "Keep orders clean & handoff-ready",
-                     "kpi": "Order rework %", "patternIds": list(range(82, 92))},
-                ]},
-                {"id": "o2c-creditan", "name": "Credit Analyst", "capabilities": [
-                    {"id": "o2c-o-credit", "name": "Contain credit exposure before losses",
-                     "kpi": "Bad-debt exposure $", "patternIds": list(range(32, 42))},
-                ]},
-            ],
-        }, {
-            "id": "o2c-billing", "name": "Billing & Dispute Management",
-            "desc": "Bill it right the first time, and resolve the disputes that slip through - the two sides of invoice integrity.",
-            "missions": [
-                {"id": "o2c-billspec", "name": "Billing Specialist", "capabilities": [
-                    {"id": "o2c-o-billing", "name": "Bill accurately, on time, first time",
-                     "kpi": "Billing error rate %", "patternIds": list(range(72, 82))},
-                ]},
-                {"id": "o2c-disputean", "name": "Dispute Analyst", "capabilities": [
-                    {"id": "o2c-o-disputes", "name": "Resolve disputes within SLA, maximise recovery",
-                     "kpi": "Dispute cycle time", "patternIds": list(range(52, 62))},
-                ]},
-            ],
-        }, {
-            "id": "o2c-cash", "name": "Cash Application & Deductions",
-            "desc": "Apply every payment and recover every invalid deduction - lift auto-match and stop leakage at the point of cash.",
-            "missions": [
-                {"id": "o2c-cashspec", "name": "Cash Application Specialist", "capabilities": [
-                    {"id": "o2c-o-cashapp", "name": "Lift auto-match, cut unapplied cash",
-                     "kpi": "Auto-match %", "patternIds": list(range(42, 52))},
-                ]},
-                {"id": "o2c-deductan", "name": "Deductions Analyst", "capabilities": [
-                    {"id": "o2c-o-deduct", "name": "Recover invalid deductions, find the leakage root",
-                     "kpi": "Deduction recovery %", "patternIds": list(range(62, 72))},
-                ]},
-            ],
-        }, {
-            "id": "o2c-arops", "name": "AR Operations & Working Capital",
-            "desc": "The supervisory view: steer DSO, govern provisions and master data, and catch compound issues that span every AR sub-process.",
-            "missions": [
-                {"id": "o2c-controller", "name": "AR Controller", "capabilities": [
-                    {"id": "o2c-o-arops", "name": "Steer DSO & govern cross-process AR",
-                     "kpi": "DSO (days)", "patternIds": list(range(92, 102))},
-                ]},
-            ],
-        }],
+        "processes": [
+            # -- O.1 Order Management --------------------------------------
+            {
+                "id": "o2c-ordmgmt", "name": "Order Management",
+                "desc": "Capture and promise every order clean and reliable, first time, across direct, indirect and third-party flows.",
+                "missions": [
+                    {"id": "o2c-m1", "name": "Clean-first-time order capture rate at target",
+                     "description": "Process standard, special and indirect sales orders without manual rework",
+                     "owner": "Order Management Operations Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-1", "name": "Monitor clean-order rate and order-block root causes by market, channel and order type", "kpi": "Clean-order rate %", "patternIds": [], "scope": "Sale From Stock; Special Order Processing; Indirect Sales"},
+                        {"id": "OC-2", "name": "Measure order cycle time from capture to confirmation and quantify automation opportunities", "kpi": "Order cycle time", "patternIds": [], "scope": ""},
+                        {"id": "OC-28", "name": "Measure end-to-end OTC cost per order, invoice and collection against benchmarks", "kpi": "Cost per order", "patternIds": [], "scope": ""},
+                        {"id": "OC-29", "name": "Measure end-to-end O2C cycle time and quantify working-capital impact", "kpi": "O2C cycle time", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m2", "name": "Promise dates reliable with fill-rate protected",
+                     "description": "Manage availability-to-promise so commitments reflect real supply",
+                     "owner": "Order Management Operations Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-3", "name": "Project product availability against open orders and quantify fill-rate risk", "kpi": "Fill rate %", "patternIds": [], "scope": "Advanced Available-To-Promise Processing"},
+                        {"id": "OC-4", "name": "Simulate allocation and substitution scenarios when supply is short", "kpi": "Allocation effectiveness", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m3", "name": "Third-party orders flow touchless across all parties",
+                     "description": "Manage third-party and drop-ship order processing end to end",
+                     "owner": "Order Management Operations Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-1", "name": "Monitor clean-order rate and order-block root causes by market, channel and order type", "kpi": "Clean-order rate %", "patternIds": [], "scope": "Third Party Order Processing with and without Advanced"},
+                        {"id": "OC-2", "name": "Measure order cycle time from capture to confirmation and quantify automation opportunities", "kpi": "Order cycle time", "patternIds": [], "scope": ""},
+                     ]},
+                ],
+            },
+            # -- O.2 Pricing & Rebates ------------------------------------
+            {
+                "id": "o2c-pricing", "name": "Pricing & Rebates",
+                "desc": "Execute pricing and trade agreements so agreed terms equal invoiced terms and every rebate is settled accurately.",
+                "missions": [
+                    {"id": "o2c-m4", "name": "Contract terms executed as negotiated",
+                     "description": "Manage customer and buying-group contracts through their lifecycle",
+                     "owner": "Contract & Rebates Operations Lead", "cadence": "Monthly",
+                     "capabilities": [
+                        {"id": "OC-5", "name": "Monitor contract execution against negotiated terms with compliance flagging", "kpi": "Contract compliance %", "patternIds": [], "scope": "Multi-Company Code Contracts / Buying Group"},
+                     ]},
+                    {"id": "o2c-m5", "name": "Trade rebates accrued and settled accurately",
+                     "description": "Administer conditional rebate agreements from accrual through settlement",
+                     "owner": "Contract & Rebates Operations Lead", "cadence": "Monthly",
+                     "capabilities": [
+                        {"id": "OC-6", "name": "Measure rebate accrual accuracy and project settlement liabilities", "kpi": "Accrual accuracy %", "patternIds": [], "scope": "Conditional Contracts - Fixed, Variable and Multi-Customer"},
+                        {"id": "OC-7", "name": "Reconcile trade rebate settlements against claims and flag over/under-payment", "kpi": "Settlement accuracy", "patternIds": [], "scope": ""},
+                        {"id": "OC-9", "name": "Quantify gross-to-net leakage from pricing errors, rebate mis-accruals and unearned deductions", "kpi": "Leakage $", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m6", "name": "Price master and deals accurate at order entry",
+                     "description": "Maintain sales deals and pricing conditions so invoices price right first time",
+                     "owner": "Pricing Operations Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-8", "name": "Monitor pricing-condition and deal-master integrity before orders are impacted", "kpi": "Pricing errors", "patternIds": [], "scope": "Maintain Sales Deals; Maintain Pricing Condition"},
+                        {"id": "OC-9", "name": "Quantify gross-to-net leakage from pricing errors, rebate mis-accruals and unearned deductions", "kpi": "Leakage $", "patternIds": [], "scope": ""},
+                     ]},
+                ],
+            },
+            # -- O.3 Logistics --------------------------------------------
+            {
+                "id": "o2c-logistics", "name": "Logistics",
+                "desc": "Deliver every order complete, on time, at target cost, compliant with trade regulations and retailer requirements.",
+                "missions": [
+                    {"id": "o2c-m7", "name": "OTIF at target with delivery cost controlled",
+                     "description": "Run outbound delivery and packing operations for customer orders",
+                     "owner": "Logistics Operations Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-10", "name": "Measure OTIF and delivery-failure root causes by customer, route and site", "kpi": "OTIF %", "patternIds": [], "scope": "Outbound Delivery Process with Batch Search Strategy; IM Based Packing"},
+                        {"id": "OC-11", "name": "Measure delivery and freight cost per case/drop and project network optimization", "kpi": "Cost per drop", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m8", "name": "Freight cost at target with settlements accurate",
+                     "description": "Manage freight orders and settlement across own and carrier fleets",
+                     "owner": "Logistics Operations Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-11", "name": "Measure delivery and freight cost per case/drop and project network optimization", "kpi": "Cost per drop", "patternIds": [], "scope": "Freight Order Management; Freight Settlement"},
+                        {"id": "OC-12", "name": "Reconcile freight settlements against contracted carrier rates and flag variances", "kpi": "Freight variance $", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m9", "name": "Exports compliant and on time in every market",
+                     "description": "Manage international trade and export order processing",
+                     "owner": "Trade Compliance Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-13", "name": "Monitor export documentation, screening and trade-compliance status", "kpi": "Compliance rate %", "patternIds": [], "scope": "International Trade Exports"},
+                     ]},
+                    {"id": "o2c-m21", "name": "Retailer compliance fines and chargebacks minimized",
+                     "description": "Manage retailer compliance programs (OTIF, ASN, labeling) and prevent chargebacks at root cause",
+                     "owner": "Customer Compliance Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-30", "name": "Monitor retailer compliance scorecards and quantify chargebacks by customer and root cause", "kpi": "Chargeback $", "patternIds": [], "scope": ""},
+                        {"id": "OC-10", "name": "Measure OTIF and delivery-failure root causes by customer, route and site", "kpi": "OTIF %", "patternIds": [], "scope": ""},
+                        {"id": "OC-24", "name": "Measure dispute and deduction cycle time, win rates and recovery value", "kpi": "Dispute cycle time", "patternIds": [], "scope": ""},
+                     ]},
+                ],
+            },
+            # -- O.4 Direct Store Delivery --------------------------------
+            {
+                "id": "o2c-dsd", "name": "Direct Store Delivery",
+                "desc": "Run route-to-market operations profitably with every route settled same-day.",
+                "missions": [
+                    {"id": "o2c-m10", "name": "Route plans maximize sales per route at target cost",
+                     "description": "Prepare and optimize routes across all route models",
+                     "owner": "DSD Route Planning Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-14", "name": "Optimize route plans against sales potential and cost to serve", "kpi": "Sales per route", "patternIds": [], "scope": "Pre-Sales / Pre-Order / Van Sales Route Preparation"},
+                        {"id": "OC-15", "name": "Measure route productivity across route models and markets", "kpi": "Drops per day", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m11", "name": "Route execution delivers sales and delivery targets",
+                     "description": "Run in-market route execution on own fleet and distributor fleets",
+                     "owner": "DSD Field Operations Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-10", "name": "Measure OTIF and delivery-failure root causes by customer, route and site", "kpi": "OTIF %", "patternIds": [], "scope": "Pre-Sales / Pre-Order / Van Sales Route Execution"},
+                        {"id": "OC-15", "name": "Measure route productivity across route models and markets", "kpi": "Drops per day", "patternIds": [], "scope": ""},
+                        {"id": "OC-16", "name": "Monitor in-flight route execution with same-day exception alerts", "kpi": "Exception rate %", "patternIds": [], "scope": ""},
+                        {"id": "OC-18", "name": "Measure distributor-operated route performance against own-fleet benchmarks", "kpi": "Distributor vs own perf", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m12", "name": "Every route settled same-day with zero unexplained variance",
+                     "description": "Reconcile and settle routes - cash, stock, empties and driver accountability",
+                     "owner": "DSD Settlement Office Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-16", "name": "Monitor in-flight route execution with same-day exception alerts", "kpi": "Exception rate %", "patternIds": [], "scope": "Pre-Sales / Pre-Order / Van Sales Route Settlement"},
+                        {"id": "OC-17", "name": "Reconcile route settlements and flag driver and distributor variances", "kpi": "Settlement variance $", "patternIds": [], "scope": ""},
+                        {"id": "OC-27", "name": "Track returnable-asset float and quantify loss, deposit balances and recovery actions", "kpi": "Asset float $", "patternIds": [], "scope": ""},
+                     ]},
+                ],
+            },
+            # -- O.5 Invoicing & Price Corrections ------------------------
+            {
+                "id": "o2c-billing", "name": "Invoicing & Price Corrections",
+                "desc": "Bill every delivery accurately, first time, and make corrections rare and fast.",
+                "missions": [
+                    {"id": "o2c-m13", "name": "Touchless, accurate billing at target rate",
+                     "description": "Run invoice billing for all order and non-order flows",
+                     "owner": "Billing Operations Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-19", "name": "Monitor touchless-billing rate and invoice-accuracy defects by root cause", "kpi": "Touchless billing %", "patternIds": [], "scope": "Invoice Billing Process; FI Invoice without Sales Order"},
+                        {"id": "OC-28", "name": "Measure end-to-end OTC cost per order, invoice and collection against benchmarks", "kpi": "Cost per invoice", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m14", "name": "Corrections resolved fast with root causes eliminated",
+                     "description": "Process invoice corrections and drive pricing-error prevention",
+                     "owner": "Billing Operations Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-8", "name": "Monitor pricing-condition and deal-master integrity before orders are impacted", "kpi": "Pricing errors", "patternIds": [], "scope": "Invoice Correction Process"},
+                        {"id": "OC-9", "name": "Quantify gross-to-net leakage from pricing errors, rebate mis-accruals and unearned deductions", "kpi": "Leakage $", "patternIds": [], "scope": ""},
+                        {"id": "OC-20", "name": "Measure correction cycle time and credit/debit note volumes with prevention tracking", "kpi": "Correction cycle time", "patternIds": [], "scope": ""},
+                     ]},
+                ],
+            },
+            # -- O.6 Accounts Receivable (the 31 real patterns live here) --
+            {
+                "id": "o2c-ar", "name": "Accounts Receivable",
+                "desc": "Convert invoices to cash quickly, with credit risk controlled and disputes resolved at root cause.",
+                "missions": [
+                    {"id": "o2c-m15", "name": "Credit risk within appetite without blocking good sales",
+                     "description": "Manage customer credit lines, scoring and blocked-order resolution",
+                     "owner": "Credit & Risk Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-21", "name": "Score customer credit risk and project exposure against limits", "kpi": "Bad-debt write-off $", "patternIds": [19, 20, 21, 22, 23], "scope": "Credit Management"},
+                        {"id": "OC-25", "name": "Project receivables and DSO by market with early warning of deterioration", "kpi": "Projected DSO", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m16", "name": "DSO at target with overdues collected systematically",
+                     "description": "Run collections and dunning across markets and segments",
+                     "owner": "Collections Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-22", "name": "Prioritize collections worklists by value at risk, promise-to-pay tracking and dunning effectiveness", "kpi": "DSO (days)", "patternIds": [10, 11, 12, 13, 14, 15, 16, 17, 18], "scope": "Collections Management; Dunning"},
+                        {"id": "OC-25", "name": "Project receivables and DSO by market with early warning of deterioration", "kpi": "Projected DSO", "patternIds": [], "scope": ""},
+                        {"id": "OC-29", "name": "Measure end-to-end O2C cycle time and quantify working-capital impact", "kpi": "O2C cycle time", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m17", "name": "Cash applied same-day at target auto-match rate",
+                     "description": "Apply incoming payments across all channels and instruments",
+                     "owner": "Cash Application Lead", "cadence": "Daily",
+                     "capabilities": [
+                        {"id": "OC-23", "name": "Measure auto-match rates in cash application and quantify remittance-quality improvement", "kpi": "Auto-match %", "patternIds": [24, 25, 26], "scope": "Incoming Payments; Lockbox Process; Cash Application"},
+                        {"id": "OC-28", "name": "Measure end-to-end OTC cost per order, invoice and collection against benchmarks", "kpi": "Cost per collection", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m18", "name": "Disputes and deductions resolved fast with recovery maximized",
+                     "description": "Process dispute cases and drive deduction root-cause elimination",
+                     "owner": "Disputes & Deductions Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-7", "name": "Reconcile trade rebate settlements against claims and flag over/under-payment", "kpi": "Settlement accuracy", "patternIds": [], "scope": "Dispute Case Processing"},
+                        {"id": "OC-9", "name": "Quantify gross-to-net leakage from pricing errors, rebate mis-accruals and unearned deductions", "kpi": "Leakage $", "patternIds": [27, 28, 29, 30, 31], "scope": ""},
+                        {"id": "OC-24", "name": "Measure dispute and deduction cycle time, win rates and recovery value", "kpi": "Dispute cycle time", "patternIds": [1, 2, 3, 4, 5, 6, 7, 8, 9], "scope": ""},
+                     ]},
+                ],
+            },
+            # -- O.7 Returns Management -----------------------------------
+            {
+                "id": "o2c-returns", "name": "Returns Management",
+                "desc": "Recover value from returns and returnable assets with minimal leakage.",
+                "missions": [
+                    {"id": "o2c-m19", "name": "Returns processed fast with credit accuracy and salvage maximized",
+                     "description": "Manage customer returns end to end, from authorization to credit and disposition",
+                     "owner": "Returns & Claims Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-26", "name": "Measure returns rates, credit accuracy and salvage recovery by customer and product", "kpi": "Salvage recovery %", "patternIds": [], "scope": "Advanced Customer Returns"},
+                     ]},
+                    {"id": "o2c-m20", "name": "Returnable-asset float minimized with empties fully accounted",
+                     "description": "Manage empties and returnable-asset loops (crates, kegs, pallets, bottles)",
+                     "owner": "Returnable Assets Manager", "cadence": "Monthly",
+                     "capabilities": [
+                        {"id": "OC-27", "name": "Track returnable-asset float and quantify loss, deposit balances and recovery actions", "kpi": "Asset float $", "patternIds": [], "scope": "Empties and Returnables Management"},
+                     ]},
+                ],
+            },
+            # -- O.8 OTC Transformation & Process Governance --------------
+            {
+                "id": "o2c-governance", "name": "OTC Transformation & Process Governance",
+                "desc": "Own the global OTC process design and continuously transform it toward one leak-free standard.",
+                "missions": [
+                    {"id": "o2c-m22", "name": "One global OTC standard adopted with deviations governed",
+                     "description": "Own the global OTC process design and template so every market runs one standard",
+                     "owner": "Global Process Owner (OTC)", "cadence": "Monthly",
+                     "capabilities": [
+                        {"id": "OC-31", "name": "Measure process standardization and template adherence by market", "kpi": "Template adherence %", "patternIds": [], "scope": ""},
+                        {"id": "OC-32", "name": "Mine end-to-end process flows to detect variants, rework loops and automation opportunities", "kpi": "Variant count", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m23", "name": "OTC master data accurate and complete at point of use",
+                     "description": "Govern customer, pricing and credit master data so transactions run right first time",
+                     "owner": "OTC Master Data Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-33", "name": "Monitor customer, pricing and credit master data quality with defect flagging", "kpi": "Data quality score", "patternIds": [], "scope": ""},
+                        {"id": "OC-8", "name": "Monitor pricing-condition and deal-master integrity before orders are impacted", "kpi": "Pricing errors", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m24", "name": "Digital channels onboarded fast with EDI error rates at target",
+                     "description": "Onboard and run digital order channels (EDI, portals, e-commerce) so orders arrive clean and touchless",
+                     "owner": "Digital Channel Integration Lead", "cadence": "Weekly",
+                     "capabilities": [
+                        {"id": "OC-34", "name": "Monitor EDI and digital order failure rates by trading partner and root cause", "kpi": "EDI error rate %", "patternIds": [], "scope": ""},
+                        {"id": "OC-1", "name": "Monitor clean-order rate and order-block root causes by market, channel and order type", "kpi": "Clean-order rate %", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m25", "name": "OTC control health at target with SoD conflicts resolved",
+                     "description": "Operate OTC controls (credit notes, price overrides, cash handling, SoD) so the process stays fraud-safe",
+                     "owner": "OTC Controls Lead", "cadence": "Monthly",
+                     "capabilities": [
+                        {"id": "OC-35", "name": "Monitor OTC control health and segregation-of-duties conflicts with anomaly detection", "kpi": "Control exceptions", "patternIds": [], "scope": ""},
+                     ]},
+                    {"id": "o2c-m26", "name": "Deployments on plan with adoption and benefits delivered",
+                     "description": "Drive market deployments, adoption and benefits realization of the OTC transformation",
+                     "owner": "Transformation PMO Lead", "cadence": "Monthly",
+                     "capabilities": [
+                        {"id": "OC-36", "name": "Track deployment progress, user adoption and benefits realization against business case", "kpi": "Benefits realized $", "patternIds": [], "scope": ""},
+                        {"id": "OC-28", "name": "Measure end-to-end OTC cost per order, invoice and collection against benchmarks", "kpi": "Cost per order", "patternIds": [], "scope": ""},
+                        {"id": "OC-29", "name": "Measure end-to-end O2C cycle time and quantify working-capital impact", "kpi": "O2C cycle time", "patternIds": [], "scope": ""},
+                     ]},
+                ],
+            },
+        ],
+        "patternCount": 31,
     }
 
 

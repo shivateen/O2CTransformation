@@ -245,7 +245,7 @@
     // attach to the O2C Credit & Risk capability so the Mission Builder surfaces it
     var o2c = (window.PIQ.tax.functions || []).filter(function (f) { return f.id === "o2c"; })[0];
     if (o2c) o2c.processes.forEach(function (pr) { (pr.missions || []).forEach(function (r) { (r.capabilities || []).forEach(function (o) {
-      if (o.id === "o2c-c-risk" && o.patternIds.indexOf(pat.id) < 0) {
+      if (o.id === "OC-21" && o.patternIds.indexOf(pat.id) < 0) {
         o.patternIds.push(pat.id); o.patternCount = o.patternIds.length; o2c.patternCount = (o2c.patternCount || 0) + 1;
       }
     }); }); });
