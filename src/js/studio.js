@@ -266,7 +266,8 @@
     body.appendChild(el("div", "st-q", t
       ? "Which <b>function</b> inside “" + esc(t.name) + "” does this objective map to?"
       : "Which <b>function</b> does this objective map to?"));
-    var funcs = window.PIQ.objectiveFunctions();
+    // This accelerator is scoped to Order-to-Cash — the only function on offer.
+    var funcs = window.PIQ.objectiveFunctions().filter(function (f) { return f.id === "o2c"; });
     var grid = pickGrid(funcs, function (f) {
       var on = C().fnId === f.id;
       return '<div class="pc-ico" style="--ac:' + f.accent + '">' + f.icon + '</div>' +
@@ -323,25 +324,83 @@
     }
   }
 
-  /* Process taxonomy matrix — L1 value chain › L2 groups › L3 process areas ›
-     L4 sub-processes. Built areas (backed by a real pattern library) are clickable
-     and select their process; every other area is landscape context. */
+  /* O2C process selection — objective-aware. When a business objective is chosen,
+     the processes it makes relevant are spotlighted and the rest dimmed (still
+     selectable). The full L1–L4 value-chain landscape is shown below for context. */
   function stepProcessMatrix(body, f, c) {
-    var vc = f.valueChain;
-    var live = f.status === "live";
-    body.appendChild(el("div", "st-q", "The <b>" + esc(f.name) + "</b> process taxonomy"));
-    body.appendChild(el("p", "st-hint",
-      "Your end-to-end value chain, L1 → L4. Highlighted areas are backed by " +
-      (live ? "the fully-built accelerator" : "a working sample library") +
-      " — pick one to compose it. The rest map the surrounding landscape."));
+    var obj = objective();
+    var relevant = window.PIQ.objectiveProcessIds();
+    var relSet = {}; relevant.forEach(function (id) { relSet[id] = 1; });
+    var driven = obj && relevant.length;
+    var nRel = f.processes.filter(function (p) { return relSet[p.id]; }).length;
 
+    if (driven) {
+      body.appendChild(el("div", "st-q",
+        "Processes for <b>" + esc(f.name) + "</b> — spotlighting <b>" + esc(obj.name) + "</b>"));
+      body.appendChild(el("p", "st-hint",
+        nRel + " of " + f.processes.length + " processes move this objective most. " +
+        "Highlighted cards are the ones to compose first; the rest are dimmed but still selectable."));
+    } else {
+      body.appendChild(el("div", "st-q", "Which <b>process</b> inside " + esc(f.name) + "?"));
+      body.appendChild(el("p", "st-hint",
+        "Pick a business objective on the previous step to spotlight the processes that move it — or choose any process to compose it."));
+    }
+
+    var grid = el("div", "pickgrid proc-grid");
+    f.processes.forEach(function (p) {
+      var isRel = !!relSet[p.id];
+      var caps = 0, pats = {};
+      p.missions.forEach(function (m) {
+        caps += (m.capabilities || []).length;
+        (m.capabilities || []).forEach(function (cc) {
+          (cc.patternIds || []).forEach(function (id) { pats[id] = 1; });
+        });
+      });
+      var nPat = Object.keys(pats).length;
+      var cls = "pickcard proc-card" + (c.procId === p.id ? " sel" : "") +
+        (driven ? (isRel ? " relevant" : " dim") : "");
+      var card = el("div", cls,
+        '<div class="pc-main"><div class="pc-t">' + esc(p.name) +
+          (driven && isRel ? ' <span class="relbadge">★ Relevant</span>' : '') + '</div>' +
+        '<div class="pc-d">' + esc(p.desc) + '</div></div>' +
+        '<div class="pc-meta">' + p.missions.length + ' missions · ' + caps + ' capabilities' +
+          (nPat ? ' · <b>' + nPat + '</b> patterns' : ' · <span class="muted">no patterns yet</span>') + '</div>' +
+        (c.procId === p.id ? '<div class="pc-on">✓</div>' : ''));
+      card.onclick = function () {
+        if (c.procId !== p.id) { c.procId = p.id; selectAllMissions(); }
+        redraw();
+      };
+      grid.appendChild(card);
+    });
+    body.appendChild(grid);
+
+    var p = proc();
+    if (p) {
+      body.appendChild(hierarchy(f, p));
+      body.appendChild(swimlane(f, p));
+      body.appendChild(nextBar('Selected: ' + p.name + ' · ' + p.missions.length +
+        " mission" + (p.missions.length !== 1 ? "s" : "") + " mapped",
+        "Continue → Missions", function () { state.step = 3; redraw(); }));
+    } else {
+      body.appendChild(nextBar("Pick a process to compose it", "", null));
+    }
+
+    // Full value-chain landscape (L1 → L4) for context; built areas remain clickable.
+    body.appendChild(el("div", "st-subq",
+      "Full " + esc(f.name) + " value-chain landscape <small>L1 → L4 · click a built area, or a map ⤢ to open its process map</small>"));
+    body.appendChild(valueChainNode(f, c));
+  }
+
+  /* The L1 value chain › L2 groups › L3 process areas › L4 sub-processes.
+     Built areas select their process; L4 items with a process map open it. */
+  function valueChainNode(f, c) {
+    var vc = f.valueChain, live = f.status === "live";
     var chain = el("div", "vc");
     chain.appendChild(el("div", "vc-l1", '<span class="vc-arrow">↔</span>' + esc(vc.name)));
-
     var groups = el("div", "vc-groups");
     vc.groups.forEach(function (g) {
       var gEl = el("div", "vc-group tone-" + g.tone);
-      gEl.style.flex = g.areas.length;   // group header spans its process areas
+      gEl.style.flex = g.areas.length;
       gEl.appendChild(el("div", "vc-ghead",
         esc(g.name) + (g.note ? ' <small>' + esc(g.note) + '</small>' : '')));
       var areas = el("div", "vc-areas");
@@ -360,9 +419,7 @@
           var sub = el("div", "vc-sub" + (hasMap ? " hasmap" : ""),
             '<span class="vc-lvl">L4</span>' + esc(s) +
             (hasMap ? '<span class="vc-map" title="View process map">⤢</span>' : ''));
-          if (hasMap) {
-            sub.onclick = function (ev) { ev.stopPropagation(); pm.open(s); };
-          }
+          if (hasMap) { sub.onclick = function (ev) { ev.stopPropagation(); pm.open(s); }; }
           subs.appendChild(sub);
         });
         col.appendChild(subs);
@@ -373,18 +430,7 @@
       groups.appendChild(gEl);
     });
     chain.appendChild(groups);
-    body.appendChild(chain);
-
-    var p = proc();
-    if (p) {
-      body.appendChild(hierarchy(f, p));
-      body.appendChild(swimlane(f, p));
-      body.appendChild(nextBar('Selected: ' + p.name + ' · ' + p.missions.length +
-        " mission" + (p.missions.length !== 1 ? "s" : "") + " mapped",
-        "Continue → Missions", function () { state.step = 3; redraw(); }));
-    } else {
-      body.appendChild(nextBar("Pick a built area to compose it", "", null));
-    }
+    return chain;
   }
 
   function pickBuiltArea(a) {

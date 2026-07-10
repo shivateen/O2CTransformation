@@ -115,7 +115,8 @@ def build_themes():
                 "current": 58,
                 "target": 38,
             },
-            "functionIds": ["o2c", "sc", "p2p"],
+            "functionIds": ["o2c"],
+            "processIds": ["o2c-ar", "o2c-billing", "o2c-dsd"],
             "crossProcessPatterns": [
                 {
                     "id": "ccp-1",
@@ -148,7 +149,8 @@ def build_themes():
                 "current": 2.8,
                 "target": 0.9,
             },
-            "functionIds": ["o2c", "tax"],
+            "functionIds": ["o2c"],
+            "processIds": ["o2c-pricing", "o2c-billing", "o2c-ar", "o2c-logistics", "o2c-returns"],
             "crossProcessPatterns": [
                 {
                     "id": "ccp-3",
@@ -162,18 +164,19 @@ def build_themes():
         },
         {
             "id": "close-acceleration",
-            "name": "Financial Close Acceleration",
+            "name": "Accelerate the Order-to-Cash Cycle",
             "icon": "clock",
             "accent": "#1E5F8E",
-            "tagline": "Compress close from 10 days to 4. Every day saved is a day for analysis instead of reconciliation.",
+            "tagline": "Compress the end-to-end cycle — clean order capture to cash applied — so working capital is freed and customers are served faster.",
             "compoundKPI": {
-                "name": "Close Cycle Days",
+                "name": "O2C Cycle Time",
                 "formula": "Day of final GL posting - Day 1 of close",
                 "unit": "days",
                 "current": 10,
                 "target": 4,
             },
-            "functionIds": ["o2c", "r2r"],
+            "functionIds": ["o2c"],
+            "processIds": ["o2c-ordmgmt", "o2c-billing", "o2c-ar", "o2c-governance"],
             "crossProcessPatterns": [
                 {
                     "id": "ccp-4",
@@ -187,10 +190,10 @@ def build_themes():
         },
         {
             "id": "controls-integrity",
-            "name": "Compliance & Controls Integrity",
+            "name": "Control Credit Risk & Compliance",
             "icon": "shield-check",
             "accent": "#6D4B9C",
-            "tagline": "Zero material weaknesses. Embedded controls, continuous monitoring, audit-ready always.",
+            "tagline": "Keep credit exposure inside appetite and the order-to-cash controls fraud-safe — credit scoring, price overrides, cash handling and segregation of duties.",
             "compoundKPI": {
                 "name": "Control Health Score",
                 "formula": "1 - (Deficiencies + Exceptions + Overrides) / Total Controls Tested",
@@ -198,7 +201,8 @@ def build_themes():
                 "current": 87,
                 "target": 97,
             },
-            "functionIds": ["icc", "o2c", "r2r"],
+            "functionIds": ["o2c"],
+            "processIds": ["o2c-ar", "o2c-pricing", "o2c-governance"],
             "crossProcessPatterns": [
                 {
                     "id": "ccp-5",
@@ -223,7 +227,8 @@ def build_themes():
                 "current": 64,
                 "target": 92,
             },
-            "functionIds": ["o2c", "p2p", "tcm"],
+            "functionIds": ["o2c"],
+            "processIds": ["o2c-ar", "o2c-billing"],
             "crossProcessPatterns": [
                 {
                     "id": "ccp-6",

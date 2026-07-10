@@ -113,6 +113,11 @@
     var some = all.filter(function (f) { return ids.indexOf(f.id) >= 0; });
     return some.length ? some : all;
   };
+  // process ids the selected objective makes relevant (empty = no objective / all relevant)
+  PIQ.objectiveProcessIds = function () {
+    var t = PIQ.objective();
+    return (t && t.processIds) ? t.processIds.slice() : [];
+  };
 
   // pull the referenced pattern ids ("#27") out of a compound pattern's triggers
   PIQ.compoundConstituents = function (cp) {

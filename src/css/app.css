@@ -1691,3 +1691,18 @@ body.dark .pm-exportbox{background:#141a24}
 body.dark .pm-export-ta{background:#0f1620;color:#dbe4ee}
 body.dark .pm-export-h span{color:#9fb0c4}
 body.dark .pm-export-h code{background:#1c2431}
+
+/* =====================================================================
+   Objective-driven process spotlight (Setup · process step)
+   ===================================================================== */
+.proc-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.proc-card{transition:opacity .16s,box-shadow .16s,border-color .16s}
+.proc-card.relevant{border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(244,122,30,.22),0 6px 18px rgba(244,122,30,.12)}
+body.dark .proc-card.relevant{box-shadow:0 0 0 2px rgba(167,139,250,.35),0 6px 18px rgba(167,139,250,.18)}
+.proc-card.dim{opacity:.42;filter:saturate(.7)}
+.proc-card.dim:hover{opacity:.9;filter:none}
+.relbadge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.02em;
+  color:var(--accent);background:rgba(244,122,30,.12);border:1px solid rgba(244,122,30,.42);
+  border-radius:20px;padding:1px 8px;margin-left:7px;vertical-align:middle;white-space:nowrap}
+body.dark .relbadge{background:rgba(167,139,250,.14);border-color:rgba(167,139,250,.45)}
