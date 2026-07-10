@@ -1,0 +1,743 @@
+{
+  "meta": {
+    "asOfDate": "2026-06-29",
+    "title": "ProcessIQ — Synthetic AR Portfolio",
+    "customerCount": 12,
+    "invoiceCount": 17,
+    "openValue": 3765900,
+    "valueAtRisk": 3279900
+  },
+  "customers": [
+    {
+      "kunnr": "C-100487",
+      "name": "Halberd Industrial Group",
+      "vertical": "Manufacturing",
+      "terms": "Net-30",
+      "ytdRevenue": 2400000,
+      "creditLimit": 750000
+    },
+    {
+      "kunnr": "C-100231",
+      "name": "Meridian Logistics LLC",
+      "vertical": "Transport",
+      "terms": "Net-45",
+      "ytdRevenue": 1100000,
+      "creditLimit": 400000
+    },
+    {
+      "kunnr": "C-100922",
+      "name": "Crestfall Retail Holdings",
+      "vertical": "Retail",
+      "terms": "Net-30",
+      "ytdRevenue": 3200000,
+      "creditLimit": 1500000
+    },
+    {
+      "kunnr": "C-100654",
+      "name": "Vanta Pharma Distribution",
+      "vertical": "Pharma",
+      "terms": "Net-60",
+      "ytdRevenue": 5600000,
+      "creditLimit": 2000000
+    },
+    {
+      "kunnr": "C-100311",
+      "name": "Northwind Foods Co",
+      "vertical": "CPG",
+      "terms": "Net-30",
+      "ytdRevenue": 890000,
+      "creditLimit": 300000
+    },
+    {
+      "kunnr": "C-100778",
+      "name": "Apex Construction Partners",
+      "vertical": "Construction",
+      "terms": "Net-45",
+      "ytdRevenue": 1750000,
+      "creditLimit": 600000
+    },
+    {
+      "kunnr": "C-100545",
+      "name": "Solano Energy Services",
+      "vertical": "Energy",
+      "terms": "Net-30",
+      "ytdRevenue": 4100000,
+      "creditLimit": 1200000
+    },
+    {
+      "kunnr": "C-100899",
+      "name": "Brightline Medical Supply",
+      "vertical": "Healthcare",
+      "terms": "Net-60",
+      "ytdRevenue": 2900000,
+      "creditLimit": 900000
+    },
+    {
+      "kunnr": "C-100412",
+      "name": "Quanta Semiconductors",
+      "vertical": "Technology",
+      "terms": "Net-30",
+      "ytdRevenue": 6200000,
+      "creditLimit": 2500000
+    },
+    {
+      "kunnr": "C-100367",
+      "name": "Ridgeway Automotive",
+      "vertical": "Automotive",
+      "terms": "Net-45",
+      "ytdRevenue": 1300000,
+      "creditLimit": 450000
+    },
+    {
+      "kunnr": "C-100720",
+      "name": "Lumen Office Products",
+      "vertical": "B2B Supply",
+      "terms": "Net-30",
+      "ytdRevenue": 540000,
+      "creditLimit": 200000
+    },
+    {
+      "kunnr": "C-100588",
+      "name": "Coastal Beverage Dist",
+      "vertical": "Beverage",
+      "terms": "Net-30",
+      "ytdRevenue": 980000,
+      "creditLimit": 350000
+    }
+  ],
+  "invoices": [
+    {
+      "invoiceId": "#4500049",
+      "belnr": "4500049",
+      "kunnr": "C-100487",
+      "customer": "Halberd Industrial Group",
+      "vertical": "Manufacturing",
+      "terms": "Net-30",
+      "amount": 340000,
+      "currency": "USD",
+      "dpd": 30,
+      "status": "Open",
+      "creditLimit": 750000,
+      "groundTruthFeature": "dispute-proximity",
+      "groundTruthCategory": "Dispute & Deduction Manipulation",
+      "signals": {
+        "disputeProximity": 1,
+        "disputeReasonSpecificity": 0.12,
+        "disputeCountYTD": 3,
+        "lateDisputeRate": 0.73,
+        "resolutionRatio": 0.98,
+        "strategicAccount": true,
+        "dpd": 30
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 15,
+          "label": "First Call"
+        },
+        {
+          "day": 22,
+          "label": "Promise to Pay"
+        },
+        {
+          "day": 28,
+          "label": "Promise Broken"
+        },
+        {
+          "day": 29,
+          "label": "Dispute Filed — 'Missing POD'"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500089",
+      "belnr": "4500089",
+      "kunnr": "C-100922",
+      "customer": "Crestfall Retail Holdings",
+      "vertical": "Retail",
+      "terms": "Net-30",
+      "amount": 95000,
+      "currency": "USD",
+      "dpd": 12,
+      "status": "Open",
+      "creditLimit": 1500000,
+      "groundTruthFeature": "volume-vs-threshold",
+      "groundTruthCategory": "Dispute & Deduction Manipulation",
+      "signals": {
+        "splitCount": 10,
+        "splitAmountEach": 9500,
+        "totalSplit": 95000,
+        "within24h": true,
+        "instance": 2,
+        "dpd": 12
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 10,
+          "label": "10 disputes filed in 4 hours"
+        },
+        {
+          "day": 12,
+          "label": "All under $10K threshold"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500101",
+      "belnr": "4500101",
+      "kunnr": "C-100311",
+      "customer": "Northwind Foods Co",
+      "vertical": "CPG",
+      "terms": "Net-30",
+      "amount": 42000,
+      "currency": "USD",
+      "dpd": 5,
+      "status": "Open",
+      "creditLimit": 300000,
+      "groundTruthFeature": "micro-deduction-density",
+      "groundTruthCategory": "Dispute & Deduction Manipulation",
+      "signals": {
+        "deductionCount": 63,
+        "deductionTotal": 2520,
+        "monthEndFriday": true,
+        "avgDeduction": 40,
+        "dpd": 5
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Batch Payment Received"
+        },
+        {
+          "day": 0,
+          "label": "63 micro-deductions ($40 avg)"
+        },
+        {
+          "day": 0,
+          "label": "4PM month-end Friday"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500192",
+      "belnr": "4500192",
+      "kunnr": "C-100367",
+      "customer": "Ridgeway Automotive",
+      "vertical": "Automotive",
+      "terms": "Net-45",
+      "amount": 28000,
+      "currency": "USD",
+      "dpd": 18,
+      "status": "Open",
+      "creditLimit": 450000,
+      "groundTruthFeature": "doc-request-frequency",
+      "groundTruthCategory": "Dispute & Deduction Manipulation",
+      "signals": {
+        "docRequestCount": 4,
+        "loopDays": 34,
+        "reasonsCycled": [
+          "POD",
+          "PO",
+          "Contract",
+          "Signature"
+        ],
+        "dpd": 18
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 8,
+          "label": "Requested POD"
+        },
+        {
+          "day": 16,
+          "label": "Requested PO"
+        },
+        {
+          "day": 24,
+          "label": "Requested Contract"
+        },
+        {
+          "day": 32,
+          "label": "Requested Signature"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500274",
+      "belnr": "4500274",
+      "kunnr": "C-100778",
+      "customer": "Apex Construction Partners",
+      "vertical": "Construction",
+      "terms": "Net-45",
+      "amount": 78000,
+      "currency": "USD",
+      "dpd": 41,
+      "status": "Open",
+      "creditLimit": 600000,
+      "groundTruthFeature": "contact-shift-frequency",
+      "groundTruthCategory": "Intentional Stalling & Delay Tactics",
+      "signals": {
+        "contactShiftCount": 4,
+        "amount": 78000,
+        "strategicAccount": false,
+        "dpd": 41
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 12,
+          "label": "AP: 'ask Procurement'"
+        },
+        {
+          "day": 20,
+          "label": "Procurement: 'ask Plant Mgr'"
+        },
+        {
+          "day": 30,
+          "label": "Plant Mgr: 'ask AP'"
+        },
+        {
+          "day": 38,
+          "label": "Loop repeats"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500346",
+      "belnr": "4500346",
+      "kunnr": "C-100231",
+      "customer": "Meridian Logistics LLC",
+      "vertical": "Transport",
+      "terms": "Net-45",
+      "amount": 210000,
+      "currency": "USD",
+      "dpd": 47,
+      "status": "Open",
+      "creditLimit": 400000,
+      "groundTruthFeature": "nlp-keyword-flag",
+      "groundTruthCategory": "Intentional Stalling & Delay Tactics",
+      "signals": {
+        "migrationKeywords": true,
+        "stallDuration": 33,
+        "p2pDate": null,
+        "dpd": 47
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 20,
+          "label": "Note: 'ERP migration go-live'"
+        },
+        {
+          "day": 33,
+          "label": "Note: 'cannot process 3 wks'"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500367",
+      "belnr": "4500367",
+      "kunnr": "C-100899",
+      "customer": "Brightline Medical Supply",
+      "vertical": "Healthcare",
+      "terms": "Net-60",
+      "amount": 64000,
+      "currency": "USD",
+      "dpd": 36,
+      "status": "Open",
+      "creditLimit": 900000,
+      "groundTruthFeature": "po-mismatch-flag",
+      "groundTruthCategory": "Intentional Stalling & Delay Tactics",
+      "signals": {
+        "poNull": true,
+        "disputeReasonNoPO": true,
+        "emailPOEvidence": true,
+        "dpd": 36
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Order placed — no PO"
+        },
+        {
+          "day": 30,
+          "label": "Invoice rejected: 'lacks PO'"
+        },
+        {
+          "day": 36,
+          "label": "Email PO located in archive"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500408",
+      "belnr": "4500408",
+      "kunnr": "C-100412",
+      "customer": "Quanta Semiconductors",
+      "vertical": "Technology",
+      "terms": "Net-30",
+      "amount": 99000,
+      "currency": "USD",
+      "dpd": 8,
+      "status": "Open",
+      "creditLimit": 2500000,
+      "groundTruthFeature": "credit-limit-velocity",
+      "groundTruthCategory": "Credit Risk & Insolvency Indicators",
+      "signals": {
+        "velocityRatio": 0.92,
+        "ordersLast7d": 5,
+        "creditLimit": 100000,
+        "refusingCalls": true,
+        "historicalMonthlyAvg": 10000,
+        "dpd": 8
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "5 orders in 7 days"
+        },
+        {
+          "day": 3,
+          "label": "Total $99K vs $100K limit"
+        },
+        {
+          "day": 6,
+          "label": "Customer dodging calls"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500475",
+      "belnr": "4500475",
+      "kunnr": "C-100654",
+      "customer": "Vanta Pharma Distribution",
+      "vertical": "Pharma",
+      "terms": "Net-60",
+      "amount": 200000,
+      "currency": "USD",
+      "dpd": 22,
+      "status": "Open",
+      "creditLimit": 2000000,
+      "groundTruthFeature": "min-viable-payment",
+      "groundTruthCategory": "Credit Risk & Insolvency Indicators",
+      "signals": {
+        "paymentRatio": 0.025,
+        "repeatCount": 3,
+        "dnbDeclining": true,
+        "openBalance": 200000,
+        "dpd": 22
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Owes $200K"
+        },
+        {
+          "day": 10,
+          "label": "Wired exactly $5K"
+        },
+        {
+          "day": 22,
+          "label": "3rd breadcrumb in 90 days"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500512",
+      "belnr": "4500512",
+      "kunnr": "C-100588",
+      "customer": "Coastal Beverage Dist",
+      "vertical": "Beverage",
+      "terms": "Net-30",
+      "amount": 9900,
+      "currency": "USD",
+      "dpd": 64,
+      "status": "Open",
+      "creditLimit": 350000,
+      "groundTruthFeature": "threshold-proximity",
+      "groundTruthCategory": "Credit Risk & Insolvency Indicators",
+      "signals": {
+        "openAR": 9800,
+        "reviewLimit": 10000,
+        "skimmingDays": 130,
+        "dpd": 64
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Balance hits $9,800"
+        },
+        {
+          "day": 30,
+          "label": "Tiny payment"
+        },
+        {
+          "day": 60,
+          "label": "Orders more — stays under $10K"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500572",
+      "belnr": "4500572",
+      "kunnr": "C-100545",
+      "customer": "Solano Energy Services",
+      "vertical": "Energy",
+      "terms": "Net-30",
+      "amount": 1000000,
+      "currency": "USD",
+      "dpd": 6,
+      "status": "Open",
+      "creditLimit": 1200000,
+      "groundTruthFeature": "remittance-lag",
+      "groundTruthCategory": "Cash Application & Remittance Friction",
+      "signals": {
+        "remittanceLag": 7,
+        "amount": 1000000,
+        "unappliedStatus": true,
+        "dpd": 6
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Wire received $1M"
+        },
+        {
+          "day": 0,
+          "label": "No remittance PDF"
+        },
+        {
+          "day": 6,
+          "label": "40 invoices unidentified"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500636",
+      "belnr": "4500636",
+      "kunnr": "C-100720",
+      "customer": "Lumen Office Products",
+      "vertical": "B2B Supply",
+      "terms": "Net-30",
+      "amount": 14000,
+      "currency": "USD",
+      "dpd": 9,
+      "status": "Open",
+      "creditLimit": 200000,
+      "groundTruthFeature": "discount-date-delta",
+      "groundTruthCategory": "Relationship & Contractual Abuse",
+      "signals": {
+        "unearnedDiscount": 280,
+        "paidDay": 45,
+        "discountDay": 10,
+        "amount": 14000,
+        "dpd": 9
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 45,
+          "label": "Paid Day 45"
+        },
+        {
+          "day": 45,
+          "label": "Took 2% Day-10 discount"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500705",
+      "belnr": "4500705",
+      "kunnr": "C-100654",
+      "customer": "Vanta Pharma Distribution",
+      "vertical": "Pharma",
+      "terms": "Net-60",
+      "amount": 480000,
+      "currency": "USD",
+      "dpd": 38,
+      "status": "Open",
+      "creditLimit": 2000000,
+      "groundTruthFeature": "broken-p2p-ratio",
+      "groundTruthCategory": "Relationship & Contractual Abuse",
+      "signals": {
+        "brokenP2PRatio": 0.8,
+        "p2pCount": 5,
+        "brokenCount": 4,
+        "dpd": 38
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 10,
+          "label": "P2P logged"
+        },
+        {
+          "day": 18,
+          "label": "P2P broken (#4)"
+        },
+        {
+          "day": 30,
+          "label": "New P2P logged"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500799",
+      "belnr": "4500799",
+      "kunnr": "C-100922",
+      "customer": "Crestfall Retail Holdings",
+      "vertical": "Retail",
+      "terms": "Net-30",
+      "amount": 620000,
+      "currency": "USD",
+      "dpd": 26,
+      "status": "Open",
+      "creditLimit": 1500000,
+      "groundTruthFeature": "velocity-of-delay",
+      "groundTruthCategory": "Relationship & Contractual Abuse",
+      "signals": {
+        "velocityDelta": 11,
+        "quarters": 3,
+        "trend": [
+          30,
+          34,
+          41
+        ],
+        "dpd": 26
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Q1 avg 30d"
+        },
+        {
+          "day": 90,
+          "label": "Q2 avg 34d"
+        },
+        {
+          "day": 180,
+          "label": "Q3 avg 41d"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500867",
+      "belnr": "4500867",
+      "kunnr": "C-100487",
+      "customer": "Halberd Industrial Group",
+      "vertical": "Manufacturing",
+      "terms": "Net-30",
+      "amount": 120000,
+      "currency": "USD",
+      "dpd": 4,
+      "status": "Open",
+      "creditLimit": 750000,
+      "groundTruthFeature": null,
+      "groundTruthCategory": null,
+      "signals": {
+        "dpd": 4,
+        "disputeProximity": 0,
+        "paymentRatio": 1.0
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 2,
+          "label": "Acknowledged"
+        },
+        {
+          "day": 4,
+          "label": "Scheduled for payment"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4500950",
+      "belnr": "4500950",
+      "kunnr": "C-100311",
+      "customer": "Northwind Foods Co",
+      "vertical": "CPG",
+      "terms": "Net-30",
+      "amount": 56000,
+      "currency": "USD",
+      "dpd": 0,
+      "status": "Open",
+      "creditLimit": 300000,
+      "groundTruthFeature": null,
+      "groundTruthCategory": null,
+      "signals": {
+        "dpd": 0,
+        "paymentRatio": 1.0
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 0,
+          "label": "Auto-matched remittance"
+        }
+      ]
+    },
+    {
+      "invoiceId": "#4501024",
+      "belnr": "4501024",
+      "kunnr": "C-100412",
+      "customer": "Quanta Semiconductors",
+      "vertical": "Technology",
+      "terms": "Net-30",
+      "amount": 310000,
+      "currency": "USD",
+      "dpd": 11,
+      "status": "Open",
+      "creditLimit": 2500000,
+      "groundTruthFeature": null,
+      "groundTruthCategory": null,
+      "signals": {
+        "dpd": 11,
+        "disputeProximity": 0
+      },
+      "eventSeries": [
+        {
+          "day": 0,
+          "label": "Invoice Posted"
+        },
+        {
+          "day": 5,
+          "label": "First Call — cooperative"
+        },
+        {
+          "day": 11,
+          "label": "Promise to Pay Day 20"
+        }
+      ]
+    }
+  ]
+}

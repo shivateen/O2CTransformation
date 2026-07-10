@@ -1,0 +1,253 @@
+{
+  "meta": {
+    "title": "ProcessIQ — ROI & Attribution",
+    "year1Total": 8400000,
+    "patternCount": 101,
+    "note": "Illustrative model. Figures are attributed to patterns, decisions, and actions — every dollar is traceable."
+  },
+  "kpis": [
+    {
+      "name": "DSO",
+      "unit": "days",
+      "before": 45,
+      "after": 35,
+      "better": "down",
+      "note": "Days Sales Outstanding"
+    },
+    {
+      "name": "CEI",
+      "unit": "%",
+      "before": 72,
+      "after": 90,
+      "better": "up",
+      "note": "Collection Effectiveness Index"
+    },
+    {
+      "name": "Auto-Match",
+      "unit": "%",
+      "before": 35,
+      "after": 85,
+      "better": "up",
+      "note": "Cash auto-applied"
+    },
+    {
+      "name": "Dispute Cycle",
+      "unit": "days",
+      "before": 25,
+      "after": 12,
+      "better": "down",
+      "note": "Time to resolve"
+    },
+    {
+      "name": "Deduction Auto",
+      "unit": "%",
+      "before": 0,
+      "after": 40,
+      "better": "up",
+      "note": "Auto-dispositioned",
+      "isNew": true
+    }
+  ],
+  "outcomes": [
+    {
+      "icon": "$",
+      "label": "Working Capital Released",
+      "value": 4200000,
+      "unit": "$",
+      "desc": "DSO compression freeing cash — measured, attributed, auditable."
+    },
+    {
+      "icon": "⊘",
+      "label": "Revenue Leakage Prevented",
+      "value": 2100000,
+      "unit": "$",
+      "desc": "Deductions caught, disputes won, unearned discounts reversed."
+    },
+    {
+      "icon": "↓",
+      "label": "Bad Debt Reduction",
+      "value": 2100000,
+      "unit": "$",
+      "desc": "Credit-risk patterns detected before write-off."
+    },
+    {
+      "icon": "→",
+      "label": "Expert Capacity Freed",
+      "value": 9600,
+      "unit": "fte",
+      "desc": "Analyst FTE-hours redirected from triage to strategic engagement."
+    }
+  ],
+  "themes": [
+    {
+      "id": "working-capital",
+      "compoundKPI": {
+        "name": "Cash Conversion Cycle",
+        "formula": "DSO + DIO - DPO",
+        "current": 58,
+        "target": 38,
+        "unit": "days"
+      },
+      "contributors": [
+        {
+          "kpi": "DSO",
+          "process": "O2C Collections",
+          "current": 45,
+          "target": 35,
+          "weight": 0.45,
+          "patterns": [
+            "Creeping Payment Terms",
+            "29th-Day Tactic",
+            "Chronic Promise Breaker"
+          ]
+        },
+        {
+          "kpi": "DPO",
+          "process": "P2P Payments",
+          "current": 32,
+          "target": 42,
+          "weight": 0.35,
+          "patterns": [
+            "Payment Term Erosion",
+            "Early Pay Discount Trap"
+          ]
+        },
+        {
+          "kpi": "DIO",
+          "process": "Inventory",
+          "current": 45,
+          "target": 35,
+          "weight": 0.2,
+          "patterns": [
+            "Supplier Concentration Risk"
+          ]
+        }
+      ],
+      "impact": "$27M freed working capital at $1B revenue"
+    }
+  ],
+  "trajectory": [
+    {
+      "period": "M1-3",
+      "label": "Foundation",
+      "cumulative": 0
+    },
+    {
+      "period": "M4-6",
+      "label": "First recoveries",
+      "cumulative": 2100000
+    },
+    {
+      "period": "M7-9",
+      "label": "Scaling patterns",
+      "cumulative": 5200000
+    },
+    {
+      "period": "M10-12",
+      "label": "Compound gains",
+      "cumulative": 8400000
+    }
+  ],
+  "attribution": [
+    {
+      "patternId": 92,
+      "name": "Phantom DSO Compression",
+      "category": "Cross-Process AR Governance",
+      "featureSlug": "phantom-dso-compression",
+      "priority": "Critical",
+      "recovery": 758000.0,
+      "customers": 9
+    },
+    {
+      "patternId": 20,
+      "name": "Partial Breadcrumbing",
+      "category": "Credit Risk & Insolvency Indicators",
+      "featureSlug": "min-viable-payment",
+      "priority": "Critical",
+      "recovery": 756000.0,
+      "customers": 9
+    },
+    {
+      "patternId": 64,
+      "name": "Threshold Splitting",
+      "category": "Deductions & Trade-Claim Recovery",
+      "featureSlug": "sub-threshold-split-cluster",
+      "priority": "Critical",
+      "recovery": 753000.0,
+      "customers": 7
+    },
+    {
+      "patternId": 78,
+      "name": "Unapproved Credit Memo",
+      "category": "Billing Accuracy & Revenue Integrity",
+      "featureSlug": "credit-memo-approval-bypass",
+      "priority": "Critical",
+      "recovery": 735000.0,
+      "customers": 8
+    },
+    {
+      "patternId": 83,
+      "name": "Serial Credit-Hold Override",
+      "category": "Order Integrity & Fulfilment Control",
+      "featureSlug": "credit-hold-override-rate",
+      "priority": "Critical",
+      "recovery": 710000.0,
+      "customers": 6
+    },
+    {
+      "patternId": 88,
+      "name": "Post-Approval Ship Swap",
+      "category": "Order Integrity & Fulfilment Control",
+      "featureSlug": "post-approval-address-change",
+      "priority": "Critical",
+      "recovery": 703000.0,
+      "customers": 8
+    },
+    {
+      "patternId": 73,
+      "name": "Exploitable Price Seed",
+      "category": "Billing Accuracy & Revenue Integrity",
+      "featureSlug": "price-condition-variance",
+      "priority": "Critical",
+      "recovery": 646000.0,
+      "customers": 6
+    },
+    {
+      "patternId": 60,
+      "name": "RMA Phantom Items",
+      "category": "Dispute Lifecycle Management",
+      "featureSlug": "phantom-return-authorization",
+      "priority": "Critical",
+      "recovery": 635000.0,
+      "customers": 6
+    },
+    {
+      "patternId": 19,
+      "name": "Bust-Out Fraud Precursor",
+      "category": "Credit Risk & Insolvency Indicators",
+      "featureSlug": "credit-limit-velocity",
+      "priority": "Critical",
+      "recovery": 606000.0,
+      "customers": 9
+    },
+    {
+      "patternId": 43,
+      "name": "Duplicate Refund Bait",
+      "category": "Cash Application & Matching Integrity",
+      "featureSlug": "duplicate-payment-fingerprint",
+      "priority": "Critical",
+      "recovery": 586000.0,
+      "customers": 9
+    },
+    {
+      "patternId": null,
+      "name": "91 other patterns",
+      "category": "Long tail",
+      "featureSlug": null,
+      "priority": null,
+      "recovery": 1512000.0,
+      "customers": 63,
+      "isOther": true
+    }
+  ]
+}

@@ -1,0 +1,350 @@
+{
+  "meta": {
+    "title": "ProcessIQ — Continuous Discovery",
+    "existingPatternCount": 101,
+    "candidateId": 102,
+    "note": "The LLM explains the anomaly; it does not invent it. Candidates are proposals, not conclusions — an SME panel gates every promotion."
+  },
+  "stage1": {
+    "normal": [
+      {
+        "x": 10.0,
+        "y": 8.3
+      },
+      {
+        "x": 15.9,
+        "y": 18.3
+      },
+      {
+        "x": 20.9,
+        "y": 22.2
+      },
+      {
+        "x": 10.6,
+        "y": 10.7
+      },
+      {
+        "x": 29.9,
+        "y": 30.1
+      },
+      {
+        "x": 32.6,
+        "y": 34.9
+      },
+      {
+        "x": 17.6,
+        "y": 14.6
+      },
+      {
+        "x": 27.6,
+        "y": 25.4
+      },
+      {
+        "x": 8.2,
+        "y": 9.6
+      },
+      {
+        "x": 29.9,
+        "y": 31.9
+      },
+      {
+        "x": 32.8,
+        "y": 31.0
+      },
+      {
+        "x": 10.1,
+        "y": 7.8
+      },
+      {
+        "x": 33.4,
+        "y": 31.1
+      },
+      {
+        "x": 12.1,
+        "y": 9.3
+      },
+      {
+        "x": 9.3,
+        "y": 6.5
+      },
+      {
+        "x": 17.2,
+        "y": 15.2
+      },
+      {
+        "x": 16.1,
+        "y": 18.6
+      },
+      {
+        "x": 12.4,
+        "y": 14.2
+      },
+      {
+        "x": 27.2,
+        "y": 27.6
+      },
+      {
+        "x": 23.0,
+        "y": 24.6
+      },
+      {
+        "x": 23.3,
+        "y": 21.6
+      },
+      {
+        "x": 16.6,
+        "y": 15.0
+      },
+      {
+        "x": 18.4,
+        "y": 21.3
+      },
+      {
+        "x": 19.1,
+        "y": 16.5
+      },
+      {
+        "x": 20.4,
+        "y": 22.3
+      },
+      {
+        "x": 19.6,
+        "y": 20.8
+      },
+      {
+        "x": 10.4,
+        "y": 7.7
+      },
+      {
+        "x": 25.2,
+        "y": 22.5
+      },
+      {
+        "x": 15.9,
+        "y": 15.2
+      },
+      {
+        "x": 13.0,
+        "y": 10.2
+      },
+      {
+        "x": 8.2,
+        "y": 10.9
+      },
+      {
+        "x": 25.9,
+        "y": 28.6
+      },
+      {
+        "x": 20.8,
+        "y": 23.5
+      },
+      {
+        "x": 30.4,
+        "y": 31.1
+      },
+      {
+        "x": 21.7,
+        "y": 21.7
+      },
+      {
+        "x": 13.9,
+        "y": 13.1
+      },
+      {
+        "x": 26.8,
+        "y": 25.0
+      },
+      {
+        "x": 30.1,
+        "y": 30.2
+      },
+      {
+        "x": 23.7,
+        "y": 25.6
+      },
+      {
+        "x": 24.8,
+        "y": 22.6
+      },
+      {
+        "x": 14.4,
+        "y": 11.4
+      },
+      {
+        "x": 8.7,
+        "y": 11.4
+      },
+      {
+        "x": 23.4,
+        "y": 26.2
+      },
+      {
+        "x": 28.3,
+        "y": 27.2
+      },
+      {
+        "x": 33.1,
+        "y": 35.7
+      },
+      {
+        "x": 19.9,
+        "y": 17.4
+      }
+    ],
+    "anomaly": [
+      {
+        "x": 11.5,
+        "y": 28.3
+      },
+      {
+        "x": 11.6,
+        "y": 27.9
+      },
+      {
+        "x": 12.6,
+        "y": 32.4
+      },
+      {
+        "x": 11.1,
+        "y": 31.4
+      },
+      {
+        "x": 12.3,
+        "y": 29.9
+      },
+      {
+        "x": 13.2,
+        "y": 29.4
+      },
+      {
+        "x": 13.0,
+        "y": 27.7
+      },
+      {
+        "x": 13.4,
+        "y": 28.4
+      },
+      {
+        "x": 10.5,
+        "y": 31.9
+      }
+    ],
+    "xLabel": "Historical avg days-to-pay",
+    "yLabel": "Recent avg days-to-pay"
+  },
+  "stage2": {
+    "clusters": [
+      {
+        "label": "Pricing dispute",
+        "x": 0.24,
+        "y": 0.3,
+        "size": 11,
+        "anomaly": false
+      },
+      {
+        "label": "Short shipment",
+        "x": 0.38,
+        "y": 0.66,
+        "size": 8,
+        "anomaly": false
+      },
+      {
+        "label": "Portal / format error",
+        "x": 0.7,
+        "y": 0.24,
+        "size": 6,
+        "anomaly": false
+      },
+      {
+        "label": "Missing PO / backup",
+        "x": 0.62,
+        "y": 0.74,
+        "size": 7,
+        "anomaly": false
+      },
+      {
+        "label": "‘Treasury timing / cash management’",
+        "x": 0.5,
+        "y": 0.5,
+        "size": 14,
+        "anomaly": true
+      }
+    ]
+  },
+  "candidate": {
+    "id": 102,
+    "proposedName": "Seasonal Treasury Squeeze",
+    "vertical": "Retail / CPG",
+    "proposedCategory": "Credit Risk & Insolvency Indicators",
+    "proposedFeature": "Seasonal_Delay_Cluster",
+    "statSignal": "Isolation Forest flagged 9 Retail accounts paying ~Day 30 against their Day-12 norm (anomaly score 0.91). No existing rule covers this — it is a statistical signal, not a known tactic.",
+    "textSignal": "Vector clustering surfaced a spike of 14 ‘treasury timing / cash management’ excuses across the same vertical within one fortnight — a coordinated excuse, not isolated delays.",
+    "narrative": "A cohort of Retail customers is synchronising payment delays to their own treasury cycles — stretching from Day 12 to Day 30 during the post-holiday liquidity crunch, then normalising. This is not dispute behaviour and not insolvency; it is seasonal float optimisation at our expense.",
+    "estImpact": 4200000,
+    "candidateConfidence": 0.88,
+    "anomalyScore": 0.91,
+    "affectedCustomers": 14,
+    "proposedDAG": [
+      {
+        "tier": "primary",
+        "condition": "IF Seasonal_Delay_Cluster detected AND first season",
+        "actions": [
+          "Offer_Dynamic_Discount (pull-forward incentive)",
+          "Internal_Alert_to_AE"
+        ],
+        "hitl": null
+      },
+      {
+        "tier": "escalation",
+        "condition": "ELSE IF recurs 2+ seasons OR Amount > $250K",
+        "actions": [
+          "Negotiate_Pre-Season_Payment_Plan",
+          "Update_CRM_Task"
+        ],
+        "hitl": null
+      },
+      {
+        "tier": "escalation",
+        "condition": "ELSE IF cohort-wide AND float impact > $1M",
+        "actions": [
+          "Tighten_Seasonal_Terms",
+          "Trigger_Credit_Review"
+        ],
+        "hitl": "Treasury VP approves seasonal terms change"
+      }
+    ]
+  },
+  "loop": [
+    {
+      "step": 1,
+      "name": "Discover",
+      "desc": "Candidate surfaces with statistical signal, text cluster, and LLM narrative."
+    },
+    {
+      "step": 2,
+      "name": "Approve",
+      "desc": "SME panel reviews: Is it real? Is it actionable? What's the counter-strategy?"
+    },
+    {
+      "step": 3,
+      "name": "Detect",
+      "desc": "Pattern added to repository — versioned, effective-dated, scanning all customers."
+    },
+    {
+      "step": 4,
+      "name": "Act",
+      "desc": "Actions assembled and queued per governance model (HITL → Policy → Autonomous)."
+    },
+    {
+      "step": 5,
+      "name": "Attribute",
+      "desc": "Outcomes traced back — did the counter-strategy work? What was recovered?"
+    },
+    {
+      "step": 6,
+      "name": "Learn",
+      "desc": "Calibrate confidence scores. Repository grows. The system compounds."
+    }
+  ]
+}

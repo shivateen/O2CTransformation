@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Cache-Control" content="no-cache"/>
+<title>Tiger Mission Control · Tiger Analytics</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,-apple-system,Segoe UI,Roboto,sans-serif;background:#2a2420;color:#fff;
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+  .dot{width:14px;height:14px;border-radius:50%;background:#f47a1e;display:inline-block;margin-right:10px;
+    box-shadow:0 0 0 5px rgba(244,122,30,.28)}
+  .hero{max-width:760px;text-align:center;margin-bottom:34px}
+  h1{font-size:36px;margin:0 0 8px;letter-spacing:-.02em}
+  .hero p{opacity:.82;line-height:1.55;font-size:15px;margin:0}
+  .who{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#f0a866;margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(300px,340px));gap:18px;width:100%;max-width:720px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  a.persona{display:block;text-decoration:none;color:#fff;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:20px 22px;transition:.16s}
+  a.persona:hover{background:rgba(255,255,255,.1);border-color:rgba(244,122,30,.6);transform:translateY(-3px)}
+  .p-ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;
+    background:rgba(244,122,30,.16);border:1px solid rgba(244,122,30,.34);margin-bottom:12px}
+  .p-name{font-size:18px;font-weight:750;letter-spacing:-.01em}
+  .p-desc{font-size:13px;opacity:.72;line-height:1.5;margin:5px 0 14px}
+  /* mini stage strip preview */
+  .strip{display:flex;gap:4px;margin-bottom:12px}
+  .st{flex:1;height:26px;border-radius:6px;display:grid;place-items:center;font-size:10px;font-weight:800;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4)}
+  .st.on{background:#f47a1e;border-color:#f47a1e;color:#2a2420;box-shadow:0 0 0 3px rgba(244,122,30,.2)}
+  .st.sep{flex:0;width:1px;background:rgba(255,255,255,.18);border:0;border-radius:0}
+  .p-enter{font-size:13px;font-weight:700;color:#f0a866}
+  a.full{margin-top:30px;font-size:14px;color:rgba(255,255,255,.75);text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.35);padding-bottom:2px}
+  a.full:hover{color:#fff}
+  small.foot{display:block;margin-top:24px;opacity:.5;line-height:1.5;text-align:center;max-width:640px}
+</style>
+</head>
+<body>
+  <div class="hero">
+    <h1><span class="dot"></span>Tiger Mission Control</h1>
+    <p>From business objective to running agent — one continuous pipeline. Function-agnostic:
+       a business SME builds the mission, the patterns handle the variations, the agents run it.</p>
+  </div>
+
+  <p class="who">Choose your view</p>
+  <div class="grid">
+
+    <a class="persona" href="processiq.html?persona=cfo">
+      <div class="p-ic">📊</div>
+      <div class="p-name">CFO / Finance Lead</div>
+      <div class="p-desc">Outcomes first. Decision queue, cash forecast, insight feed and trajectory — only what needs your judgment.</div>
+      <div class="strip">
+        <span class="st">1</span><span class="st">2</span><span class="st">3</span><span class="st">4</span>
+        <span class="st sep"></span><span class="st on">5</span>
+      </div>
+      <div class="p-enter">Enter the CFO Layer →</div>
+    </a>
+
+    <a class="persona" href="processiq.html?persona=designer">
+      <div class="p-ic">✏️</div>
+      <div class="p-name">Transformation Designer</div>
+      <div class="p-desc">Build the mission top-down: Objective → Function → Process → Missions → Capabilities → patterns → skills.</div>
+      <div class="strip">
+        <span class="st on">1</span><span class="st">2</span><span class="st">3</span><span class="st">4</span>
+        <span class="st sep"></span><span class="st">5</span>
+      </div>
+      <div class="p-enter">Enter Setup →</div>
+    </a>
+
+    <a class="persona" href="processiq.html?persona=studio">
+      <div class="p-ic">🛠️</div>
+      <div class="p-name">Implementation Studio</div>
+      <div class="p-desc">Fit agents to activities, then assemble the configured skills into executable, validated agent chains.</div>
+      <div class="strip">
+        <span class="st">1</span><span class="st on">2</span><span class="st on">3</span><span class="st">4</span>
+        <span class="st sep"></span><span class="st">5</span>
+      </div>
+      <div class="p-enter">Enter Discover &amp; Fit / Build →</div>
+    </a>
+
+    <a class="persona" href="processiq.html?persona=manage">
+      <div class="p-ic">🎛️</div>
+      <div class="p-name">Manage &amp; Operate</div>
+      <div class="p-desc">Run the agentic workflow in production: straight-through on the happy path, variations routed for approval.</div>
+      <div class="strip">
+        <span class="st">1</span><span class="st">2</span><span class="st">3</span><span class="st on">4</span>
+        <span class="st sep"></span><span class="st">5</span>
+      </div>
+      <div class="p-enter">Enter Run &amp; Monitor →</div>
+    </a>
+
+  </div>
+
+  <a class="full" href="processiq.html">Or explore the full workspace — all five stages →</a>
+
+  <small class="foot">Tiger Analytics · Order-to-Cash &amp; Procure-to-Pay fully mapped (L4 process maps + behavioural pattern library) · R2R, HR &amp; Supply Chain as samples</small>
+</body>
+</html>

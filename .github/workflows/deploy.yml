@@ -1,0 +1,52 @@
+name: Deploy to GitHub Pages
+
+# Build the accelerator and publish ONLY the generated files (index.html +
+# processiq.html + .nojekyll) to the gh-pages branch that GitHub Pages serves.
+# Source, the .pptx and the .xlsx are never published. Mirrors scripts/deploy.py.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.gitattributes'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build (stdlib-only, no deps)
+        run: python scripts/build.py
+
+      - name: Publish built files to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          test -f public/processiq.html && test -f public/index.html
+          rm -rf _site && mkdir _site
+          cp public/index.html public/processiq.html _site/
+          touch _site/.nojekyll
+          cd _site
+          git init -q
+          git checkout -qb gh-pages
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Deploy (CI build, synthetic data only) [skip ci]"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

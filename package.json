@@ -1,0 +1,13 @@
+{
+  "name": "processiq",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ProcessIQ — AI-Driven AR Collections Cognitive Cockpit (Tiger Analytics accelerator)",
+  "scripts": {
+    "build": "python scripts/build.py",
+    "dev": "python scripts/build.py && python -m http.server 3000 --directory public",
+    "deploy": "python scripts/deploy.py",
+    "data": "python scripts/build_patterns.py && python scripts/build_portfolio.py && python scripts/build_roi.py && python scripts/build_discovery.py"
+  },
+  "license": "UNLICENSED"
+}
