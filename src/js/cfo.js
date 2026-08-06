@@ -1,4 +1,8 @@
-/* Stage 5 · CFO Consumption Layer — the executive's top-down surface.
+/* Stage 5 · Finance Command Centre — the finance leadership team's top-down surface.
+ *
+ * A persona rail sits above every sub-view: the CFO sees the whole book; each finance lead
+ * (Controller, Treasurer, Credit & Collections, AR / O2C, FP&A) sees only the objectives they
+ * own, so the tiles, decision queue and insights narrow to their remit.
  *
  * The inverse of the Mission Builder: outcomes first, patterns underneath. Four sub-views —
  * Command Center (daily pulse), Intelligence (weekly briefing), Scenarios (what-if),
@@ -17,6 +21,54 @@
   var THEME_ICONS = { "trending-up": "📈", "shield-alert": "🚨", "clock": "⏱️",
     "shield-check": "🛡️", "eye": "👁️" };
   var _intelFilter = null;   // themeId set when a Command Center tile is clicked
+
+  /* ---- the finance leadership team ------------------------------------- *
+   * Each lead owns a slice of the objective set; the CFO owns the whole book.
+   * `objectives: null` = every objective in the taxonomy.                    */
+  var PERSONAS = [
+    { id: "cfo",        initials: "CFO", name: "Chief Financial Officer",   objectives: null,
+      brief: "The whole book — cash, revenue integrity, control health and the agent programme." },
+    { id: "controller", initials: "FC",  name: "Financial Controller",      objectives: ["close-acceleration", "controls-integrity"],
+      brief: "Cycle time and control health — a clean, fast, auditable close." },
+    { id: "treasurer",  initials: "TR",  name: "Treasurer",                 objectives: ["cash-visibility", "working-capital"],
+      brief: "Cash position and forecast accuracy — liquidity you can bank on." },
+    { id: "credit",     initials: "CC",  name: "Credit & Collections Lead", objectives: ["working-capital", "controls-integrity"],
+      brief: "DSO and credit exposure — collect faster without buying risk." },
+    { id: "ar",         initials: "AR",  name: "Order-to-Cash / AR Lead",   objectives: ["close-acceleration", "revenue-leakage"],
+      brief: "Invoice-to-cash throughput and every dollar that leaks on the way." },
+    { id: "fpa",        initials: "FP",  name: "FP&A Lead",                 objectives: ["cash-visibility", "revenue-leakage"],
+      brief: "Forecast quality and revenue realisation against plan." },
+  ];
+  var _persona = "cfo";
+  function persona() { return PERSONAS.filter(function (p) { return p.id === _persona; })[0] || PERSONAS[0]; }
+  function inScope(themeId) {
+    var o = persona().objectives;
+    return !o || o.indexOf(themeId) >= 0;
+  }
+  function scopedThemes() { return themes().filter(function (t) { return inScope(t.id); }); }
+
+  function personaRail() {
+    var p = persona();
+    var chips = PERSONAS.map(function (x) {
+      var n = x.objectives ? x.objectives.length : themes().length;
+      return '<button class="fp-chip' + (x.id === _persona ? " on" : "") + '" data-p="' + x.id + '">' +
+        '<span class="fp-av">' + esc(x.initials) + '</span>' +
+        '<span class="fp-txt"><b>' + esc(x.name) + '</b>' +
+        '<small>' + n + ' objective' + (n !== 1 ? "s" : "") + '</small></span></button>';
+    }).join("");
+    return '<div class="fp-rail"><div class="fp-rail-head">Finance Command Centre · viewing as</div>' +
+      '<div class="fp-chips">' + chips + '</div>' +
+      '<div class="fp-brief">' + esc(p.brief) + '</div></div>';
+  }
+  function bindRail(view, rerender) {
+    view.querySelectorAll(".fp-chip").forEach(function (b) {
+      b.onclick = function () {
+        if (b.dataset.p === _persona) return;
+        _persona = b.dataset.p; _intelFilter = null;
+        rerender(view);
+      };
+    });
+  }
 
   function el(t, c, h) { var n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; }
   function esc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -171,16 +223,18 @@
   }
 
   function renderCommand(view) {
-    var cc = CFO.commandCenter || {}, ts = themes();
-    var q = (cc.decisionQueue || []).slice().sort(function (a, b) { return (URG[a.urgency] - URG[b.urgency]); });
-    var html =
-      section("Command Center", "Your daily 5-minute pulse — outcomes, autonomy, cash, and only what needs your judgment.") +
+    var cc = CFO.commandCenter || {}, ts = scopedThemes();
+    var q = (cc.decisionQueue || []).filter(function (d) { return inScope(d.themeId); })
+      .sort(function (a, b) { return (URG[a.urgency] - URG[b.urgency]); });
+    var html = personaRail() +
+      section("Command Center", "The daily 5-minute pulse for " + persona().name + " — outcomes, autonomy, cash, and only what needs their judgment.") +
       '<div class="cfo-tiles">' + ts.map(themeTile).join("") + '</div>' +
       '<div class="cfo-cols"><div>' + autonomyGauge(cc.agentAutonomy || {}) + '</div>' +
         '<div>' + section("13-Week Cash Forecast", "Net position with confidence band.") + cashForecast(CFO.cashForecast || {}) + '</div></div>' +
-      section("Decision Queue", q.length + " item" + (q.length !== 1 ? "s" : "") + " need your call — sorted by urgency.") +
-      '<div class="cfo-queue">' + q.map(dqCard).join("") + '</div>';
+      section("Decision Queue", q.length + " item" + (q.length !== 1 ? "s" : "") + " need this desk's call — sorted by urgency.") +
+      '<div class="cfo-queue">' + (q.length ? q.map(dqCard).join("") : '<div class="cfo-empty">Nothing waiting on this desk.</div>') + '</div>';
     view.innerHTML = '<div class="cfo-wrap">' + html + '</div>';
+    bindRail(view, renderCommand);
 
     // tile click -> filter Intelligence by theme
     view.querySelectorAll(".cfo-tile").forEach(function (e) {
@@ -239,19 +293,20 @@
 
   function renderIntelligence(view) {
     var intel = CFO.intelligence || {};
-    var ins = (intel.insights || []).slice();
+    var ins = (intel.insights || []).filter(function (x) { return inScope(x.themeId); });
     var filt = _intelFilter;
     if (filt) ins = ins.filter(function (x) { return x.themeId === filt; });
     ins.sort(function (a, b) { return SEV[a.severity] - SEV[b.severity]; });
     var ft = filt ? themeById(filt) : null;
-    var html =
-      section("Intelligence", "The weekly briefing — the system writes the story behind every move.") +
+    var html = personaRail() +
+      section("Intelligence", "The weekly briefing for " + persona().name + " — the system writes the story behind every move.") +
       (ft ? '<div class="cfo-filter">Filtered to <b>' + esc(ft.name) + '</b> <button class="cfo-clear">show all</button></div>' : '') +
       '<div class="ins-feed">' + (ins.length ? ins.map(insCard).join("") : '<div class="cfo-empty">No insights for this theme this week.</div>') + '</div>' +
       section("Compound Pattern Radar", "Cross-process behavioural risk no single analyst can see.") +
       '<div class="cmp-grid">' + (intel.compoundRadar || []).map(cmpCard).join("") + '</div>' +
       explanationChain();
     view.innerHTML = '<div class="cfo-wrap">' + html + '</div>';
+    bindRail(view, renderIntelligence);
     var clr = view.querySelector(".cfo-clear");
     if (clr) clr.onclick = function () { _intelFilter = null; renderIntelligence(view); };
     bindPatterns(view);
@@ -297,10 +352,12 @@
   function renderScenarios(view) {
     var list = (CFO.scenarios && CFO.scenarios.available) || [];
     var sel = _scn && list.filter(function (x) { return x.id === _scn; })[0];
-    var html = section("Scenarios", "The monthly what-if engine — move a lever, see the trade-off before you commit.") +
+    var html = personaRail() +
+      section("Scenarios", "The monthly what-if engine — move a lever, see the trade-off before you commit.") +
       '<div class="scn-grid">' + list.map(scnCard).join("") + '</div>' +
       (sel ? scnDetail(sel, 1) : '<div class="cfo-empty">Select a scenario to model its impact.</div>');
     view.innerHTML = '<div class="cfo-wrap">' + html + '</div>';
+    bindRail(view, renderScenarios);
     view.querySelectorAll(".scn-card").forEach(function (c) {
       c.onclick = function () { _scn = c.dataset.id; renderScenarios(view); };
     });
@@ -406,7 +463,7 @@
   function renderTrajectory(view) {
     var tr = CFO.trajectory || {};
     var kpis = (tr.kpiTrajectory || []).map(kpiSmall).join("");
-    var html =
+    var html = personaRail() +
       section("Trajectory", "The quarterly strategic view — where the transformation is heading, with confidence.") +
       section("Phase Progress", "") + phaseBar(tr.phases || []) +
       section("Agent Maturity", "The shift from manual to autonomous over the first 9 months.") + maturityChart(tr.agentMaturity || {}) +
@@ -414,6 +471,7 @@
       section("ROI Waterfall", "Cumulative investment vs returns.") + roiChart(tr.cumulativeROI || {}) +
       section("Board Scorecard", "") + scorecard(tr.boardScorecard || []);
     view.innerHTML = '<div class="cfo-wrap">' + html + '</div>';
+    bindRail(view, renderTrajectory);
   }
 
   /* ---- register the 4 sub-views ---------------------------------------- */

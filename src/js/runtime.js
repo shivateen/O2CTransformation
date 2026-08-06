@@ -116,6 +116,7 @@
     ensureSim(false);
     var root = el("div", "rt");
     root.appendChild(head());
+    root.appendChild(missionBand());
     root.appendChild(kpis());
     var comp = el("div", "rt-compound"); comp.id = "rtCompound";
     root.appendChild(comp);   // filled by drawCompound as compound signals emerge
@@ -125,7 +126,7 @@
       '<div class="rt-feed" id="rtFeed"></div></div>';
     root.appendChild(grid);
     view.appendChild(root);
-    drawStream(); drawApprovals(); drawFeed(); drawKpis(); drawCompound();
+    drawStream(); drawApprovals(); drawFeed(); drawMissionKpis(); drawKpis(); drawCompound();
     wireControls(root);
   }
 
@@ -150,10 +151,13 @@
   }
 
   function kpis() {
-    return el("div", "rt-kpis", '' +
+    var wrap = el("div", "rt-ops");
+    wrap.appendChild(el("div", "mk-h", 'Process operations <small>throughput of the queue below</small>'));
+    wrap.appendChild(el("div", "rt-kpis", '' +
       kpi("kStp", "0%", "Straight-through") + kpi("kAuto", "0", "Auto-resolved") +
       kpi("kPend", "0", "Pending approval") + kpi("kAppr", "0", "DAG-approved") +
-      kpi("kVal", "$0", "Value released"));
+      kpi("kVal", "$0", "Value released")));
+    return wrap;
   }
   function kpi(id, v, l) { return '<div class="rkpi"><b id="' + id + '">' + v + '</b><span>' + l + '</span></div>'; }
 
@@ -164,6 +168,138 @@
     set("kAppr", c.approved); set("kVal", money(c.value));
   }
   function set(id, v) { var n = document.getElementById(id); if (n) n.textContent = v; }
+
+  /* ---------------- mission KPIs ----------------
+     The tie-back. The queue below is process work; this band says which mission
+     that work serves and what it is moving. A transaction matched to a pattern is
+     credited — via PIQ.patternAttribution — to the capability that references the
+     pattern and the mission that owns the capability. Clean (happy-path) items
+     carry no pattern, so they credit every in-scope mission: straight-through
+     throughput is what all of them depend on.
+
+     Each capability KPI has a baseline and a target (taxonomy capability.metric).
+     An untouched queue sits at baseline; clearing it walks the KPI toward target
+     in proportion to the mission's completed share. Nothing is invented — the
+     movement is exactly the work the operator has done. */
+  function missionProgress() {
+    var mm = window.PIQ.missionMetrics();
+    var prog = {};
+    mm.forEach(function (m) {
+      prog[m.mission.id] = { total: 0, done: 0, value: 0, pending: 0,
+        stp: 0, matched: 0, gates: 0, resolved: 0 };
+    });
+    var ids = Object.keys(prog);
+    if (!ids.length) return prog;
+
+    sim.q.forEach(function (t, i) {
+      var targets, own = false;
+      if (t.kind === "variation" && t.patternId != null) {
+        targets = window.PIQ.patternAttribution(t.patternId).missionIds;
+        // a pattern outside the in-scope capability set still belongs to this
+        // process — spread it rather than dropping it on the floor
+        if (!targets.length) targets = ids; else own = true;
+      } else {
+        targets = ids;
+      }
+      var settled = t.status === "auto" || t.status === "approved" ||
+                    t.status === "rejected" || (t.kind === "clean" && i < sim.cursor);
+      targets.forEach(function (mid) {
+        var e = prog[mid]; if (!e) return;
+        e.total++;
+        if (settled) { e.done++; e.value += Math.round(t.amt * 0.12); }
+        if (t.status === "pending") e.pending++;
+        if (t.kind === "clean" && i < sim.cursor) e.stp++;
+        // only count a variation as this mission's own work when the pattern
+        // actually attributes to it
+        if (own && settled) e.matched++;
+        if (own && t.needsApproval) {
+          e.gates++;
+          if (t.status === "approved" || t.status === "rejected") e.resolved++;
+        }
+      });
+    });
+    return prog;
+  }
+
+  /* Read-only view of the simulator for other modules (Mission Command reads this
+     so the campaign board and this console can never disagree). Builds the queue
+     on demand, so a campaign renders at baseline before anyone presses Step. */
+  window.PIQ.missionRuntime = function () {
+    if (!C().patternIds.length) return { started: false, cursor: 0, queued: 0, byMission: {} };
+    ensureSim(false);
+    return { started: sim.cursor > 0, cursor: sim.cursor, queued: sim.q.length,
+             byMission: missionProgress() };
+  };
+
+  // baseline → target interpolated by how much of the mission's work is settled
+  function kpiCurrent(m, pct) {
+    var v = m.baseline + (m.target - m.baseline) * pct;
+    var abs = Math.abs(v);
+    return Math.round(v * (abs < 20 ? 10 : 1)) / (abs < 20 ? 10 : 1);
+  }
+  function fmtKpi(v, unit) {
+    if (unit === "$" ) return "$" + v;
+    if (unit === "$K") return "$" + v + "K";
+    if (unit === "$M") return "$" + v + "M";
+    if (unit === "%")  return v + "%";
+    return String(v);
+  }
+  function unitTail(unit) {
+    return (unit && unit.charAt(0) !== "$" && unit !== "%") ? ' <small>' + esc(unit) + '</small>' : '';
+  }
+
+  function missionBand() {
+    var band = el("div", "mk-band"); band.id = "rtMission";
+    return band;
+  }
+
+  function drawMissionKpis() {
+    var host = document.getElementById("rtMission"); if (!host) return;
+    var mm = window.PIQ.missionMetrics();
+    if (!mm.length) { host.innerHTML = ""; return; }
+    var prog = missionProgress();
+    var obj = window.PIQ.objective();
+
+    host.innerHTML = '<div class="mk-h">Mission outcomes ' +
+      '<small>what this queue is moving · capability KPI → mission → objective</small></div>' +
+      mm.map(function (m) {
+        var e = prog[m.mission.id] || { total: 0, done: 0, pending: 0 };
+        var pct = e.total ? e.done / e.total : 0;
+        var tiles = m.metrics.map(function (k) {
+          if (k.baseline == null || k.target == null) return "";
+          var cur = kpiCurrent(k, pct);
+          var delta = Math.round((cur - k.baseline) * 10) / 10;
+          var good = k.better === "up" ? delta > 0 : delta < 0;
+          var arrow = delta === 0 ? "" : (delta > 0 ? "▲" : "▼");
+          return '<div class="mk-tile">' +
+            '<div class="mk-k">' + esc(k.kpi) + '</div>' +
+            '<div class="mk-v">' + fmtKpi(cur, k.unit) + unitTail(k.unit) +
+              '<span class="mk-base">from ' + fmtKpi(k.baseline, k.unit) + '</span></div>' +
+            '<div class="mk-bar"><i style="width:' + Math.round(pct * 100) + '%"></i></div>' +
+            '<div class="mk-f"><span class="mk-tgt">target ' + fmtKpi(k.target, k.unit) + '</span>' +
+            (delta === 0 ? '<span class="mk-delta flat">at baseline</span>'
+              : '<span class="mk-delta ' + (good ? "good" : "bad") + '">' + arrow + " " +
+                fmtKpi(Math.abs(delta), k.unit) + '</span>') + '</div>' +
+            '<div class="mk-cap" title="' + esc(k.capName) + '">' + esc(k.capId) + ' · ' +
+              esc(k.capName) + '</div>' +
+          '</div>';
+        }).join("");
+
+        return '<div class="mk-mission">' +
+          '<div class="mk-mh">' +
+            '<div class="mk-mn"><b>' + esc(m.mission.name) + '</b>' +
+              '<span class="mk-own"><i class="rav">' + esc(m.personas.accountable.initials) + '</i>' +
+              esc(m.personas.accountable.role) +
+              (m.personas.cadence ? ' · ' + esc(m.personas.cadence) : '') + '</span></div>' +
+            '<div class="mk-prog">' + e.done + ' of ' + e.total + ' cleared' +
+              (e.pending ? ' · ' + e.pending + ' awaiting approval' : '') +
+              (obj ? '<span class="mk-obj">' + esc(obj.name) + '</span>' : '') + '</div>' +
+          '</div>' +
+          (tiles ? '<div class="mk-tiles">' + tiles + '</div>'
+                 : '<div class="mk-none">No measured capability in scope for this mission.</div>') +
+        '</div>';
+      }).join("");
+  }
 
   function drawStream() {
     var s = document.getElementById("rtStream"); if (!s) return;
@@ -191,6 +327,25 @@
     if (active && sim.cursor < sim.q.length) active.classList.add("next");
   }
 
+  /* The contribution chain on an approval card: the approver is signing off on a
+     branch, so show what that branch actually moves — pattern → capability (and
+     its KPI) → mission (and who is accountable for it) → objective. */
+  function chainLine(t, p) {
+    var at = window.PIQ.patternAttribution(t.patternId);
+    if (!at.caps.length && !at.missions.length) return "";
+    var cap = at.caps[0], m = at.missions[0];
+    var obj = window.PIQ.objective();
+    var seg = ['<span class="ch-s pat">' + esc(p.name) + '</span>'];
+    if (cap) seg.push('<span class="ch-s cap">' + esc(cap.id) + ' · ' + esc(cap.kpi) + '</span>');
+    if (m) {
+      var pers = window.PIQ.personas(m);
+      seg.push('<span class="ch-s mis">' + esc(m.name) +
+        (pers.accountable.role ? '<i>' + esc(pers.accountable.role) + '</i>' : '') + '</span>');
+    }
+    if (obj) seg.push('<span class="ch-s obj">' + esc(obj.name) + '</span>');
+    return '<div class="ap-chain"><span class="ch-lab">moves</span>' + seg.join('<i class="ch-a">→</i>') + '</div>';
+  }
+
   function drawApprovals() {
     var a = document.getElementById("rtApprovals"); if (!a) return;
     var pend = sim.q.filter(function (t) { return t.status === "pending"; });
@@ -203,6 +358,7 @@
           esc(p.name) + '<span class="ap-tx">' + esc(t.id) + '</span></div>' +
           '<div class="ap-cond mono">' + esc(br.condition) + '</div>' +
           '<div class="ap-act">→ ' + esc(window.PIQ.prettify((br.actions || []).join(" + "))) + '</div>' +
+          chainLine(t, p) +
           '<div class="ap-gate">🔒 ' + esc(br.hitl) + '</div>' +
           '<div class="ap-btns"><button class="btn go xs" data-act="approve" data-n="' + t.n + '">Approve</button>' +
           '<button class="btn ghost xs" data-act="reject" data-n="' + t.n + '">Reject</button></div></div>';
@@ -255,7 +411,7 @@
   }
 
   function logE(k, t) { sim.log.push({ k: k, t: t }); }
-  function repaint() { drawStream(); drawApprovals(); drawFeed(); drawKpis(); drawCompound(); }
+  function repaint() { drawStream(); drawApprovals(); drawFeed(); drawMissionKpis(); drawKpis(); drawCompound(); }
 
   function drawCompound() {
     var host = document.getElementById("rtCompound"); if (!host) return;

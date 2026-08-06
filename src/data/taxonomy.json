@@ -365,7 +365,13 @@
                   "kpi": "Clean-order rate %",
                   "patternIds": [],
                   "scope": "Sale From Stock; Special Order Processing; Indirect Sales",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 82,
+                    "target": 96,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-2",
@@ -373,7 +379,13 @@
                   "kpi": "Order cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "hrs",
+                    "baseline": 26,
+                    "target": 9,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-28",
@@ -381,7 +393,13 @@
                   "kpi": "Cost per order",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 14.2,
+                    "target": 8.6,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-29",
@@ -389,9 +407,31 @@
                   "kpi": "O2C cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 38,
+                    "target": 27,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Order Management Operations Lead",
+                  "initials": "OM"
+                },
+                "responsible": [
+                  "Customer Service Representative",
+                  "Order Management Specialist",
+                  "Sales Operations Manager"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Credit Risk Analyst",
+                  "Master Data Steward"
+                ]
+              }
             },
             {
               "id": "o2c-m2",
@@ -406,7 +446,13 @@
                   "kpi": "Fill rate %",
                   "patternIds": [],
                   "scope": "Advanced Available-To-Promise Processing",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 91,
+                    "target": 98,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-4",
@@ -414,9 +460,30 @@
                   "kpi": "Allocation effectiveness",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 74,
+                    "target": 92,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Order Management Operations Lead",
+                  "initials": "OM"
+                },
+                "responsible": [
+                  "Order Management Specialist",
+                  "Order Fulfilment Coordinator",
+                  "Supply Planner"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Sales Operations Manager"
+                ]
+              }
             },
             {
               "id": "o2c-m3",
@@ -431,7 +498,13 @@
                   "kpi": "Clean-order rate %",
                   "patternIds": [],
                   "scope": "Third Party Order Processing with and without Advanced",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 82,
+                    "target": 96,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-2",
@@ -439,9 +512,30 @@
                   "kpi": "Order cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "hrs",
+                    "baseline": 26,
+                    "target": 9,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Order Management Operations Lead",
+                  "initials": "OM"
+                },
+                "responsible": [
+                  "Customer Service Representative",
+                  "Order Management Specialist",
+                  "Third-Party Fulfilment Coordinator"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Logistics Dispatch Manager"
+                ]
+              }
             }
           ]
         },
@@ -463,9 +557,31 @@
                   "kpi": "Contract compliance %",
                   "patternIds": [],
                   "scope": "Multi-Company Code Contracts / Buying Group",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 86,
+                    "target": 97,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Contract & Rebates Operations Lead",
+                  "initials": "CR"
+                },
+                "responsible": [
+                  "Contract Administrator",
+                  "Pricing Analyst",
+                  "Revenue Controller"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Sales Operations Manager",
+                  "Legal Counsel"
+                ]
+              }
             },
             {
               "id": "o2c-m5",
@@ -480,7 +596,13 @@
                   "kpi": "Accrual accuracy %",
                   "patternIds": [],
                   "scope": "Conditional Contracts - Fixed, Variable and Multi-Customer",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 88,
+                    "target": 98,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-7",
@@ -488,7 +610,13 @@
                   "kpi": "Settlement accuracy",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 90,
+                    "target": 99,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-9",
@@ -496,9 +624,30 @@
                   "kpi": "Leakage $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 3.6,
+                    "target": 1.5,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Contract & Rebates Operations Lead",
+                  "initials": "CR"
+                },
+                "responsible": [
+                  "Trade Rebate Analyst",
+                  "Pricing Analyst",
+                  "Revenue Controller"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Finance Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m6",
@@ -513,7 +662,13 @@
                   "kpi": "Pricing errors",
                   "patternIds": [],
                   "scope": "Maintain Sales Deals; Maintain Pricing Condition",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "/mo",
+                    "baseline": 240,
+                    "target": 60,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-9",
@@ -521,9 +676,30 @@
                   "kpi": "Leakage $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 3.6,
+                    "target": 1.5,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Pricing Operations Lead",
+                  "initials": "PO"
+                },
+                "responsible": [
+                  "Pricing Analyst",
+                  "Master Data Steward",
+                  "Sales Operations Manager"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Revenue Controller"
+                ]
+              }
             }
           ]
         },
@@ -545,7 +721,13 @@
                   "kpi": "OTIF %",
                   "patternIds": [],
                   "scope": "Outbound Delivery Process with Batch Search Strategy; IM Based Packing",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 91,
+                    "target": 98,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-11",
@@ -553,9 +735,30 @@
                   "kpi": "Cost per drop",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 12.4,
+                    "target": 9.1,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Logistics Operations Lead",
+                  "initials": "LO"
+                },
+                "responsible": [
+                  "Order Fulfilment Coordinator",
+                  "Warehouse Operations Lead",
+                  "Logistics Dispatch Manager"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Customer Service Representative"
+                ]
+              }
             },
             {
               "id": "o2c-m8",
@@ -570,7 +773,13 @@
                   "kpi": "Cost per drop",
                   "patternIds": [],
                   "scope": "Freight Order Management; Freight Settlement",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 12.4,
+                    "target": 9.1,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-12",
@@ -578,9 +787,30 @@
                   "kpi": "Freight variance $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$K",
+                    "baseline": 420,
+                    "target": 140,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Logistics Operations Lead",
+                  "initials": "LO"
+                },
+                "responsible": [
+                  "Freight Settlement Analyst",
+                  "Logistics Dispatch Manager",
+                  "Transport Planner"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Finance Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m9",
@@ -595,9 +825,30 @@
                   "kpi": "Compliance rate %",
                   "patternIds": [],
                   "scope": "International Trade Exports",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 87,
+                    "target": 98,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Trade Compliance Lead",
+                  "initials": "TC"
+                },
+                "responsible": [
+                  "Export Documentation Specialist",
+                  "Trade Compliance Analyst"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Legal Counsel",
+                  "Logistics Dispatch Manager"
+                ]
+              }
             },
             {
               "id": "o2c-m21",
@@ -612,7 +863,13 @@
                   "kpi": "Chargeback $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$K",
+                    "baseline": 680,
+                    "target": 210,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-10",
@@ -620,7 +877,13 @@
                   "kpi": "OTIF %",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 91,
+                    "target": 98,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-24",
@@ -628,9 +891,30 @@
                   "kpi": "Dispute cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 25,
+                    "target": 12,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Customer Compliance Lead",
+                  "initials": "CC"
+                },
+                "responsible": [
+                  "Customer Compliance Analyst",
+                  "Deductions Analyst",
+                  "Logistics Dispatch Manager"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Billing Team Lead"
+                ]
+              }
             }
           ]
         },
@@ -652,7 +936,13 @@
                   "kpi": "Sales per route",
                   "patternIds": [],
                   "scope": "Pre-Sales / Pre-Order / Van Sales Route Preparation",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 3850,
+                    "target": 4600,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-15",
@@ -660,9 +950,29 @@
                   "kpi": "Drops per day",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "/route",
+                    "baseline": 28,
+                    "target": 34,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "DSD Route Planning Lead",
+                  "initials": "DR"
+                },
+                "responsible": [
+                  "Route Planner",
+                  "DSD Operations Analyst"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Sales Operations Manager"
+                ]
+              }
             },
             {
               "id": "o2c-m11",
@@ -677,7 +987,13 @@
                   "kpi": "OTIF %",
                   "patternIds": [],
                   "scope": "Pre-Sales / Pre-Order / Van Sales Route Execution",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 91,
+                    "target": 98,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-15",
@@ -685,7 +1001,13 @@
                   "kpi": "Drops per day",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "/route",
+                    "baseline": 28,
+                    "target": 34,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-16",
@@ -693,7 +1015,13 @@
                   "kpi": "Exception rate %",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 18,
+                    "target": 5,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-18",
@@ -701,9 +1029,30 @@
                   "kpi": "Distributor vs own perf",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "pts",
+                    "baseline": -6,
+                    "target": 2,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "DSD Field Operations Lead",
+                  "initials": "DF"
+                },
+                "responsible": [
+                  "Route Sales Representative",
+                  "DSD Field Supervisor",
+                  "DSD Operations Analyst"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Route Planner"
+                ]
+              }
             },
             {
               "id": "o2c-m12",
@@ -718,7 +1067,13 @@
                   "kpi": "Exception rate %",
                   "patternIds": [],
                   "scope": "Pre-Sales / Pre-Order / Van Sales Route Settlement",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 18,
+                    "target": 5,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-17",
@@ -726,7 +1081,13 @@
                   "kpi": "Settlement variance $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$K",
+                    "baseline": 310,
+                    "target": 60,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-27",
@@ -734,9 +1095,30 @@
                   "kpi": "Asset float $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 5.1,
+                    "target": 2.6,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "DSD Settlement Office Lead",
+                  "initials": "DS"
+                },
+                "responsible": [
+                  "Route Settlement Clerk",
+                  "DSD Operations Analyst",
+                  "Cash Application Analyst"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "AR Controller"
+                ]
+              }
             }
           ]
         },
@@ -758,7 +1140,13 @@
                   "kpi": "Touchless billing %",
                   "patternIds": [],
                   "scope": "Invoice Billing Process; FI Invoice without Sales Order",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 68,
+                    "target": 94,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-28",
@@ -766,9 +1154,30 @@
                   "kpi": "Cost per invoice",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 3.8,
+                    "target": 1.6,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Billing Operations Lead",
+                  "initials": "BO"
+                },
+                "responsible": [
+                  "Billing Specialist",
+                  "Invoice-to-Cash Analyst",
+                  "Billing Team Lead"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Revenue Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m14",
@@ -783,7 +1192,13 @@
                   "kpi": "Pricing errors",
                   "patternIds": [],
                   "scope": "Invoice Correction Process",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "/mo",
+                    "baseline": 240,
+                    "target": 60,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-9",
@@ -791,7 +1206,13 @@
                   "kpi": "Leakage $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 3.6,
+                    "target": 1.5,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-20",
@@ -799,9 +1220,31 @@
                   "kpi": "Correction cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 9,
+                    "target": 3,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Billing Operations Lead",
+                  "initials": "BO"
+                },
+                "responsible": [
+                  "Billing Specialist",
+                  "Invoice-to-Cash Analyst",
+                  "Revenue Controller",
+                  "Billing Team Lead"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Dispute Resolution Analyst"
+                ]
+              }
             }
           ]
         },
@@ -829,7 +1272,13 @@
                     23
                   ],
                   "scope": "Credit Management",
-                  "patternCount": 5
+                  "patternCount": 5,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 2.4,
+                    "target": 0.9,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-25",
@@ -837,9 +1286,34 @@
                   "kpi": "Projected DSO",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 47,
+                    "target": 36,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Credit & Risk Lead",
+                  "initials": "CR"
+                },
+                "responsible": [
+                  "Credit Risk Analyst",
+                  "Credit Manager",
+                  "Order Management Specialist"
+                ],
+                "approvers": [
+                  "CFO",
+                  "Credit Risk VP"
+                ],
+                "consulted": [
+                  "AR Controller",
+                  "Sales Operations Manager"
+                ]
+              }
             },
             {
               "id": "o2c-m16",
@@ -864,7 +1338,13 @@
                     18
                   ],
                   "scope": "Collections Management; Dunning",
-                  "patternCount": 9
+                  "patternCount": 9,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 45,
+                    "target": 35,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-25",
@@ -872,7 +1352,13 @@
                   "kpi": "Projected DSO",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 47,
+                    "target": 36,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-29",
@@ -880,9 +1366,34 @@
                   "kpi": "O2C cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 38,
+                    "target": 27,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Collections Lead",
+                  "initials": "CL"
+                },
+                "responsible": [
+                  "Collections Analyst",
+                  "Collections Specialist",
+                  "Collections Strategy Lead",
+                  "AR Controller"
+                ],
+                "approvers": [
+                  "Collections VP"
+                ],
+                "consulted": [
+                  "Credit & Risk Lead",
+                  "Credit & Collections Manager"
+                ]
+              }
             },
             {
               "id": "o2c-m17",
@@ -901,7 +1412,13 @@
                     26
                   ],
                   "scope": "Incoming Payments; Lockbox Process; Cash Application",
-                  "patternCount": 3
+                  "patternCount": 3,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 35,
+                    "target": 85,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-28",
@@ -909,9 +1426,34 @@
                   "kpi": "Cost per collection",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 6.4,
+                    "target": 2.9,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Cash Application Lead",
+                  "initials": "CA"
+                },
+                "responsible": [
+                  "Cash Application Specialist",
+                  "Cash Application Analyst",
+                  "AR Reconciliation Lead",
+                  "Treasury Operations Analyst"
+                ],
+                "approvers": [
+                  "Treasury VP",
+                  "Finance Director"
+                ],
+                "consulted": [
+                  "AR Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m18",
@@ -926,7 +1468,13 @@
                   "kpi": "Settlement accuracy",
                   "patternIds": [],
                   "scope": "Dispute Case Processing",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 90,
+                    "target": 99,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-9",
@@ -940,7 +1488,13 @@
                     31
                   ],
                   "scope": "",
-                  "patternCount": 5
+                  "patternCount": 5,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 3.6,
+                    "target": 1.5,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-24",
@@ -958,9 +1512,37 @@
                     9
                   ],
                   "scope": "",
-                  "patternCount": 9
+                  "patternCount": 9,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 25,
+                    "target": 12,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Disputes & Deductions Lead",
+                  "initials": "DD"
+                },
+                "responsible": [
+                  "Deductions Analyst",
+                  "Dispute Resolution Analyst",
+                  "Cash Application Analyst",
+                  "AR Reconciliation Lead"
+                ],
+                "approvers": [
+                  "Finance Director",
+                  "CFO",
+                  "Collections VP",
+                  "Sales Director"
+                ],
+                "consulted": [
+                  "Billing Team Lead",
+                  "Customer Compliance Analyst"
+                ]
+              }
             }
           ]
         },
@@ -982,9 +1564,30 @@
                   "kpi": "Salvage recovery %",
                   "patternIds": [],
                   "scope": "Advanced Customer Returns",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 42,
+                    "target": 68,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Returns & Claims Lead",
+                  "initials": "RC"
+                },
+                "responsible": [
+                  "Returns Coordinator",
+                  "Claims Analyst",
+                  "Warehouse Operations Lead"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Revenue Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m20",
@@ -999,9 +1602,29 @@
                   "kpi": "Asset float $",
                   "patternIds": [],
                   "scope": "Empties and Returnables Management",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 5.1,
+                    "target": 2.6,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Returnable Assets Manager",
+                  "initials": "RA"
+                },
+                "responsible": [
+                  "Returnable Asset Coordinator",
+                  "Route Sales Representative"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Finance Controller"
+                ]
+              }
             }
           ]
         },
@@ -1023,7 +1646,13 @@
                   "kpi": "Template adherence %",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 64,
+                    "target": 93,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-32",
@@ -1031,9 +1660,30 @@
                   "kpi": "Variant count",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "",
+                    "baseline": 148,
+                    "target": 42,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Global Process Owner (OTC)",
+                  "initials": "GP"
+                },
+                "responsible": [
+                  "Process Design Lead",
+                  "Regional Process Owner",
+                  "Data Governance Analyst"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Finance Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m23",
@@ -1048,7 +1698,13 @@
                   "kpi": "Data quality score",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 76,
+                    "target": 95,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-8",
@@ -1056,9 +1712,31 @@
                   "kpi": "Pricing errors",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "/mo",
+                    "baseline": 240,
+                    "target": 60,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "OTC Master Data Lead",
+                  "initials": "OM"
+                },
+                "responsible": [
+                  "Master Data Steward",
+                  "Data Governance Analyst",
+                  "Master Data Requestor",
+                  "Master Data Manager"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Finance Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m24",
@@ -1073,7 +1751,13 @@
                   "kpi": "EDI error rate %",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 11,
+                    "target": 2,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-1",
@@ -1081,9 +1765,30 @@
                   "kpi": "Clean-order rate %",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 82,
+                    "target": 96,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Digital Channel Integration Lead",
+                  "initials": "DC"
+                },
+                "responsible": [
+                  "EDI Integration Analyst",
+                  "Digital Channel Analyst",
+                  "Master Data Steward"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Customer Compliance Analyst"
+                ]
+              }
             },
             {
               "id": "o2c-m25",
@@ -1098,9 +1803,30 @@
                   "kpi": "Control exceptions",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "",
+                    "baseline": 34,
+                    "target": 6,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "OTC Controls Lead",
+                  "initials": "OC"
+                },
+                "responsible": [
+                  "Controls Analyst",
+                  "Data Governance Analyst"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Internal Audit Lead",
+                  "Finance Controller"
+                ]
+              }
             },
             {
               "id": "o2c-m26",
@@ -1115,7 +1841,13 @@
                   "kpi": "Benefits realized $",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 1.8,
+                    "target": 8.4,
+                    "better": "up"
+                  }
                 },
                 {
                   "id": "OC-28",
@@ -1123,7 +1855,13 @@
                   "kpi": "Cost per order",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "$",
+                    "baseline": 14.2,
+                    "target": 8.6,
+                    "better": "down"
+                  }
                 },
                 {
                   "id": "OC-29",
@@ -1131,9 +1869,31 @@
                   "kpi": "O2C cycle time",
                   "patternIds": [],
                   "scope": "",
-                  "patternCount": 0
+                  "patternCount": 0,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 38,
+                    "target": 27,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Transformation PMO Lead",
+                  "initials": "TP"
+                },
+                "responsible": [
+                  "Transformation Analyst",
+                  "Change & Adoption Lead",
+                  "Process Design Lead"
+                ],
+                "approvers": [],
+                "consulted": [
+                  "Finance Controller",
+                  "Global Process Owner (OTC)"
+                ]
+              }
             }
           ]
         }
@@ -1286,9 +2046,29 @@
                     2003,
                     2006
                   ],
-                  "patternCount": 3
+                  "patternCount": 3,
+                  "metric": {
+                    "unit": "$K",
+                    "baseline": 940,
+                    "target": 180,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "AP Analyst",
+                  "initials": "AA"
+                },
+                "responsible": [],
+                "approvers": [
+                  "AP analyst",
+                  "Requester",
+                  "Controller",
+                  "Controls"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "p2p-treasury",
@@ -1302,9 +2082,26 @@
                     2001,
                     2007
                   ],
-                  "patternCount": 2
+                  "patternCount": 2,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 32,
+                    "target": 42,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Treasury / Working Capital Analyst",
+                  "initials": "TW"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Treasury"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "p2p-buyer",
@@ -1319,9 +2116,28 @@
                     2005,
                     2008
                   ],
-                  "patternCount": 3
+                  "patternCount": 3,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 86,
+                    "target": 97,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Category / Procurement Manager",
+                  "initials": "CP"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Cost-centre owner",
+                  "Buyer",
+                  "Category manager"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -1439,9 +2255,27 @@
                     3005,
                     3006
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "",
+                    "baseline": 210,
+                    "target": 25,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "GL Accountant",
+                  "initials": "GA"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Controller",
+                  "GL accountant"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "r2r-controller",
@@ -1457,9 +2291,28 @@
                     3007,
                     3008
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 8,
+                    "target": 4,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Controller",
+                  "initials": "C"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Accountant",
+                  "Group accountant",
+                  "Controller"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -1595,9 +2448,27 @@
                     4004,
                     4005
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 62,
+                    "target": 94,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "HR Business Partner",
+                  "initials": "HB"
+                },
+                "responsible": [],
+                "approvers": [
+                  "HRBP",
+                  "IT lead"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "h2r-comp",
@@ -1613,9 +2484,26 @@
                     4007,
                     4008
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "",
+                    "baseline": 28,
+                    "target": 4,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Compliance Officer",
+                  "initials": "CO"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Compliance"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -1647,9 +2535,26 @@
                   "patternIds": [
                     5001
                   ],
-                  "patternCount": 1
+                  "patternCount": 1,
+                  "metric": {
+                    "unit": "/mo",
+                    "baseline": 46,
+                    "target": 9,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Supply Planner",
+                  "initials": "SP"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Planner"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "sc-logistics",
@@ -1662,9 +2567,26 @@
                   "patternIds": [
                     5002
                   ],
-                  "patternCount": 1
+                  "patternCount": 1,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 91,
+                    "target": 98,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Logistics Coordinator",
+                  "initials": "LC"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Logistics lead"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -1791,9 +2713,27 @@
                     6002,
                     6003
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 71,
+                    "target": 92,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "FP&A Analyst",
+                  "initials": "FA"
+                },
+                "responsible": [],
+                "approvers": [
+                  "FP&A lead",
+                  "Finance director"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "fpa-partner",
@@ -1809,9 +2749,27 @@
                     6006,
                     6007
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "days",
+                    "baseline": 6,
+                    "target": 2,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Finance Business Partner",
+                  "initials": "FB"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Business partner",
+                  "FP&A lead"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -1929,9 +2887,27 @@
                     7002,
                     7003
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 12.4,
+                    "target": 4.2,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Cash Manager",
+                  "initials": "CM"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Cash manager",
+                  "Treasurer"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "tcm-risk",
@@ -1947,9 +2923,27 @@
                     7006,
                     7007
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "$M",
+                    "baseline": 8.6,
+                    "target": 2.1,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Treasury Risk Analyst",
+                  "initials": "TR"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Treasury risk",
+                  "Treasurer"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -2067,9 +3061,27 @@
                     8002,
                     8003
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "$K",
+                    "baseline": 540,
+                    "target": 90,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Tax Analyst",
+                  "initials": "TA"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Tax manager",
+                  "Tax specialist"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "tax-specialist",
@@ -2085,9 +3097,28 @@
                     8006,
                     8007
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 9,
+                    "target": 1.5,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Tax Specialist",
+                  "initials": "TS"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Tax specialist",
+                  "Tax manager",
+                  "Tax analyst"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -2205,9 +3236,26 @@
                     9002,
                     9003
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "$K",
+                    "baseline": 380,
+                    "target": 70,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Expense Auditor",
+                  "initials": "EA"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Expense auditor"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "tne-analyst",
@@ -2223,9 +3271,27 @@
                     9006,
                     9007
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "%",
+                    "baseline": 44,
+                    "target": 88,
+                    "better": "up"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "T&E Analyst",
+                  "initials": "TE"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Cost-centre manager",
+                  "Controls"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
@@ -2343,9 +3409,29 @@
                     10002,
                     10003
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "",
+                    "baseline": 34,
+                    "target": 6,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Controls Analyst",
+                  "initials": "CA"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Controls analyst",
+                  "Controls lead",
+                  "Controller",
+                  "Security"
+                ],
+                "consulted": []
+              }
             },
             {
               "id": "icc-access",
@@ -2361,9 +3447,28 @@
                     10006,
                     10007
                   ],
-                  "patternCount": 4
+                  "patternCount": 4,
+                  "metric": {
+                    "unit": "",
+                    "baseline": 63,
+                    "target": 8,
+                    "better": "down"
+                  }
                 }
-              ]
+              ],
+              "personas": {
+                "accountable": {
+                  "role": "Access Reviewer",
+                  "initials": "AR"
+                },
+                "responsible": [],
+                "approvers": [
+                  "Access owner",
+                  "Manager",
+                  "Controls"
+                ],
+                "consulted": []
+              }
             }
           ]
         }
