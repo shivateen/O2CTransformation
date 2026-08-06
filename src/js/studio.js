@@ -514,9 +514,11 @@
       var present = buckets.filter(function (x) { return x.length; }).length;
       var rc = SWL_COLORS[ri % SWL_COLORS.length];
 
+      var pers = window.PIQ.personas(r);
       var roleEl = el("div", "swl-role",
         '<span class="swl-dot" style="background:' + rc + '"></span>' +
         '<span class="swl-rt"><b>' + esc(r.name) + '</b>' +
+        (pers.accountable.role ? '<em class="swl-own">' + esc(pers.accountable.role) + '</em>' : '') +
         '<small>' + present + ' of 4 stages</small></span>');
       roleEl.style.setProperty("--rc", rc);
       grid.appendChild(roleEl);
@@ -608,6 +610,57 @@
     return { patterns: out.length, skills: skills.length, auto: auto, hitl: hitl };
   }
 
+  /* ---- Mission persona map (RACI) --------------------------------------
+     "Who holds this mission?" — accountable owner, the roles that operate it,
+     the approvers the HITL gates actually name, and who is consulted. */
+  function ownerChip(pers) {
+    if (!pers.accountable.role) return "";
+    return '<span class="pc-persona"><i class="rav">' + esc(pers.accountable.initials) + '</i>' +
+      esc(pers.accountable.role) + '</span>';
+  }
+  function roleChips(list) {
+    if (!list || !list.length) return '<span class="rchip none">—</span>';
+    return list.map(function (x) { return '<span class="rchip">' + esc(x) + '</span>'; }).join("");
+  }
+  function raciBlock(r) {
+    var p = window.PIQ.personas(r);
+    var rows = [
+      ["Accountable", p.accountable.role ? [p.accountable.role] : [], "a"],
+      ["Operates", p.responsible, "r"],
+      ["Approves", p.approvers, "x"],
+      ["Consulted", p.consulted, "c"],
+    ].map(function (row) {
+      return '<div class="raci-row"><span class="raci-lab ' + row[2] + '">' + row[0] + '</span>' +
+        '<span class="raci-roles">' + roleChips(row[1]) + '</span></div>';
+    }).join("");
+    return '<div class="raci">' + rows + '</div>';
+  }
+
+  /* All missions × their holders in one table — the at-a-glance answer, so an
+     SME never has to hover each card to find out who owns what. */
+  function personaMatrix(p) {
+    var wrap = el("div", "pmx-wrap");
+    wrap.appendChild(el("div", "st-subq",
+      "Mission persona map <small>who holds each mission · accountable owner, operating roles and the approvers the HITL gates name</small>"));
+    var t = el("div", "pmx");
+    t.appendChild(el("div", "pmx-h",
+      '<span>Mission</span><span>Accountable</span><span>Operates</span><span>Approves</span><span>Cadence</span>'));
+    p.missions.forEach(function (r) {
+      var pers = window.PIQ.personas(r);
+      var inScope = C().missionIds.indexOf(r.id) >= 0;
+      t.appendChild(el("div", "pmx-r" + (inScope ? "" : " off"),
+        '<span class="pmx-m">' + esc(r.name) + '</span>' +
+        '<span class="pmx-a">' + (pers.accountable.role
+          ? '<i class="rav">' + esc(pers.accountable.initials) + '</i>' + esc(pers.accountable.role)
+          : '—') + '</span>' +
+        '<span class="pmx-c">' + roleChips(pers.responsible) + '</span>' +
+        '<span class="pmx-c">' + roleChips(pers.approvers) + '</span>' +
+        '<span class="pmx-cd">' + esc(pers.cadence || "—") + '</span>'));
+    });
+    wrap.appendChild(t);
+    return wrap;
+  }
+
   function missionPop(r, s) {
     var total = (s.auto + s.hitl) || 1;
     var autoPct = Math.round(s.auto / total * 100);
@@ -616,6 +669,7 @@
     }).join("");
     return '<div class="persona-pop">' +
       '<div class="pp-h">' + esc(r.name) + '</div>' +
+      '<div class="pp-lab">Who holds this mission</div>' + raciBlock(r) +
       '<div class="pp-lab">Capabilities</div><ul class="pp-objs">' + caps + '</ul>' +
       '<div class="pp-stats"><div><b>' + s.patterns + '</b><span>patterns</span></div>' +
       '<div><b>' + s.skills + '</b><span>skills</span></div></div>' +
@@ -636,13 +690,22 @@
     body.appendChild(pickGrid(p.missions, function (r) {
       var on = c.missionIds.indexOf(r.id) >= 0;
       var caps = r.capabilities.map(function (o) { return o.name; }).join(" · ");
+      var pers = window.PIQ.personas(r);
+      var extra = window.PIQ.missionRoleCount(r) - 1;   // roles beyond the accountable owner
       return '<div class="pc-main"><div class="pc-t">' + esc(r.name) + '</div>' +
         '<div class="pc-d">' + esc(caps) + '</div></div>' +
-        '<div class="pc-meta">' + r.capabilities.length + ' capabilities</div>' + (on ? '<div class="pc-on">✓</div>' : '');
+        '<div class="pc-meta">' + ownerChip(pers) +
+        (pers.cadence ? '<span class="pc-tag">' + esc(pers.cadence) + '</span>' : '') +
+        '<span class="pc-sep">' + r.capabilities.length + ' capabilities</span>' +
+        (extra > 0 ? '<span class="pc-sep">+' + extra + ' roles</span>' : '') + '</div>' +
+        (on ? '<div class="pc-on">✓</div>' : '');
     }, function (r) { toggleMission(r); redraw(); },
        function (r) { return c.missionIds.indexOf(r.id) >= 0; }));
     body.appendChild(nextBar(c.missionIds.length + " mission" + (c.missionIds.length !== 1 ? "s" : "") + " in scope",
       c.missionIds.length ? "Choose capabilities →" : "", function () { state.step = 4; redraw(); }));
+    // supplementary context below the sticky CTA, as the Process step does with its
+    // value-chain landscape
+    body.appendChild(personaMatrix(p));
     var all = document.getElementById("stAllP");
     if (all) all.onclick = function (e) {
       e.stopPropagation();

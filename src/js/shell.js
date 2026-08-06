@@ -47,11 +47,12 @@
     { id: "build", n: 3, label: "Build", tag: "Skill Configuration", sub: [
         { id: "build", label: "Skill Workshop" } ] },
     { id: "run", n: 4, label: "Run & Monitor", tag: "Mission Execution", sub: [
+        { id: "missioncmd", label: "Mission Command" },
         { id: "runtime", label: "Mission Operations" },
         { id: "cockpit", label: "Central Nervous System" },
         { id: "governance", label: "Governance" },
         { id: "roi", label: "Value Measurement" } ] },
-    { id: "cfo", n: 5, label: "CFO Layer", tag: "Executive Consumption", sub: [
+    { id: "cfo", n: 5, label: "Finance Command Centre", tag: "Finance Leadership Consumption", sub: [
         { id: "command", label: "Command Center" },
         { id: "intelligence", label: "Intelligence" },
         { id: "scenarios", label: "Scenarios" },
@@ -63,10 +64,10 @@
      journey and greys the rest. Passed as ?persona=<id>; a null persona = full
      workspace. Non-allowed stages render locked (non-navigable). ------------ */
   var PERSONAS = {
-    cfo:      { label: "CFO / Finance Lead",       stages: ["cfo"],           entry: "command" },
+    cfo:      { label: "Finance Command Centre",   stages: ["cfo"],           entry: "command" },
     designer: { label: "Transformation Designer",  stages: ["design"],        entry: "studio" },
     studio:   { label: "Implementation Studio",    stages: ["fit", "build"],  entry: "fitment" },
-    manage:   { label: "Manage & Operate",         stages: ["run"],           entry: "runtime" },
+    manage:   { label: "Manage & Operate",         stages: ["run"],           entry: "missioncmd" },
   };
   PIQ.persona = null;
   function personaAllows(stageId) {
@@ -177,6 +178,88 @@
     return out;
   };
 
+  // ---- mission persona map (RACI) ------------------------------------------
+  // "Who holds this mission?" — accountable comes from the mission's owner,
+  // responsible/consulted are authored in the taxonomy, approvers are derived at
+  // build time from the patterns' real HITL gates. Tolerates missions with no
+  // personas block (a stale cached composition, or a hand-authored sample).
+  PIQ.initials = function (role) {
+    var skip = { and: 1, of: 1, the: 1, for: 1 };
+    var words = String(role || "").replace(/\(.*?\)/g, "").split(/[\s/&]+/)
+      .filter(function (w) { return w && !skip[w.toLowerCase()] && /[a-z0-9]/i.test(w[0]); });
+    return (words.slice(0, 2).map(function (w) { return w[0]; }).join("") || "?").toUpperCase();
+  };
+  PIQ.personas = function (mission) {
+    var p = (mission && mission.personas) || {};
+    var role = (p.accountable && p.accountable.role) || (mission && mission.owner) ||
+               (mission && mission.name) || "";
+    return {
+      accountable: { role: role, initials: (p.accountable && p.accountable.initials) || PIQ.initials(role) },
+      responsible: p.responsible || [],
+      approvers: p.approvers || [],
+      consulted: p.consulted || [],
+      cadence: (mission && mission.cadence) || "",
+    };
+  };
+  // every distinct role that touches a mission, accountable first
+  PIQ.missionRoleCount = function (mission) {
+    var p = PIQ.personas(mission), seen = {}, n = 0;
+    [[p.accountable.role], p.responsible, p.approvers, p.consulted].forEach(function (list) {
+      (list || []).forEach(function (r) {
+        var k = String(r).toLowerCase();
+        if (r && !seen[k]) { seen[k] = 1; n++; }
+      });
+    });
+    return n;
+  };
+
+  // ---- pattern -> capability -> mission attribution -------------------------
+  // The runtime matches a transaction to a pattern; this is how that transaction
+  // is credited back to the capability it serves and the mission that owns it.
+  // Memoised per composition scope (same idea as PIQ._actionRepo).
+  function attributionIndex() {
+    var c = PIQ.composition;
+    var sig = c.procId + "|" + c.missionIds.join(",") + "|" + c.capIds.join(",");
+    if (PIQ._attrIdx && PIQ._attrSig === sig) return PIQ._attrIdx;
+    var idx = {};
+    PIQ.missions().forEach(function (m) {
+      (m.capabilities || []).forEach(function (o) {
+        if (c.capIds.indexOf(o.id) < 0) return;
+        (o.patternIds || []).forEach(function (pid) {
+          var e = idx[pid] || (idx[pid] = { capIds: [], missionIds: [], caps: [], missions: [] });
+          if (e.capIds.indexOf(o.id) < 0) { e.capIds.push(o.id); e.caps.push(o); }
+          if (e.missionIds.indexOf(m.id) < 0) { e.missionIds.push(m.id); e.missions.push(m); }
+        });
+      });
+    });
+    PIQ._attrIdx = idx; PIQ._attrSig = sig;
+    return idx;
+  }
+  PIQ.patternAttribution = function (patternId) {
+    return attributionIndex()[patternId] || { capIds: [], missionIds: [], caps: [], missions: [] };
+  };
+
+  // in-scope missions with their capability KPIs resolved to numbers, for the
+  // Run & Monitor mission band. Capability ids are reused across missions, so
+  // each mission's KPI list is deduped by capability id.
+  PIQ.missionMetrics = function () {
+    var c = PIQ.composition;
+    return PIQ.missions().map(function (m) {
+      var seen = {}, metrics = [];
+      (m.capabilities || []).forEach(function (o) {
+        if (c.capIds.indexOf(o.id) < 0 || seen[o.id]) return;
+        seen[o.id] = 1;
+        var mt = o.metric || {};
+        metrics.push({
+          capId: o.id, capName: o.name, kpi: o.kpi,
+          unit: mt.unit || "", baseline: mt.baseline, target: mt.target,
+          better: mt.better || "down", patternCount: (o.patternIds || []).length,
+        });
+      });
+      return { mission: m, personas: PIQ.personas(m), metrics: metrics };
+    });
+  };
+
   // ---- happy-path DAG customisation (per-composition, per-pattern) ----------
   // The editable step list: seeds from originalDAG, then persists reorder + on/off.
   PIQ.dagSteps = function (id) {
@@ -262,30 +345,9 @@
 
   /* ---- composition persistence (survives reloads) ---------------------- */
   var STORE_KEY = "piq.composition.v2";
-  var THEME_KEY = "piq.theme.v1";
-  PIQ.themeMode = "light";
   PIQ.persistComposition = function () {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(PIQ.composition)); } catch (e) {}
   };
-  function persistTheme() {
-    try { localStorage.setItem(THEME_KEY, PIQ.themeMode); } catch (e) {}
-  }
-  function setTheme(mode) {
-    PIQ.themeMode = mode === "dark" ? "dark" : "light";
-    document.body.classList.toggle("dark", PIQ.themeMode === "dark");
-    var toggle = document.getElementById("themeToggle");
-    if (!toggle) return;
-    toggle.querySelectorAll("button").forEach(function (btn) {
-      btn.classList.toggle("on", btn.dataset.theme === PIQ.themeMode);
-    });
-    persistTheme();
-  }
-  function restoreTheme() {
-    try {
-      var raw = localStorage.getItem(THEME_KEY);
-      setTheme(raw === "dark" ? "dark" : "light");
-    } catch (e) { setTheme("light"); }
-  }
   PIQ.restoreComposition = function () {
     try {
       var raw = localStorage.getItem(STORE_KEY); if (!raw) return;
@@ -411,16 +473,9 @@
     });
   }
 
-  document.getElementById("themeToggle").addEventListener("click", function (e) {
-    var b = e.target.closest("button"); if (!b) return;
-    setTheme(b.dataset.theme);
-  });
-
   /* boot */
   document.getElementById("varStat").textContent = PIQ.E._money(PIQ.book.meta.valueAtRisk);
   document.getElementById("dateStat").textContent = PIQ.book.meta.asOfDate;
-
-  restoreTheme();
 
   // Boot: a persona (from the landing page) opens the app on its slice of the
   // journey; otherwise start on the Mission Builder — the SME's front door.
