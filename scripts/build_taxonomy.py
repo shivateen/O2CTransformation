@@ -17,7 +17,7 @@ an id against the real library (window.PIQ.patterns) first, then falls back to
 taxonomy.stubPatterns. Stub patterns share the exact shape of real ones so every
 downstream stage (fitment, runtime) renders them identically.
 """
-import os, json
+import os, json, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "src", "data")
@@ -30,6 +30,296 @@ def load_ar_patterns():
 
 def ids_for_category(patterns, category):
     return [p["id"] for p in patterns if p["category"] == category]
+
+
+# ---------------------------------------------------------------------------
+# Mission persona map (RACI) — "who holds this mission?"
+#
+# Accountable comes from the mission's existing `owner`. Responsible/Consulted are
+# authored here, drawn from the SAME role vocabulary the L4 process maps already use
+# (processmaps.json roleHeaderNode lanes) so the persona map and the swimlane maps an
+# SME can open never disagree on a job title. Approvers are DERIVED at build time from
+# the real pattern hitlGates — the gate text already names the actor.
+# ---------------------------------------------------------------------------
+
+MISSION_PERSONAS = {
+    # -- O.1 Order Management (lanes: order-intake-validation, credit-check-approval) --
+    "o2c-m1":  {"responsible": ["Customer Service Representative", "Order Management Specialist",
+                                "Sales Operations Manager"],
+                "consulted": ["Credit Risk Analyst", "Master Data Steward"]},
+    "o2c-m2":  {"responsible": ["Order Management Specialist", "Order Fulfilment Coordinator",
+                                "Supply Planner"],
+                "consulted": ["Sales Operations Manager"]},
+    "o2c-m3":  {"responsible": ["Customer Service Representative", "Order Management Specialist",
+                                "Third-Party Fulfilment Coordinator"],
+                "consulted": ["Logistics Dispatch Manager"]},
+    # -- O.2 Pricing & Rebates -------------------------------------------------
+    "o2c-m4":  {"responsible": ["Contract Administrator", "Pricing Analyst", "Revenue Controller"],
+                "consulted": ["Sales Operations Manager", "Legal Counsel"]},
+    "o2c-m5":  {"responsible": ["Trade Rebate Analyst", "Pricing Analyst", "Revenue Controller"],
+                "consulted": ["Finance Controller"]},
+    "o2c-m6":  {"responsible": ["Pricing Analyst", "Master Data Steward", "Sales Operations Manager"],
+                "consulted": ["Revenue Controller"]},
+    # -- O.3 Logistics (lanes: outbound-delivery-fulfilment) -------------------
+    "o2c-m7":  {"responsible": ["Order Fulfilment Coordinator", "Warehouse Operations Lead",
+                                "Logistics Dispatch Manager"],
+                "consulted": ["Customer Service Representative"]},
+    "o2c-m8":  {"responsible": ["Freight Settlement Analyst", "Logistics Dispatch Manager",
+                                "Transport Planner"],
+                "consulted": ["Finance Controller"]},
+    "o2c-m9":  {"responsible": ["Export Documentation Specialist", "Trade Compliance Analyst"],
+                "consulted": ["Legal Counsel", "Logistics Dispatch Manager"]},
+    "o2c-m21": {"responsible": ["Customer Compliance Analyst", "Deductions Analyst",
+                                "Logistics Dispatch Manager"],
+                "consulted": ["Billing Team Lead"]},
+    # -- O.4 Direct Store Delivery --------------------------------------------
+    "o2c-m10": {"responsible": ["Route Planner", "DSD Operations Analyst"],
+                "consulted": ["Sales Operations Manager"]},
+    "o2c-m11": {"responsible": ["Route Sales Representative", "DSD Field Supervisor",
+                                "DSD Operations Analyst"],
+                "consulted": ["Route Planner"]},
+    "o2c-m12": {"responsible": ["Route Settlement Clerk", "DSD Operations Analyst",
+                                "Cash Application Analyst"],
+                "consulted": ["AR Controller"]},
+    # -- O.5 Invoicing & Price Corrections (lanes: invoice-generation, billing-adjustments) --
+    "o2c-m13": {"responsible": ["Billing Specialist", "Invoice-to-Cash Analyst", "Billing Team Lead"],
+                "consulted": ["Revenue Controller"]},
+    "o2c-m14": {"responsible": ["Billing Specialist", "Invoice-to-Cash Analyst",
+                                "Revenue Controller", "Billing Team Lead"],
+                "consulted": ["Dispute Resolution Analyst"]},
+    # -- O.6 Accounts Receivable (lanes: collections-*, payment-*, deduction-identification) --
+    "o2c-m15": {"responsible": ["Credit Risk Analyst", "Credit Manager", "Order Management Specialist"],
+                "consulted": ["AR Controller", "Sales Operations Manager"]},
+    "o2c-m16": {"responsible": ["Collections Analyst", "Collections Specialist",
+                                "Collections Strategy Lead", "AR Controller"],
+                "consulted": ["Credit & Risk Lead", "Credit & Collections Manager"]},
+    "o2c-m17": {"responsible": ["Cash Application Specialist", "Cash Application Analyst",
+                                "AR Reconciliation Lead", "Treasury Operations Analyst"],
+                "consulted": ["AR Controller"]},
+    "o2c-m18": {"responsible": ["Deductions Analyst", "Dispute Resolution Analyst",
+                                "Cash Application Analyst", "AR Reconciliation Lead"],
+                "consulted": ["Billing Team Lead", "Customer Compliance Analyst"]},
+    # -- O.7 Returns Management -----------------------------------------------
+    "o2c-m19": {"responsible": ["Returns Coordinator", "Claims Analyst", "Warehouse Operations Lead"],
+                "consulted": ["Revenue Controller"]},
+    "o2c-m20": {"responsible": ["Returnable Asset Coordinator", "Route Sales Representative"],
+                "consulted": ["Finance Controller"]},
+    # -- O.8 OTC Transformation & Process Governance ---------------------------
+    "o2c-m22": {"responsible": ["Process Design Lead", "Regional Process Owner",
+                                "Data Governance Analyst"],
+                "consulted": ["Finance Controller"]},
+    "o2c-m23": {"responsible": ["Master Data Steward", "Data Governance Analyst",
+                                "Master Data Requestor", "Master Data Manager"],
+                "consulted": ["Finance Controller"]},
+    "o2c-m24": {"responsible": ["EDI Integration Analyst", "Digital Channel Analyst",
+                                "Master Data Steward"],
+                "consulted": ["Customer Compliance Analyst"]},
+    "o2c-m25": {"responsible": ["Controls Analyst", "Data Governance Analyst"],
+                "consulted": ["Internal Audit Lead", "Finance Controller"]},
+    "o2c-m26": {"responsible": ["Transformation Analyst", "Change & Adoption Lead",
+                                "Process Design Lead"],
+                "consulted": ["Finance Controller", "Global Process Owner (OTC)"]},
+}
+
+# Verbs that separate the actor from the action in a HITL gate string, e.g.
+# "Collections VP approves delivery block" -> "Collections VP".
+_GATE_VERBS = re.compile(
+    r"\s+(?:co-)?(approves?|approval|signs?\s+off|sign-off|authoris\w*|authoriz\w*|confirms?|"
+    r"reassigns?|releases?|reviews?|validates?|accepts?|waives?|decides?|escalates?|"
+    r"clears?|challenges?|provides?|arbitrates?|rules?|recertifies|resolves?|assigns?|"
+    r"adjusts?|selects?|overrides?|verifies|certifies|blocks?|writes?|agrees?|"
+    r"determines?|nominates?|extends?|grants?|rejects?|holds?)\b",
+    re.I)
+
+# Modal/auxiliary tail left behind when a gate reads "CFO must approve ...".
+_MODAL_TAIL = re.compile(r"\s+(must|should|shall|will|needs?\s+to|has\s+to|to)$", re.I)
+
+# Gate text sometimes leads with a bare noun that is not a person.
+_NOT_A_ROLE = {"cost-centre", "cost centre", "access", "manual", "system", "auto", "none"}
+
+# Bare titles that are only meaningful when qualified ("VP" vs "Collections VP").
+_GENERIC_TITLES = {"vp", "manager", "director", "lead", "head", "controller", "owner"}
+
+
+def _approver_from_gate(text):
+    """Pull the actor phrase(s) out of a HITL gate string.
+
+    Returns a list, because a gate may name co-approvers
+    ("Collections VP + Sales Director co-approve"). Returns [] when the gate names
+    no recognisable role — we never invent a persona.
+    """
+    s = (text or "").strip()
+    if not s:
+        return []
+    m = _GATE_VERBS.search(s)
+    head = (s[:m.start()] if m else s).strip(" .,:;-")
+    out = []
+    # split co-approvers, but never on "&" — that would tear "FP&A lead" in half
+    for part in re.split(r"\s*(?:\+|,|\band\b)\s*", head):
+        actor = _MODAL_TAIL.sub("", part.strip(" .,:;-")).strip(" .,:;-")
+        if not actor or len(actor) > 46 or actor.lower() in _NOT_A_ROLE:
+            continue
+        if not re.search(r"[A-Za-z]", actor):
+            continue
+        out.append(actor)
+    return out
+
+
+def _dedupe_roles(roles):
+    """Collapse the same person written different ways.
+
+    'VP Collections' and 'Collections VP' are one role (same word set, first form
+    wins), and a bare generic title is dropped when a qualified variant of it is
+    already present ('VP' next to 'Collections VP').
+    """
+    kept, seen = [], set()
+    for r in roles:
+        key = tuple(sorted(w.lower() for w in re.split(r"[\s/&+-]+", r) if w))
+        if key and key not in seen:
+            seen.add(key)
+            kept.append(r)
+    out = []
+    for r in kept:
+        low = r.lower()
+        if low in _GENERIC_TITLES and any(
+                o is not r and low in [w.lower() for w in o.split()] for o in kept):
+            continue    # a qualified variant already covers this one
+        out.append(r)
+    return out
+
+
+def _initials(role):
+    """'Collections Lead' -> 'CL'. Skips connectives and parentheticals."""
+    skip = {"and", "of", "the", "for", "&", "/"}
+    words = [w for w in re.split(r"[\s/&]+", re.sub(r"\(.*?\)", "", role or ""))
+             if w and w.lower() not in skip and w[0].isalnum()]
+    return ("".join(w[0] for w in words[:2]) or "?").upper()
+
+
+def build_mission_personas(mission, by_id):
+    """Assemble the RACI map for one mission.
+
+    accountable — the mission's existing `owner` (stub missions have none, and their
+                  `name` is already a job title, so fall back to that).
+    responsible — authored above from the process-map role vocabulary.
+    approvers   — derived from the hitlGates of every pattern the mission's
+                  capabilities reference. Real data, so it stays honest as the
+                  pattern library grows.
+    """
+    authored = MISSION_PERSONAS.get(mission["id"], {})
+    owner = mission.get("owner") or mission.get("name") or ""
+
+    approvers = []
+    for cap in mission.get("capabilities", []):
+        for pid in cap.get("patternIds", []):
+            pat = by_id.get(pid)
+            if not pat:
+                continue
+            for gate in (pat.get("hitlGates") or []):
+                approvers.extend(_approver_from_gate(gate))
+
+    return {
+        "accountable": {"role": owner, "initials": _initials(owner)},
+        "responsible": list(authored.get("responsible", [])),
+        "approvers": _dedupe_roles(approvers)[:4],
+        "consulted": list(authored.get("consulted", [])),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Capability KPI numerics
+#
+# Capabilities carry a KPI *label* only. This table gives every label a baseline and
+# a target so Run & Monitor can show a mission KPI moving as the queue is cleared.
+# Fixed values, no RNG — the demo must be reproducible. The three labels that also
+# appear in roi.json are pinned to the SAME numbers so the two screens never
+# contradict each other on stage.
+# ---------------------------------------------------------------------------
+
+KPI_METRICS = {
+    # -- pinned to roi.json ----------------------------------------------------
+    "DSO (days)":              ("days", 45, 35, "down"),     # roi.kpis DSO
+    "Auto-match %":            ("%", 35, 85, "up"),          # roi.kpis Auto-Match
+    "Dispute cycle time":      ("days", 25, 12, "down"),     # roi.kpis Dispute Cycle
+    "Leakage $":               ("$M", 3.6, 1.5, "down"),     # 2.1M prevented = roi.outcomes
+    "Benefits realized $":     ("$M", 1.8, 8.4, "up"),       # roi.meta year1Total
+    # -- Order Management ------------------------------------------------------
+    "Clean-order rate %":      ("%", 82, 96, "up"),
+    "Order cycle time":        ("hrs", 26, 9, "down"),
+    "Cost per order":          ("$", 14.2, 8.6, "down"),
+    "O2C cycle time":          ("days", 38, 27, "down"),
+    "Fill rate %":             ("%", 91, 98, "up"),
+    "Allocation effectiveness": ("%", 74, 92, "up"),
+    # -- Pricing & Rebates -----------------------------------------------------
+    "Contract compliance %":   ("%", 86, 97, "up"),
+    "Accrual accuracy %":      ("%", 88, 98, "up"),
+    "Settlement accuracy":     ("%", 90, 99, "up"),
+    "Pricing errors":          ("/mo", 240, 60, "down"),
+    # -- Logistics -------------------------------------------------------------
+    "OTIF %":                  ("%", 91, 98, "up"),
+    "Cost per drop":           ("$", 12.4, 9.1, "down"),
+    "Freight variance $":      ("$K", 420, 140, "down"),
+    "Compliance rate %":       ("%", 87, 98, "up"),
+    "Chargeback $":            ("$K", 680, 210, "down"),
+    # -- Direct Store Delivery -------------------------------------------------
+    "Sales per route":         ("$", 3850, 4600, "up"),
+    "Drops per day":           ("/route", 28, 34, "up"),
+    "Distributor vs own perf": ("pts", -6, 2, "up"),
+    "Settlement variance $":   ("$K", 310, 60, "down"),
+    "Exception rate %":        ("%", 18, 5, "down"),
+    # -- Billing ---------------------------------------------------------------
+    "Touchless billing %":     ("%", 68, 94, "up"),
+    "Cost per invoice":        ("$", 3.8, 1.6, "down"),
+    "Correction cycle time":   ("days", 9, 3, "down"),
+    # -- Accounts Receivable ---------------------------------------------------
+    "Bad-debt write-off $":    ("$M", 2.4, 0.9, "down"),
+    "Projected DSO":           ("days", 47, 36, "down"),
+    "Cost per collection":     ("$", 6.4, 2.9, "down"),
+    # -- Returns ---------------------------------------------------------------
+    "Salvage recovery %":      ("%", 42, 68, "up"),
+    "Asset float $":           ("$M", 5.1, 2.6, "down"),
+    # -- Governance ------------------------------------------------------------
+    "Template adherence %":    ("%", 64, 93, "up"),
+    "Variant count":           ("", 148, 42, "down"),
+    "Data quality score":      ("%", 76, 95, "up"),
+    "EDI error rate %":        ("%", 11, 2, "down"),
+    "Control exceptions":      ("", 34, 6, "down"),
+    # -- sample (stub) functions ----------------------------------------------
+    "Fraud & duplicate leakage $": ("$K", 940, 180, "down"),
+    "Days Payable Outstanding":    ("days", 32, 42, "up"),
+    "Aged breaks":                 ("", 210, 25, "down"),
+    "Close cycle days":            ("days", 8, 4, "down"),
+    "Day-1 readiness %":           ("%", 62, 94, "up"),
+    "Open compliance gaps":        ("", 28, 4, "down"),
+    "Stockout incidents":          ("/mo", 46, 9, "down"),
+    "Forecast accuracy %":         ("%", 71, 92, "up"),
+    "Variance cycle time":         ("days", 6, 2, "down"),
+    "Idle cash $":                 ("$M", 12.4, 4.2, "down"),
+    "Unhedged exposure $":         ("$M", 8.6, 2.1, "down"),
+    "Penalty exposure $":          ("$K", 540, 90, "down"),
+    "Determination error %":       ("%", 9, 1.5, "down"),
+    "Expense leakage $":           ("$K", 380, 70, "down"),
+    "Auto-approval %":             ("%", 44, 88, "up"),
+    "Open SoD conflicts":          ("", 63, 8, "down"),
+}
+
+
+def build_capability_metric(kpi):
+    """Baseline/target for a capability KPI label. Unlisted labels fall back to a
+    shape inferred from the label itself so a new capability never renders blank."""
+    hit = KPI_METRICS.get(kpi)
+    if hit is None:
+        label = (kpi or "").lower()
+        if "$" in label:
+            hit = ("$K", 500, 150, "down")
+        elif "%" in label or "rate" in label or "accuracy" in label:
+            hit = ("%", 65, 92, "up")
+        elif "time" in label or "days" in label or "cycle" in label:
+            hit = ("days", 20, 8, "down")
+        else:
+            hit = ("", 100, 30, "down")
+    unit, baseline, target, better = hit
+    return {"unit": unit, "baseline": baseline, "target": target, "better": better}
 
 
 def stub(pid, name, category, priority, feature, mental, happy, branches, gates):
@@ -1794,14 +2084,22 @@ def main():
     functions = [ar] + stub_funcs
     themes = build_themes()
 
-    # roll up counts for the picker chrome
+    # roll up counts for the picker chrome, and derive the persona map + KPI numerics.
+    # by_id spans the real library AND the stub patterns so sample functions derive
+    # approvers from their own gates exactly the way O2C does.
+    # (stubPatterns is keyed by str(id) for JSON; capability patternIds are ints)
+    by_id = {p["id"]: p for p in patterns}
+    by_id.update({int(k): v for k, v in stub_patterns.items()})
+
     for f in functions:
         n = 0
         for p in f["processes"]:
             for r in p["missions"]:
                 for o in r["capabilities"]:
                     o["patternCount"] = len(o["patternIds"])
+                    o["metric"] = build_capability_metric(o.get("kpi"))
                     n += len(o["patternIds"])
+                r["personas"] = build_mission_personas(r, by_id)
         f["patternCount"] = n
 
     out = {
