@@ -22,6 +22,10 @@ OUT  = os.path.join(ROOT, "src", "data", "patterns.json")
 # beyond Collections Analyst). Merged into the library on build so the full 101-pattern
 # O2C set survives a regenerate-from-xlsx. Same shape as an xlsx-derived pattern.
 EXT  = os.path.join(ROOT, "src", "data", "patterns_o2c_ext.json")
+# Second hand-authored file: the operational O2C domains the AR-centric library
+# never covered — pricing & rebates, logistics & freight, direct store delivery,
+# returns & returnable assets, master data / channels / controls.
+EXT2 = os.path.join(ROOT, "src", "data", "patterns_o2c_ops.json")
 M = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 
 # Risk/priority colour mapping mirrors the deck legend.
@@ -201,11 +205,17 @@ def main():
 
     # Merge hand-authored O2C extension patterns (roles 2-8 of the O2C cycle).
     # Normalise the few derived fields so the source file stays lean and consistent.
-    if os.path.exists(EXT):
-        with open(EXT, encoding="utf-8") as f:
+    seen_ids = {p["id"] for p in patterns}
+    for ext_path in (EXT, EXT2):
+        if not os.path.exists(ext_path):
+            continue
+        with open(ext_path, encoding="utf-8") as f:
             ext = json.load(f)
         ext_pats = ext["patterns"] if isinstance(ext, dict) else ext
         for p in ext_pats:
+            if p["id"] in seen_ids:
+                raise SystemExit("Duplicate pattern id %s in %s" % (p["id"], ext_path))
+            seen_ids.add(p["id"])
             p["priorityRank"] = PRIORITY_RANK.get(p.get("priority", "Medium"), 2)
             p["featureSlug"] = slug(p.get("layer3_feature", ""))
             # canonicalise arrows and re-derive HITL gates from the branching DAG
@@ -213,7 +223,7 @@ def main():
                                   .replace("→", "->").replace("≥", ">=").replace("≤", "<="))
             p["hitlGates"] = sorted({b["hitl"] for b in p.get("branchingDAG", []) if b.get("hitl")})
         patterns.extend(ext_pats)
-        print(f"Merged {len(ext_pats)} extension patterns from {os.path.relpath(EXT, ROOT)}")
+        print(f"Merged {len(ext_pats)} extension patterns from {os.path.relpath(ext_path, ROOT)}")
 
     patterns.sort(key=lambda p: p["id"])
 
