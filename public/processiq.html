@@ -507,12 +507,16 @@ button{font-family:inherit;cursor:pointer}
 .st-intro{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
 .st-intro h2{font-size:25px;margin:5px 0 0;letter-spacing:-.02em}
 .st-lede{color:var(--muted);font-size:13.5px;max-width:680px;margin:7px 0 0}
-.st-rail{display:flex;align-items:center;margin:22px 0 24px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);overflow-x:auto}
-.st-step{display:flex;align-items:center;gap:9px;background:none;border:0;padding:6px 10px;border-radius:9px;cursor:pointer;white-space:nowrap;color:var(--muted)}
+/* All five sections stay on one line: the chosen-value caption stacks under the
+   section name (see .st-txt) rather than sitting beside it, which is what used to
+   push "Action Chains" onto a second row. */
+.st-rail{display:flex;align-items:center;flex-wrap:nowrap;margin:22px 0 24px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);overflow-x:auto}
+.st-txt{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;min-width:0}
+.st-step{display:flex;align-items:center;gap:8px;background:none;border:0;padding:5px 9px;border-radius:9px;cursor:pointer;white-space:nowrap;color:var(--muted);flex-shrink:0}
 .st-step:disabled{opacity:.45;cursor:default}
 .st-step .st-dot{width:24px;height:24px;border-radius:50%;background:#efeae1;color:var(--muted);display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0}
 .st-step .st-name{font-size:13px;font-weight:700;color:var(--ink)}
-.st-step .st-chose{display:block;font-size:10.5px;font-weight:600;color:var(--brand2);max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.st-step .st-chose{display:block;font-size:10px;font-weight:600;color:var(--brand2);max-width:132px;overflow:hidden;text-overflow:ellipsis}
 .st-step.on .st-dot{background:var(--brand);color:#fff}
 .st-step.done .st-dot{background:var(--act);color:#fff}
 .st-step.on{background:#f6eee2}
@@ -1563,18 +1567,94 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 .ch-s.obj{color:var(--act);font-weight:750}
 .ch-a{font-style:normal;color:var(--muted);font-size:10px}
 
-/* ================= Mission Command (campaign HQ) =================
-   The war-room board: one objective, every persona mission converging on it. */
+/* ================= Studio: flattened 5-section builder ================= */
+.st-ctx{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--brand2);background:rgba(244,122,30,.11);border:1px solid rgba(244,122,30,.35);
+  border-radius:20px;padding:2px 9px;margin-left:9px;vertical-align:middle}
+.sum-cap{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.04em;padding:0 0 8px;border-bottom:1px solid var(--line);margin-bottom:9px}
+
+/* Processes & KPIs — the impact map */
+.impact-kpi{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;
+  border:1px solid var(--line);border-left:3px solid var(--brand2);border-radius:12px;
+  padding:13px 16px;box-shadow:var(--shadow);margin-bottom:14px}
+.ik-l{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.ik-n{font-size:15px;font-weight:750}
+.ik-f{font-size:11px;color:var(--muted);background:#faf7f2;border:1px solid var(--line);
+  border-radius:6px;padding:2px 8px}
+.ik-v{margin-left:auto;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.ik-v i{font-style:normal;color:var(--muted);margin:0 3px}
+.ik-v b{color:var(--act)}
+.ik-chips{display:flex;flex-wrap:wrap;gap:4px}
+.ik-chip{font-size:10px;font-weight:700;color:var(--sense);background:rgba(41,128,185,.09);
+  border:1px solid rgba(41,128,185,.28);border-radius:6px;padding:1px 7px;white-space:nowrap}
+.ik-chip.more{color:var(--muted);background:#f2ece2;border-color:var(--line)}
+
+/* mission contribution weight on a pick card */
+.mw{display:flex;align-items:center;gap:8px;margin-top:2px}
+.mw-l{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.mw-bar{flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.mw-bar i{display:block;height:100%;background:var(--brand2)}
+.mw-v{font-size:11.5px;font-weight:800;color:var(--brand2);font-variant-numeric:tabular-nums}
+.obj-group-h small{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted);margin-left:8px}
+
+/* Action Chains */
+.ac-sum{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;
+  border:1px solid var(--line);border-radius:12px;padding:11px 16px;box-shadow:var(--shadow);margin:4px 0 14px}
+.ac-sum i{color:var(--line)}
+.acs-i{display:flex;flex-direction:column;line-height:1.15}
+.acs-i b{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.acs-i span{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.st-subtabs{display:flex;gap:6px;margin:6px 0 12px;border-bottom:1px solid var(--line)}
+.st-subtab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 13px;
+  font-size:13px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:7px}
+.st-subtab:hover{color:var(--ink)}
+.st-subtab.on{color:var(--brand2);border-bottom-color:var(--brand2)}
+.st-subn{font-size:10px;font-weight:800;background:#f2ece2;border-radius:20px;padding:1px 7px;color:var(--muted)}
+.st-subtab.on .st-subn{background:rgba(244,122,30,.15);color:var(--brand2)}
+.aclist{display:flex;flex-direction:column;gap:9px}
+.accard{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px 14px;box-shadow:var(--shadow)}
+.accard.dyn{border-left:3px solid var(--decide)}
+.accard-h{display:flex;align-items:center;gap:9px}
+.accard-n{font-size:13.5px;font-weight:750;flex:1;min-width:0}
+.accard-meta{font-size:10.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.ac-toggle{background:none;border:1px solid var(--line);border-radius:7px;width:26px;height:24px;
+  color:var(--muted);font-size:11px}
+.ac-toggle:hover{border-color:var(--brand2);color:var(--brand2)}
+.dynlist{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.dynbr{background:#faf7f2;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.dynbr-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dynbr-n{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;
+  background:var(--decide);color:#fff;font-size:10px;font-weight:800;flex-shrink:0}
+.dynbr-c{font-family:var(--mono);font-size:11px;color:var(--ink);flex:1;min-width:0}
+.dynbr-gate{font-size:9.5px;font-weight:800;color:var(--crit);background:rgba(192,57,43,.1);
+  border-radius:5px;padding:1px 6px;white-space:nowrap}
+.dyn-tier{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+  border-radius:5px;padding:1px 6px;background:#efe9e0;color:var(--muted)}
+.dyn-tier.t-escalation{background:rgba(230,126,34,.14);color:var(--high)}
+.dyn-tier.t-legal{background:rgba(192,57,43,.12);color:var(--crit)}
+.dynbr-a{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px}
+.dynbr-a i{font-style:normal;color:var(--muted);font-size:10px}
+.dynpeeks{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.dynpeek{font-size:10.5px;color:var(--muted);background:#faf7f2;border:1px solid var(--line);
+  border-radius:6px;padding:2px 7px}
+.dynpeek.more{font-weight:800;color:var(--brand2)}
+.dyngates{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:9px;
+  border-top:1px solid var(--line);padding-top:8px}
+.gatechip{font-size:10px;font-weight:700;color:var(--crit);background:rgba(192,57,43,.08);
+  border:1px solid rgba(192,57,43,.3);border-radius:6px;padding:1px 7px}
+
+/* ================= Mission Command · Campaign HQ ================= */
 .mc{max-width:1180px;margin:0 auto;padding:26px 24px 60px}
 .mc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .mc-head h2{font-size:22px;margin:3px 0 0}
+.mc-ctrl{display:flex;gap:8px}
 .mc-ctrl .btn{margin-top:0}
 .mc-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
   color:var(--brand2);margin:26px 0 11px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .mc-h small{font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
 .mc-mnone{font-size:12px;color:var(--muted);font-style:italic;padding:10px 2px}
 
-/* -- objective band -- */
 .mc-obj{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;
   background:#fff;border:1px solid var(--line);border-left:4px solid var(--oc,var(--brand2));
   border-radius:14px;padding:20px 24px;box-shadow:var(--shadow);margin-top:20px}
@@ -1583,43 +1663,46 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 .mc-tag{font-size:12.5px;color:var(--muted);margin:0 0 10px;max-width:60ch}
 .mc-kpi{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .mc-kn{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--oc,var(--brand2))}
-.mc-kf{font-size:11px;color:var(--muted);background:#faf7f2;border:1px solid var(--line);
-  border-radius:6px;padding:1px 7px}
+.mc-kf{font-size:11px;color:var(--muted);background:#faf7f2;border:1px solid var(--line);border-radius:6px;padding:1px 7px}
 .mc-track{display:flex;align-items:center;gap:12px;max-width:460px}
 .mc-tv{display:flex;flex-direction:column;align-items:center;line-height:1.1}
 .mc-tv b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
 .mc-tv small{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
 .mc-tbar{flex:1;height:7px;border-radius:4px;background:var(--line);overflow:hidden}
 .mc-tbar i{display:block;height:100%;background:var(--oc,var(--brand2));transition:width .6s ease}
-.mc-objstat{text-align:right;min-width:150px}
-.mc-big{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--oc,var(--brand2));
-  font-variant-numeric:tabular-nums}
+.mc-objstat{text-align:right;min-width:160px}
+.mc-big{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--oc,var(--brand2));font-variant-numeric:tabular-nums}
 .mc-big small{font-size:17px;font-weight:700}
 .mc-blab{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:3px}
 .mc-sub{font-size:11px;color:var(--muted);margin-top:5px}
 .mc-moved{font-size:10.5px;font-weight:800;color:var(--act);margin-top:7px}
+.mc-table{font-size:10.5px;font-weight:800;color:var(--high);margin-top:3px}
 .mc-noobj{max-width:560px;margin:40px auto;background:#fff;border:1px solid var(--line);
   border-radius:14px;padding:32px;text-align:center;box-shadow:var(--shadow)}
 .mc-noobj h2{font-size:21px;margin:8px 0 6px}
 .mc-noobj p{font-size:13px;color:var(--muted)}
 
-/* -- persona mission cards -- */
+/* Sankey */
+.mc-sankeywrap{margin-top:6px}
+.mc-scroll{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:8px 10px;box-shadow:var(--shadow)}
+.mc-sankey{display:block;min-width:900px}
+
+/* mission cards */
 .mc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
-.mc-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px;
-  box-shadow:var(--shadow);cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:11px}
+.mc-card{background:#fff;border:1px solid var(--line);border-left:3px solid var(--lane,var(--brand2));
+  border-radius:13px;padding:15px 16px;box-shadow:var(--shadow);cursor:pointer;transition:.15s;
+  display:flex;flex-direction:column;gap:11px}
 .mc-card:hover{border-color:var(--brand2);transform:translateY(-2px)}
 .mc-card:focus-visible{outline:2px solid var(--brand2);outline-offset:2px}
-.mc-card.live{border-left:3px solid var(--act)}
 .mc-ch{display:flex;align-items:center;gap:10px}
-.mc-av{position:relative;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;
+.mc-av{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;
   background:var(--brand);color:#fff;font-size:13px;font-weight:800;flex-shrink:0}
-.mc-rank{position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:50%;
-  display:grid;place-items:center;font-size:9px;font-weight:800;font-style:normal;color:#fff;
-  border:2px solid #fff}
-.mc-who{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.mc-who{display:flex;flex-direction:column;line-height:1.25;min-width:0;flex:1}
 .mc-who b{font-size:13.5px;font-weight:750}
 .mc-who small{font-size:10.5px;color:var(--muted)}
-.mc-stmt{font-size:13px;font-weight:650;line-height:1.35;color:var(--ink)}
+.mc-shr{font-size:15px;font-weight:800;color:var(--lane,var(--brand2));font-variant-numeric:tabular-nums}
+.mc-stmt{font-size:13px;font-weight:650;line-height:1.35}
 .mc-metrics{display:flex;flex-direction:column;gap:9px}
 .mc-mh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .mc-mk{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
@@ -1637,41 +1720,181 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 .mc-e b{color:var(--ink);font-weight:800}
 .mc-e.warn{color:var(--high);border-color:rgba(230,126,34,.4);background:rgba(230,126,34,.09)}
 .mc-e.warn b{color:var(--high)}
-.mc-contrib{display:flex;align-items:center;gap:9px}
-.mc-cl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.mc-cbar{flex:1;height:6px;border-radius:4px;background:var(--line);overflow:hidden}
-.mc-cbar i{display:block;height:100%;background:var(--brand2)}
-.mc-cv{font-size:12px;font-weight:800;color:var(--brand2);font-variant-numeric:tabular-nums}
-.mc-badges{display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--line);padding-top:9px}
-.mc-badge{font-size:9.5px;font-weight:700;color:#b3aa9e;background:none;
-  border:1px dashed var(--line);border-radius:20px;padding:2px 8px;white-space:nowrap}
-.mc-badge.on{border-style:solid;color:#fff;border-color:transparent}
-.mc-badge.b-first{background:var(--low)}
-.mc-badge.b-stp{background:var(--act)}
-.mc-badge.b-dag{background:var(--diag)}
-.mc-badge.b-target{background:var(--brand2)}
+.mc-gap{display:grid;grid-template-columns:1fr auto;gap:2px 10px;border-top:1px solid var(--line);padding-top:9px}
+.mc-gl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.mc-gv{font-size:16px;font-weight:800;color:var(--high);grid-row:span 2;align-self:center;font-variant-numeric:tabular-nums}
+.mc-gd{font-size:10px;color:var(--muted)}
 
-/* -- dependency board -- */
-.mc-dlist{display:flex;flex-direction:column;gap:7px}
-.mc-dep{display:grid;grid-template-columns:1fr auto 1fr auto;gap:12px;align-items:center;
-  background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12px}
-.mc-dep.k-shared{border-left:3px solid var(--sense)}
-.mc-dep.k-flow{border-left:3px solid var(--decide)}
-.mc-dep.unlocked{background:rgba(22,160,133,.05);border-color:rgba(22,160,133,.35)}
-.mc-dfrom,.mc-dto{font-weight:700}
-.mc-dto{text-align:left}
-.mc-darr{display:flex;flex-direction:column;align-items:center;color:var(--muted);font-size:13px;line-height:1.1}
-.mc-darr i{font-style:normal;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.mc-dstate{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
-  color:var(--muted);text-align:right;white-space:nowrap}
-.mc-dep.unlocked .mc-dstate{color:var(--act)}
+/* ================= Mission Command · Persona View ================= */
+.pv-head{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
+  background:#fff;border:1px solid var(--line);border-left:4px solid var(--lane,var(--brand2));
+  border-radius:14px;padding:18px 22px;box-shadow:var(--shadow);margin:14px 0 4px}
+.pv-av{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;
+  color:#fff;font-size:19px;font-weight:800}
+.pv-hmain h2{font-size:21px;margin:2px 0 3px}
+.pv-stmt{font-size:13px;color:var(--muted);margin:0 0 8px}
+.pv-team{display:flex;flex-wrap:wrap;gap:12px}
+.pv-tr{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.pv-tr i{font-style:normal;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);margin-right:3px}
+.pv-contrib{text-align:right;min-width:130px}
+.pv-cv{font-size:32px;font-weight:800;line-height:1;color:var(--lane,var(--brand2));font-variant-numeric:tabular-nums}
+.pv-cv small{font-size:15px}
+.pv-cl{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.35}
+.pv-sec{margin-top:4px}
+.pv-kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.pv-kcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+.pv-kcard.hit{border-color:rgba(22,160,133,.45)}
+.pv-kh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pv-kt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.pv-kn{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.pv-kv{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pv-kv i{font-style:normal;font-size:10px;font-weight:800;color:var(--act)}
+.pv-kr{font-size:10px;color:var(--muted);font-weight:650}
+.pv-spark{flex-shrink:0}
+.pv-kcap{font-size:10.5px;color:var(--muted);margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}
+.pv-kdrv{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:7px}
+.pv-pat{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;
+  background:#faf7f2;border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.pv-pat i{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pv-pat.none,.pv-pat.more{color:var(--muted);font-style:italic}
+.pv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:11px}
+.pv-stream{max-height:none}
+.pv-more{font-size:11px;color:var(--muted);margin-top:8px;text-align:center}
+.pv-scope{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:12px}
+.pv-sc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:3px}
+.pv-scl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.pv-scv{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pv-scv.good{color:var(--act)}
+.pv-scv.bad{color:var(--high)}
+.pv-scd{font-size:10.5px;color:var(--muted)}
+.pv-recs{display:flex;flex-direction:column;gap:7px}
+.pv-rec{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:9px 13px}
+.pv-rec.on{background:rgba(22,160,133,.05);border-color:rgba(22,160,133,.3)}
+.pv-rn{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--brand);
+  color:#fff;font-size:10px;font-weight:800;flex-shrink:0}
+.pv-rmain{flex:1;min-width:0}
+.pv-rt{font-size:12.5px;font-weight:750}
+.pv-rd{font-size:10.5px;color:var(--muted)}
+.pv-rw{font-size:14px;font-weight:800;color:var(--high);display:flex;flex-direction:column;
+  align-items:flex-end;line-height:1.1;font-variant-numeric:tabular-nums}
+.pv-rw small{font-size:8.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.pv-rs{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+  border-radius:5px;padding:2px 7px;white-space:nowrap}
+.pv-rs.on{color:var(--act);background:rgba(22,160,133,.12)}
+.pv-rs.off{color:var(--muted);background:#f2ece2}
+.pv-nextup{font-size:12px;color:var(--ink);background:rgba(244,122,30,.07);
+  border:1px solid rgba(244,122,30,.3);border-radius:10px;padding:11px 14px;margin-top:10px;line-height:1.5}
 
 @media(max-width:900px){
-  .mc-obj{grid-template-columns:1fr;text-align:center;justify-items:center}
-  .mc-objstat{text-align:center}
-  .mc-dep{grid-template-columns:1fr;gap:4px;text-align:center}
-  .mc-dstate{text-align:center}
+  .mc-obj,.pv-head{grid-template-columns:1fr;text-align:center;justify-items:center}
+  .mc-objstat,.pv-contrib{text-align:center}
+  .pv-stats{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ---- Campaign HQ Sankey: expandable nodes + persistent-detail toggle ---- */
+.mcs-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.mcs-head .mc-h{margin:26px 0 11px}
+.mcs-svg svg{display:block;width:100%;height:auto;
+  font-family:'Inter',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+
+.mcs-node{cursor:pointer}
+.mcs-box{transition:filter 140ms ease}
+.mcs-node:hover .mcs-box{filter:brightness(.985)}
+.mcs-node:focus{outline:none}
+.mcs-node:focus-visible .mcs-box{stroke-width:3}
+
+/* text always wears an ink token — the coloured node beside it carries identity */
+.mcs-t{font-size:12px;font-weight:750;fill:var(--ink);pointer-events:none}
+.mcs-s{font-size:10px;font-weight:600;fill:var(--muted);pointer-events:none}
+.mcs-m{font-size:10px;font-weight:500;fill:var(--muted);pointer-events:none}
+.mcs-n{font-size:17px;font-weight:800;fill:var(--ink);pointer-events:none}
+.mcs-cap{font-size:9px;font-weight:800;fill:#b3aa9e;letter-spacing:1px;pointer-events:none}
+.mcs-av{font-size:10px;font-weight:800;fill:#fff;pointer-events:none}
+.mcs-chev{font-size:11px;font-weight:700;fill:var(--muted);pointer-events:none}
+.mcs-warn{font-size:10px;font-weight:800;fill:var(--high);pointer-events:none}
+.mcs-track{fill:var(--line)}
+.mcs-rule{stroke:var(--line);stroke-width:1}
+.mcs-link{font-size:11px;font-weight:700;fill:var(--brand2);pointer-events:none}
+.mcs-linkhit{fill:transparent;cursor:pointer}
+.mcs-linkhit:hover + .mcs-link{fill:var(--accent);text-decoration:underline}
+
+/* the toggle — same switch idiom as the rest of the builder chrome */
+.mcs-pin{display:inline-flex;align-items:center;gap:9px;flex-shrink:0;margin-top:22px;
+  font-family:inherit;font-size:12px;font-weight:700;color:var(--muted);background:#fff;
+  border:1px solid var(--line);border-radius:20px;padding:6px 14px 6px 8px;cursor:pointer;
+  transition:border-color 140ms ease,color 140ms ease}
+.mcs-pin:hover{border-color:var(--brand2);color:var(--ink)}
+.mcs-pin.on{border-color:var(--brand2);color:var(--brand2);background:rgba(244,122,30,.09)}
+.mcs-switch{width:30px;height:17px;border-radius:9px;flex-shrink:0;background:var(--line);
+  position:relative;transition:background 160ms ease}
+.mcs-pin.on .mcs-switch{background:var(--brand2)}
+.mcs-switch i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+  background:#fff;transition:transform 160ms ease}
+.mcs-pin.on .mcs-switch i{transform:translateX(13px)}
+
+/* tower headers + hover affordance + tooltip for the Campaign HQ Sankey */
+.mcs-tow{font-size:10px;font-weight:800;fill:var(--brand2);letter-spacing:.09em;pointer-events:none}
+.mcs-towsub{font-size:9.5px;font-weight:600;fill:var(--muted);pointer-events:none}
+.mcs-flow{cursor:pointer}
+.mcs-flow path{transition:opacity 140ms ease}
+.mcs-flow:hover path{opacity:.62}
+.mcs-tip{position:fixed;z-index:60;max-width:320px;pointer-events:none;opacity:0;
+  background:var(--brand);color:#fff;border-radius:9px;padding:9px 12px;font-size:12px;
+  line-height:1.45;box-shadow:0 6px 22px rgba(38,28,18,.28);transition:opacity 120ms ease}
+.mcs-tip.on{opacity:1}
+.mcs-tip b{display:block;font-size:12.5px;font-weight:750;margin-bottom:3px}
+.mcs-tip i{display:block;font-style:normal;font-size:11px;opacity:.82}
+
+/* ---- collapsible process hierarchy ---- */
+.phier-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.phier-head .st-subq{margin:0}
+.phier-ctl{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.phier-sep{color:var(--line)}
+.ph-row{display:flex;align-items:center;gap:6px}
+.ph-tog{width:21px;height:21px;flex-shrink:0;display:grid;place-items:center;
+  background:#fff;border:1px solid var(--line);border-radius:6px;color:var(--ink);
+  font-size:12px;font-weight:700;line-height:1;padding:0;cursor:pointer;transition:.14s}
+.ph-tog:hover{border-color:var(--brand2);color:var(--brand2)}
+.ph-tog.on{color:var(--brand2)}
+.ph-tog.blank{border-color:transparent;background:none;cursor:default;visibility:hidden}
+/* generic collapse utility — used by the hierarchy tree AND the pattern groups */
+.ph-hide{display:none !important}
+.phier .ph-branch > .ph-children{margin-left:30px}
+
+/* ---- Patterns: collapsible mission groups ---- */
+.pgroups{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.pgroup{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.pgroup.open{border-color:var(--brand2)}
+.pg-head{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;transition:background .14s}
+.pg-head:hover{background:#faf7f2}
+.pgroup.open .pg-head{border-bottom:1px solid var(--line)}
+.pg-av{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:var(--brand);color:#fff;font-size:10px;font-weight:800}
+.pg-main{display:flex;flex-direction:column;line-height:1.3;min-width:0;flex:1}
+.pg-role{font-size:13px;font-weight:750;color:var(--ink)}
+.pg-mis{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pg-kpis{display:flex;align-items:center;flex-wrap:wrap;gap:4px;justify-content:flex-end;max-width:44%}
+.pg-kpis i{font-style:normal;font-size:8.5px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);margin-right:2px}
+.pg-kpi{font-size:10px;font-weight:700;color:var(--sense);background:rgba(41,128,185,.09);
+  border:1px solid rgba(41,128,185,.28);border-radius:6px;padding:1px 7px;white-space:nowrap}
+.pg-count{font-size:10.5px;font-weight:650;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.pg-count b{font-size:15px;font-weight:800;color:var(--brand2);margin-right:3px}
+.pg-body{padding:14px}
+.pg-body .patgrid{margin:0}
+
+/* KPI chips on a mission tile */
+.pc-kpis{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:6px}
+.pck-lab{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);margin-right:2px}
+.pc-kpi{font-size:10px;font-weight:700;color:var(--sense);background:rgba(41,128,185,.09);
+  border:1px solid rgba(41,128,185,.28);border-radius:6px;padding:1px 7px;white-space:nowrap}
+.pc-kpi i{font-style:normal;font-weight:600;opacity:.72;margin-left:3px}
+.pc-kpi.more{color:var(--muted);background:#f2ece2;border-color:var(--line)}
+@media(max-width:900px){.pg-kpis{display:none}}
 
 </style>
 </head>
@@ -44728,8 +44951,10 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     // the mission an SME is composing — threaded through all stages
     composition: {
       objectiveId: null,  // business objective (spans functions) — top-level lens
-      fnId: null, procId: null,
-      missionIds: [],     // all missions participating in the chosen process
+      fnId: null,
+      procId: null,       // primary process (= procIds[0]); kept for compact labels
+      procIds: [],        // every process the objective impacts and that is in scope
+      missionIds: [],     // all missions participating across the in-scope processes
       capIds: [],         // capabilities in scope (across the selected missions)
       patternIds: [],     // selected patterns
       skills: {},         // skillKey -> { mode:'auto'|'hitl', tech:string, configured:bool }
@@ -44749,12 +44974,14 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     { id: "build", n: 3, label: "Build", tag: "Skill Configuration", sub: [
         { id: "build", label: "Skill Workshop" } ] },
     { id: "run", n: 4, label: "Run & Monitor", tag: "Mission Execution", sub: [
-        { id: "missioncmd", label: "Mission Command" },
         { id: "runtime", label: "Mission Operations" },
         { id: "cockpit", label: "Central Nervous System" },
         { id: "governance", label: "Governance" },
         { id: "roi", label: "Value Measurement" } ] },
-    { id: "cfo", n: 5, label: "Finance Command Centre", tag: "Finance Leadership Consumption", sub: [
+    { id: "mission", n: 5, label: "Mission Command Centre", tag: "Objective Achievement", sub: [
+        { id: "missionhq", label: "Campaign HQ" },
+        { id: "missionpersona", label: "Persona View" } ] },
+    { id: "cfo", n: 6, label: "Finance Command Centre", tag: "Finance Leadership Consumption", sub: [
         { id: "command", label: "Command Center" },
         { id: "intelligence", label: "Intelligence" },
         { id: "scenarios", label: "Scenarios" },
@@ -44769,7 +44996,8 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     cfo:      { label: "Finance Command Centre",   stages: ["cfo"],           entry: "command" },
     designer: { label: "Transformation Designer",  stages: ["design"],        entry: "studio" },
     studio:   { label: "Implementation Studio",    stages: ["fit", "build"],  entry: "fitment" },
-    manage:   { label: "Manage & Operate",         stages: ["run"],           entry: "missioncmd" },
+    manage:   { label: "Manage & Operate",         stages: ["run"],           entry: "runtime" },
+    mission:  { label: "Mission Command Centre",   stages: ["mission"],       entry: "missionhq" },
   };
   PIQ.persona = null;
   function personaAllows(stageId) {
@@ -44850,21 +45078,57 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   PIQ.fn = function () {
     return (PIQ.tax.functions || []).filter(function (f) { return f.id === PIQ.composition.fnId; })[0] || null;
   };
+  // the primary in-scope process — a compact label for headers that name just one
   PIQ.proc = function () {
     var f = PIQ.fn(); var c = PIQ.composition; if (!f) return null;
-    return f.processes.filter(function (x) { return x.id === c.procId; })[0] || null;
+    var id = c.procId || (c.procIds || [])[0];
+    return f.processes.filter(function (x) { return x.id === id; })[0] || null;
   };
-  // missions currently in scope
+  /* Every process in scope. An objective impacts several processes at once
+     (Working Capital touches AR, Billing and DSD), so scope is a set — procId is
+     just the first of them, kept so single-process headers still render. */
+  PIQ.procs = function () {
+    var f = PIQ.fn(); var c = PIQ.composition; if (!f) return [];
+    var ids = (c.procIds && c.procIds.length) ? c.procIds : (c.procId ? [c.procId] : []);
+    return f.processes.filter(function (x) { return ids.indexOf(x.id) >= 0; });
+  };
+  // processes the selected objective impacts (the candidate pool, before narrowing)
+  PIQ.impactedProcs = function () {
+    var f = PIQ.fn(); if (!f) return [];
+    var ids = PIQ.objectiveProcessIds();
+    if (!ids.length) return f.processes.slice();
+    var hit = f.processes.filter(function (p) { return ids.indexOf(p.id) >= 0; });
+    return hit.length ? hit : f.processes.slice();
+  };
+  // "Accounts Receivable" / "3 processes" — honest when scope spans more than one
+  PIQ.scopeLabel = function () {
+    var ps = PIQ.procs();
+    if (!ps.length) return "";
+    return ps.length === 1 ? ps[0].name : ps.length + " processes";
+  };
+  // missions currently in scope, across every in-scope process
   PIQ.missions = function () {
-    var p = PIQ.proc(); var c = PIQ.composition; if (!p) return [];
-    return p.missions.filter(function (r) { return c.missionIds.indexOf(r.id) >= 0; });
+    var c = PIQ.composition, out = [];
+    PIQ.procs().forEach(function (p) {
+      (p.missions || []).forEach(function (r) {
+        if (c.missionIds.indexOf(r.id) >= 0) out.push(r);
+      });
+    });
+    return out;
+  };
+  // the process a mission belongs to (missions carry no back-reference)
+  PIQ.missionProc = function (missionId) {
+    var f = PIQ.fn(); if (!f) return null;
+    var hit = null;
+    f.processes.forEach(function (p) {
+      (p.missions || []).forEach(function (r) { if (r.id === missionId) hit = p; });
+    });
+    return hit;
   };
   // capabilities in scope, across every selected mission
   PIQ.capabilities = function () {
-    var p = PIQ.proc(); var c = PIQ.composition; if (!p) return [];
-    var out = [];
-    p.missions.forEach(function (r) {
-      if (c.missionIds.indexOf(r.id) < 0) return;
+    var c = PIQ.composition, out = [];
+    PIQ.missions().forEach(function (r) {
       (r.capabilities || []).forEach(function (o) { if (c.capIds.indexOf(o.id) >= 0) out.push(o); });
     });
     return out;
@@ -44921,7 +45185,7 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   // Memoised per composition scope (same idea as PIQ._actionRepo).
   function attributionIndex() {
     var c = PIQ.composition;
-    var sig = c.procId + "|" + c.missionIds.join(",") + "|" + c.capIds.join(",");
+    var sig = (c.procIds || []).join(",") + "|" + c.missionIds.join(",") + "|" + c.capIds.join(",");
     if (PIQ._attrIdx && PIQ._attrSig === sig) return PIQ._attrIdx;
     var idx = {};
     PIQ.missions().forEach(function (m) {
@@ -44939,6 +45203,44 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   }
   PIQ.patternAttribution = function (patternId) {
     return attributionIndex()[patternId] || { capIds: [], missionIds: [], caps: [], missions: [] };
+  };
+
+  /* Action-chain counts across the composition: the standard (happy-path) chains
+     and the dynamic (variation) branches. Used by the crumb, the Studio summary
+     and the Action Chains section so they always agree. */
+  PIQ.chainCounts = function () {
+    var std = 0, dyn = 0, gates = 0;
+    PIQ.selectedPatterns().forEach(function (p) {
+      std += PIQ.happyDAG(p.id).length;
+      dyn += (p.branchingDAG || []).length;
+      gates += (p.hitlGates || []).length;
+    });
+    return { standard: std, dynamic: dyn, gates: gates, patterns: PIQ.composition.patternIds.length };
+  };
+
+  /* Contribution weight of each in-scope mission toward the objective.
+     A mission that moves DSO 10 days contributes more than one moving dispute
+     cycle 3 days, so weight by the normalised baseline→target delta its
+     capabilities promise, scaled by how many patterns it actually has in play.
+     Returns { missionId: 0..1 } summing to 1. */
+  PIQ.missionWeights = function () {
+    var raw = {}, total = 0;
+    PIQ.missionMetrics().forEach(function (m) {
+      var span = 0;
+      m.metrics.forEach(function (k) {
+        if (k.baseline == null || k.target == null) return;
+        var denom = Math.abs(k.baseline) || 1;
+        span += Math.abs(k.target - k.baseline) / denom;   // normalised ambition
+      });
+      var pats = 0;
+      (m.mission.capabilities || []).forEach(function (o) { pats += (o.patternIds || []).length; });
+      // a KPI nobody can act on moves nothing — patterns are the execution muscle
+      var w = span * (1 + Math.log(1 + pats));
+      raw[m.mission.id] = w; total += w;
+    });
+    var out = {}, ids = Object.keys(raw);
+    ids.forEach(function (id) { out[id] = total ? raw[id] / total : (ids.length ? 1 / ids.length : 0); });
+    return out;
   };
 
   // in-scope missions with their capability KPIs resolved to numbers, for the
@@ -45040,8 +45342,8 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   };
 
   PIQ.resetComposition = function () {
-    PIQ.composition = { objectiveId: null, fnId: null, procId: null, missionIds: [], capIds: [],
-      patternIds: [], skills: {}, dag: {}, live: false };
+    PIQ.composition = { objectiveId: null, fnId: null, procId: null, procIds: [],
+      missionIds: [], capIds: [], patternIds: [], skills: {}, dag: {}, live: false };
     PIQ.persistComposition();
   };
 
@@ -45059,6 +45361,9 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       PIQ.composition = {
         objectiveId: saved.objectiveId || null,
         fnId: saved.fnId || null, procId: saved.procId || null,
+        // pre-multi-process compositions saved a single procId — widen it
+        procIds: Array.isArray(saved.procIds) && saved.procIds.length
+          ? saved.procIds : (saved.procId ? [saved.procId] : []),
         missionIds: Array.isArray(saved.missionIds) ? saved.missionIds : [],
         capIds: Array.isArray(saved.capIds) ? saved.capIds : [],
         patternIds: Array.isArray(saved.patternIds) ? saved.patternIds : [],
@@ -45075,9 +45380,9 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     var stage = stageOf(PIQ.active);
     nav.innerHTML = "";
     STAGES.forEach(function (st, i) {
-      // the CFO layer is the consumption surface, not part of the build pipeline —
-      // separate it visually from the earlier stages.
-      if (st.id === "cfo") {
+      // Mission Command and the Finance Command Centre are consumption surfaces,
+      // not part of the build pipeline — separate them visually from stages 1–4.
+      if (st.id === "mission") {
         var sep = document.createElement("span"); sep.className = "stage-sep";
         sep.innerHTML = '<span class="sep-line"></span>'; nav.appendChild(sep);
       }
@@ -45112,19 +45417,23 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     });
   }
 
+  /* Mirrors the five Studio sections:
+     Objective › Processes › Missions › Patterns › Action Chains */
   function crumb() {
     var c = PIQ.composition, f = PIQ.fn(), t = PIQ.objective();
     if (!f && !t) return '<span class="cr-empty">No mission selected — start in the Mission Builder</span>';
     var parts = [];
     if (t) parts.push(t.name);
-    if (f) parts.push(f.name);
-    var p = PIQ.proc();
-    if (p) parts.push(p.name);
+    var np = PIQ.procs().length;
+    if (np) parts.push(PIQ.scopeLabel());
     var s = parts.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('<i>›</i>');
     var nr = c.missionIds.length;
     if (nr) s += '<i>›</i><span class="cr-count">' + nr + ' mission' + (nr > 1 ? "s" : "") + '</span>';
     var n = c.patternIds.length;
     if (n) s += '<i>›</i><span class="cr-count">' + n + ' pattern' + (n > 1 ? "s" : "") + '</span>';
+    var ch = n ? PIQ.chainCounts() : null;
+    if (ch) s += '<i>›</i><span class="cr-count">' + ch.standard + ' std · ' + ch.dynamic + ' dyn chain' +
+      ((ch.standard + ch.dynamic) > 1 ? "s" : "") + '</span>';
     if (c.live) s += '<span class="cr-live">● LIVE</span>';
     return s;
   }
@@ -45189,34 +45498,44 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   };
 })();
 
-/* Setup · Mission Control — Mission Builder
- * The SME's guided front door: Objective → Function → Process → Missions → Capabilities →
- * Patterns → Skills. Choosing a process pulls in ALL its participating missions (and their
- * capabilities) by default — the SME can then narrow scope. The in-scope capabilities
- * surface the union of matching patterns; selecting patterns assembles the union of
- * skills; configuring those skills hands off to Discover & Fit.
+/* Setup · Mission Control — Transformation Builder
+ * FIVE sections, built for executive consumption:
+ *   Objective → Processes & KPIs → Persona Missions → Patterns → Action Chains.
  *
- * Patterns are the unit of variation handling and dynamic skill sequencing;
- * the happy path (originalDAG) is the straight-through spine recorded for agentivisation.
+ * The Action Chains section carries the two chain types the data already models:
+ *   Standard Action Chain — pattern.originalDAG, the straight-through happy path
+ *                           (editable: reorder / switch blocks off)
+ *   Dynamic Action Chain  — pattern.branchingDAG, the variation branches with
+ *                           their conditions, HITL gates and escalation tiers
+ *
+ * The hierarchy is UNCHANGED in the model — Function, Capability and Skill are
+ * still real levels, they are just no longer steps the SME clicks through:
+ *   - Function is FIXED: this is an O2C-scoped accelerator, so it is context in
+ *     the section header, not a choice. composition.fnId is still set.
+ *   - Process becomes a read-mostly IMPACT MAP: the objective already declares
+ *     which processes it moves (theme.processIds), so scope is derived and the
+ *     SME only narrows it. Scope is a SET — composition.procIds.
+ *   - Capability is AUTO-SCOPED (syncCapabilities), which is what the old step
+ *     defaulted to anyway.
+ *   - Skills are AUTO-CONFIGURED (autoConfigureSkills) because Fitment and the
+ *     Build engine read those executors to validate. Per-skill overrides still
+ *     live in Discover & Fit.
+ *
+ * A Mission is persona-owned; a Capability is a reusable KPI instrument.
  */
 (function () {
   "use strict";
   var PRIO = window.PIQ.meta.priorityLegend;
 
-  // step machine — Objective is the top-level business-outcome lens above Function
-  var STEPS = ["Objective", "Function", "Process", "Missions", "Capabilities", "Patterns", "Skills"];
+  var STEPS = ["Objective", "Processes & KPIs", "Persona Missions", "Patterns", "Action Chains"];
+  var S_OBJ = 0, S_PROC = 1, S_MIS = 2, S_PAT = 3, S_CHAIN = 4;
   var state = { step: 0 };
+  var O2C = "o2c";   // this accelerator is Order-to-Cash scoped
 
   // lucide-style objective icon names → emoji (no icon library is inlined)
   var THEME_ICONS = { "trending-up": "📈", "shield-alert": "🚨", "clock": "⏱️",
     "shield-check": "🛡️", "eye": "👁️" };
   function themeIcon(name) { return THEME_ICONS[name] || "◆"; }
-
-  // Friendly short labels for the objective "Spans" badge (readable CFO-facing names).
-  // Falls back to the taxonomy function's own short, then the raw id.
-  var FN_SHORT = { o2c: "O2C", p2p: "P2P", r2r: "R2R", sc: "SC", tcm: "Treasury",
-    icc: "GRC", fpa: "FP&A", tax: "Tax", tne: "T&E", h2r: "HR" };
-  function fnShort(id) { return FN_SHORT[id] || (fnById(id) ? fnById(id).short : id); }
 
   function el(t, c, h) { var n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; }
   function esc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -45224,25 +45543,37 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   function objective() { return window.PIQ.objective(); }
   function fnById(id) { return (window.PIQ.tax.functions || []).filter(function (f) { return f.id === id; })[0]; }
 
-  /* resume at the furthest resolved step when re-entering the Mission Builder */
+  /* Resume at the furthest resolved section. Processes, missions, patterns and
+     chains all auto-derive from the objective, so once an objective is picked
+     every later section is reachable. */
   function resumeStep() {
     var c = C();
-    if (c.patternIds.length) return 6;
-    if (c.capIds.length) return 5;
-    if (c.missionIds.length) return 4;
-    if (c.procId) return 3;
-    if (c.fnId) return 2;
-    if (c.objectiveId) return 1;
-    return 0;
+    if (c.patternIds.length) return S_CHAIN;
+    if (c.missionIds.length) return S_PAT;
+    if ((c.procIds || []).length) return S_MIS;
+    if (c.objectiveId) return S_PROC;
+    return S_OBJ;
   }
 
   function render(view) {
+    ensureFunction();
     state.step = resumeStep();
     view.innerHTML = '<div class="studio"></div>';
     draw(view.querySelector(".studio"));
   }
 
+  /* The function is not a choice in this build — it is always Order-to-Cash.
+     composition.fnId still carries it so every downstream module resolves. */
+  function ensureFunction() {
+    var c = C();
+    if (c.fnId !== O2C) {
+      c.fnId = O2C;
+      if (!(c.procIds || []).length && !c.procId) { c.procIds = []; }
+    }
+  }
+
   function draw(root) {
+    state.seen = Math.max(state.seen || 0, state.step);   // progress high-water mark
     root.innerHTML = "";
     root.appendChild(intro());
     root.appendChild(rail());
@@ -45254,30 +45585,38 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     root.appendChild(wrap);
     drawStep(body);
     if (window.PIQ.persistComposition) window.PIQ.persistComposition();
+    if (window.PIQ.refreshNav) window.PIQ.refreshNav();
   }
 
   /* Mission control workspace — the always-on recap of every selection so far.
      Answers "what have I picked?" without leaving the current step. */
+  /* The summary mirrors the five sections. Capability is deliberately not
+     surfaced as a row — it is auto-scoped — but the KPIs it carries are, because
+     the KPI is what the objective is actually measured on. */
   function summaryCard() {
-    var c = C(), f = window.PIQ.fn();
-    if (!f && !objective()) return null;
-    var p = proc();
+    var c = C(), t = objective();
+    if (!t && !(c.procIds || []).length) return null;
+    var procs = window.PIQ.procs();
     var missions = window.PIQ.missions();
-    var caps = window.PIQ.capabilities();
     var pats = window.PIQ.selectedPatterns();
-    var t = objective();
 
-    var rows = [
-      ["Objective", t && t.name],
-      ["Function", f && f.name],
-      ["Process", p && p.name]
-    ].filter(function (x) { return x[1]; }).map(function (x) {
-      return '<div class="sum-row"><span class="sum-k">' + x[0] + '</span>' +
-        '<span class="sum-v">' + esc(x[1]) + '</span></div>';
-    }).join("");
-
-    rows += chipRow("Missions", missions.map(function (r) { return r.name; }));
-    rows += chipRow("Capabilities", caps.map(function (o) { return o.name; }));
+    var rows = "";
+    if (t) {
+      var k = t.compoundKPI || {};
+      rows += '<div class="sum-row"><span class="sum-k">Objective</span>' +
+        '<span class="sum-v">' + esc(t.name) + '</span></div>';
+      if (k.name) {
+        rows += '<div class="sum-row"><span class="sum-k">Compound KPI</span>' +
+          '<span class="sum-v">' + esc(k.name) + ' · ' + esc(k.current) + ' → ' + esc(k.target) +
+          ' ' + esc(k.unit || "") + '</span></div>';
+      }
+    }
+    rows += chipRow("Processes", procs.map(function (p) { return p.name; }));
+    rows += chipRow("KPIs", scopeKpis().map(function (x) { return x.kpi; }));
+    rows += chipRow("Missions", missions.map(function (r) {
+      var pr = window.PIQ.personas(r);
+      return pr.accountable.role ? r.name + " — " + pr.accountable.role : r.name;
+    }));
 
     var patBlock = "";
     if (pats.length) {
@@ -45288,19 +45627,32 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
         '<div class="sum-chips">' + chips + '</div></div>';
     }
 
-    var skillRow = "";
-    var keys = Object.keys(c.skills);
-    if (keys.length) {
-      var nConf = keys.filter(function (k) { return c.skills[k].configured; }).length;
-      skillRow = '<div class="sum-row"><span class="sum-k">Skills</span>' +
-        '<span class="sum-v">' + nConf + ' / ' + keys.length + ' configured</span></div>';
+    var chainRow = "";
+    if (pats.length) {
+      var ch = window.PIQ.chainCounts();
+      chainRow = '<div class="sum-row"><span class="sum-k">Action chains</span>' +
+        '<span class="sum-v">' + ch.standard + ' standard · ' + ch.dynamic + ' dynamic</span></div>';
     }
 
-    var card = el("div", "st-summary",
-      '<div class="sum-h"><span>Mission control workspace</span>' +
+    return el("div", "st-summary",
+      '<div class="sum-h"><span>Transformation workspace</span>' +
       (c.live ? '<span class="cr-live">● LIVE</span>' : '') + '</div>' +
-      rows + patBlock + skillRow);
-    return card;
+      '<div class="sum-cap">Function · Order-to-Cash</div>' +
+      rows + patBlock + chainRow);
+  }
+
+  /* Distinct KPIs across the in-scope capabilities — the measurement surface of
+     the whole composition. Deduped by KPI name, keeping the first metric seen. */
+  function scopeKpis() {
+    var seen = {}, out = [];
+    window.PIQ.missions().forEach(function (r) {
+      (r.capabilities || []).forEach(function (o) {
+        if (C().capIds.indexOf(o.id) < 0 || seen[o.kpi]) return;
+        seen[o.kpi] = 1;
+        out.push({ kpi: o.kpi, metric: o.metric || {}, capId: o.id, capName: o.name });
+      });
+    });
+    return out;
   }
 
   function chipRow(label, names) {
@@ -45312,10 +45664,11 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 
   function intro() {
     return el("div", "st-intro",
-      '<div><div class="kv">Setup · Mission Control</div>' +
-      '<h2>Configure your mission control center</h2>' +
-      '<p class="st-lede">Define the business objective, map to a function and process, select the missions to execute, ' +
-      'configure capabilities and the skills that power them. The accelerator is function-agnostic — start anywhere.</p></div>' +
+      '<div><div class="kv">Setup — Order-to-Cash Transformation</div>' +
+      '<h2>Compose the transformation</h2>' +
+      '<p class="st-lede">Five sections: name the <b>objective</b>, see the <b>processes and KPIs</b> it moves, ' +
+      'choose the <b>persona missions</b> that pursue it, review the <b>patterns</b> underneath, and compose the ' +
+      '<b>action chains</b> — standard and dynamic — that execute it.</p></div>' +
       '<button class="btn ghost sm" id="stReset">Start over</button>');
   }
 
@@ -45323,11 +45676,15 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     var done = resumeStep();
     var r = el("div", "st-rail");
     r.innerHTML = STEPS.map(function (s, i) {
-      var cls = i === state.step ? "on" : (i < done || isResolved(i) ? "done" : "");
+      // everything auto-derives from the objective, so isResolved() alone would
+      // tick every section at once — progress is the furthest section visited
+      var cls = i === state.step ? "on" : (i < (state.seen || 0) ? "done" : "");
       var reachable = i <= done;
+      /* name on top, chosen value beneath it — stacking the caption keeps all five
+         sections on one line instead of wrapping "Action Chains" onto a second row */
       return '<button class="st-step ' + cls + '" data-i="' + i + '"' + (reachable ? "" : " disabled") + '>' +
         '<span class="st-dot">' + (isResolved(i) && i !== state.step ? "✓" : (i + 1)) + '</span>' +
-        '<span class="st-name">' + s + '</span>' + chosen(i) + '</button>';
+        '<span class="st-txt"><span class="st-name">' + s + '</span>' + chosen(i) + '</span></button>';
     }).join('<span class="st-sep"></span>');
     r.querySelectorAll(".st-step").forEach(function (b) {
       if (b.hasAttribute("disabled")) return;
@@ -45338,46 +45695,77 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 
   function isResolved(i) {
     var c = C();
-    return [!!c.objectiveId, !!c.fnId, !!c.procId, c.missionIds.length > 0, c.capIds.length > 0, c.patternIds.length > 0,
-            Object.keys(c.skills).length > 0][i];
+    return [!!c.objectiveId, (c.procIds || []).length > 0, c.missionIds.length > 0,
+            c.patternIds.length > 0, c.patternIds.length > 0][i];
   }
   function chosen(i) {
-    var c = C(), f = window.PIQ.fn(), t = objective();
-    var label = "";
-    if (i === 0 && t) label = t.name;
-    else if (i === 1 && f) label = f.name;
-    else if (i === 2 && f && c.procId) label = (proc() || {}).name;
-    else if (i === 3 && c.missionIds.length) label = c.missionIds.length + " mission" + (c.missionIds.length > 1 ? "s" : "");
-    else if (i === 4 && c.capIds.length) label = c.capIds.length + " capabilit" + (c.capIds.length > 1 ? "ies" : "y");
-    else if (i === 5 && c.patternIds.length) label = c.patternIds.length + " selected";
-    else if (i === 6 && Object.keys(c.skills).length) label = Object.keys(c.skills).length + " configured";
+    var c = C(), t = objective(), label = "";
+    var np = (c.procIds || []).length, nm = c.missionIds.length, npat = c.patternIds.length;
+    if (i === S_OBJ && t) label = t.name;
+    else if (i === S_PROC && np) label = np + " process" + (np > 1 ? "es" : "") + " · " + scopeKpis().length + " KPIs";
+    else if (i === S_MIS && nm) label = nm + " mission" + (nm > 1 ? "s" : "");
+    else if (i === S_PAT && npat) label = npat + " pattern" + (npat > 1 ? "s" : "");
+    else if (i === S_CHAIN && npat) {
+      var ch = window.PIQ.chainCounts();
+      label = ch.standard + " std · " + ch.dynamic + " dyn";
+    }
     return label ? '<small class="st-chose">' + esc(label) + '</small>' : "";
   }
 
-  function proc() { var f = window.PIQ.fn(); return f && f.processes.filter(function (p) { return p.id === C().procId; })[0]; }
-
-  /* re-derive scope when the mission / capability set changes.
-     Capabilities default to every capability of the in-scope missions; patterns
-     default to the union across those capabilities. Structural changes reset skills. */
-  function syncCapabilities(keepCapSelection) {
-    var c = C(), p = proc(); if (!p) return;
-    var valid = [];
-    p.missions.forEach(function (r) {
-      if (c.missionIds.indexOf(r.id) < 0) return;
-      (r.capabilities || []).forEach(function (o) { valid.push(o.id); });
+  /* ---- scope re-derivation (each level defaults its descendants to "all in scope") ----
+     objective → processes → missions → capabilities → patterns → skills */
+  function syncProcesses() {
+    C().procIds = window.PIQ.impactedProcs().map(function (p) { return p.id; });
+    syncMissions();
+  }
+  function syncMissions() {
+    var c = C(), valid = [];
+    window.PIQ.procs().forEach(function (p) {
+      (p.missions || []).forEach(function (r) { valid.push(r.id); });
     });
-    if (keepCapSelection) {
-      // drop capabilities whose mission was removed
-      c.capIds = c.capIds.filter(function (id) { return valid.indexOf(id) >= 0; });
-    } else {
-      c.capIds = valid.slice();
-    }
+    c.missionIds = valid.slice();
+    syncCapabilities(false);
+  }
+  function syncCapabilities(keepCapSelection) {
+    var c = C(), valid = [];
+    window.PIQ.procs().forEach(function (p) {
+      (p.missions || []).forEach(function (r) {
+        if (c.missionIds.indexOf(r.id) < 0) return;
+        (r.capabilities || []).forEach(function (o) { valid.push(o.id); });
+      });
+    });
+    c.capIds = keepCapSelection
+      ? c.capIds.filter(function (id) { return valid.indexOf(id) >= 0; })
+      : valid.slice();
     syncPatterns();
   }
   function syncPatterns() {
     var c = C();
     c.patternIds = window.PIQ.capabilityPatternIds();
     c.skills = {};
+    autoConfigureSkills();
+  }
+
+  /* Skills are no longer a section the SME walks. Discover & Fit and the Build
+     engine both read composition.skills to validate the chain, so derive a
+     default executor for every skill the selected patterns contribute — the SME
+     overrides individual ones in Discover & Fit. */
+  function autoConfigureSkills() {
+    var c = C();
+    var blocks = window.PIQ.collectSkills(c.patternIds);
+    var next = {};
+    blocks.forEach(function (b) {
+      var prev = c.skills[b.key];
+      var fit = window.PIQ.fitment(b);
+      next[b.key] = prev || { mode: fit.mode, tech: defaultTech(b), configured: true, auto: true };
+    });
+    c.skills = next;
+  }
+
+  // keep the primary process pointer aligned with the scope set
+  function syncPrimaryProc() {
+    var c = C();
+    c.procId = (c.procIds && c.procIds.length) ? c.procIds[0] : null;
   }
 
   function redraw() { draw(document.querySelector(".studio")); }
@@ -45385,9 +45773,11 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   /* ---------------- steps ---------------- */
   function drawStep(body) {
     if (state.step > 0) body.appendChild(backBtn());
-    [stepObjective, stepFunction, stepProcess, stepMissions, stepCapabilities, stepPatterns, stepSkills][state.step](body);
+    [stepObjective, stepProcesses, stepMissions, stepPatterns, stepActionChains][state.step](body);
     var rb = document.getElementById("stReset");
-    if (rb) rb.onclick = function () { window.PIQ.resetComposition(); state.step = 0; redraw(); };
+    if (rb) rb.onclick = function () {
+      window.PIQ.resetComposition(); ensureFunction(); state.step = 0; state.seen = 0; redraw();
+    };
   }
 
   function backBtn() {
@@ -45406,180 +45796,142 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     return g;
   }
 
-  /* Step 0 · Objective — the CFO-level outcome. Optional: spans functions, carries a
-     compound KPI, and (when chosen) filters the function list to what it touches. */
+  /* Section 1 · Objective — the entry point and the only real decision here.
+     The function is fixed (Order-to-Cash), so it is context in the header rather
+     than a step. Picking an objective DERIVES the impacted processes, their
+     missions, capabilities and patterns in one move. */
   function stepObjective(body) {
     var c = C();
     var objectives = window.PIQ.tax.themes || [];
-    body.appendChild(el("div", "st-q", "Which <b>business objective</b> are you pursuing?"));
+    body.appendChild(el("div", "st-q",
+      "Which <b>business objective</b> are we transforming? <span class=\"st-ctx\">Order-to-Cash</span>"));
     body.appendChild(el("p", "st-hint",
-      "Objectives are the outcomes a CFO steers by — they span multiple functions and roll up to a compound KPI. " +
-      "Pick one to focus the journey on the functions that move it, or skip straight to a function for a bottoms-up build."));
+      "An objective is the outcome finance steers by. It rolls up to a compound KPI and already knows which " +
+      "Order-to-Cash processes move it — choosing one scopes the whole transformation in a single step."));
     var grid = pickGrid(objectives, function (t) {
       var on = c.objectiveId === t.id;
       var k = t.compoundKPI || {};
-      var fns = (t.functionIds || []).map(fnShort).join(" · ");
+      var np = impactedFor(t).length;
       return '<div class="pc-ico" style="--ac:' + t.accent + '">' + themeIcon(t.icon) + '</div>' +
         '<div class="pc-main"><div class="pc-t">' + esc(t.name) + '</div>' +
         '<div class="pc-d">' + esc(t.tagline) + '</div></div>' +
         '<div class="pc-kpi"><span class="pck-n">' + esc(k.name) + '</span>' +
           '<span class="pck-v">' + esc(k.current) + ' <i>→</i> <b>' + esc(k.target) + '</b> ' + esc(k.unit) + '</span></div>' +
-        '<div class="pc-meta">Spans <b>' + esc(fns) + '</b></div>' +
+        '<div class="pc-meta">Impacts <b>' + np + '</b> O2C process' + (np !== 1 ? "es" : "") + '</div>' +
         (on ? '<div class="pc-on">✓</div>' : '');
-    }, function (t) {
-      if (c.objectiveId !== t.id) {
-        c.objectiveId = t.id;
-        // if the current function isn't in the objective, clear the downstream selection
-        if (c.fnId && (t.functionIds || []).indexOf(c.fnId) < 0) {
-          c.fnId = null; c.procId = null; c.missionIds = []; c.capIds = []; c.patternIds = []; c.skills = {};
-        }
-      }
-      state.step = 1;
-      redraw();
-    }, function (t) { return c.objectiveId === t.id; });
+    }, function (t) { pickObjective(t); }, function (t) { return c.objectiveId === t.id; });
     body.appendChild(grid);
-    body.appendChild(nextBar("An objective is optional — a lens, not a gate",
-      "Skip — go direct to function →", function () { c.objectiveId = null; state.step = 1; redraw(); }));
-  }
 
-  function stepFunction(body) {
-    var c = C(), t = objective();
-    if (t) {
-      var k = t.compoundKPI || {};
-      var banner = el("div", "st-themebar",
-        '<div class="stt-ic" style="--ac:' + t.accent + '">' + themeIcon(t.icon) + '</div>' +
-        '<div class="stt-main"><div class="stt-n">' + esc(t.name) + '</div>' +
-        '<div class="stt-k">' + esc(k.name) + ' <b>' + esc(k.current) + ' → ' + esc(k.target) + ' ' + esc(k.unit) + '</b></div></div>' +
-        '<button class="linkbtn" id="stChTheme">change objective</button>');
-      body.appendChild(banner);
-      banner.querySelector("#stChTheme").onclick = function () { state.step = 0; redraw(); };
+    if (c.objectiveId) {
+      body.appendChild(nextBar(objective().name + " · " + (c.procIds || []).length + " processes impacted",
+        "See processes & KPIs →", function () { state.step = S_PROC; redraw(); }));
+    } else {
+      body.appendChild(nextBar("Pick an objective to scope the transformation", "", null));
     }
-    body.appendChild(el("div", "st-q", t
-      ? "Which <b>function</b> inside “" + esc(t.name) + "” does this objective map to?"
-      : "Which <b>function</b> does this objective map to?"));
-    // This accelerator is scoped to Order-to-Cash — the only function on offer.
-    var funcs = window.PIQ.objectiveFunctions().filter(function (f) { return f.id === "o2c"; });
-    var grid = pickGrid(funcs, function (f) {
-      var on = C().fnId === f.id;
-      return '<div class="pc-ico" style="--ac:' + f.accent + '">' + f.icon + '</div>' +
-        '<div class="pc-main"><div class="pc-t">' + esc(f.name) +
-        ' <span class="pc-tag">' + esc(f.short) + '</span></div>' +
-        '<div class="pc-d">' + esc(f.tagline) + '</div></div>' +
-        '<div class="pc-meta"><span class="pc-n">' + f.patternCount + '</span> patterns ' +
-        '<span class="statusbadge ' + f.status + '">' + (f.status === "live" ? "Fully built" : "Sample") + '</span></div>' +
-        (on ? '<div class="pc-on">✓</div>' : '');
-    }, function (f) {
-      var c = C();
-      if (c.fnId !== f.id) { c.fnId = f.id; c.procId = null; c.missionIds = []; c.capIds = []; c.patternIds = []; c.skills = {}; }
-      // auto-advance; a single-process function pre-selects it — UNLESS it carries a
-      // value-chain map, where the SME must pick a built area from the taxonomy matrix.
-      var single = f.processes.length === 1 && !f.valueChain;
-      if (single) { c.procId = f.processes[0].id; selectAllMissions(); }
-      state.step = single ? 3 : 2;
-      redraw();
-    });
-    body.appendChild(grid);
   }
 
-  // a process participates through its full set of missions — select them all
-  function selectAllMissions() {
-    var c = C(), p = proc(); if (!p) return;
-    c.missionIds = p.missions.map(function (r) { return r.id; });
-    syncCapabilities(false);
+  // processes an objective would impact (before it is the selected one)
+  function impactedFor(t) {
+    var f = fnById(O2C); if (!f) return [];
+    var ids = t.processIds || [];
+    var hit = f.processes.filter(function (p) { return ids.indexOf(p.id) >= 0; });
+    return hit.length ? hit : f.processes.slice();
   }
 
-  function stepProcess(body) {
-    var f = window.PIQ.fn(); if (!f) { state.step = 1; return redraw(); }
+  function pickObjective(t) {
     var c = C();
-    // Functions that carry a value-chain map (O2C) present the full process
-    // taxonomy; only the built areas are navigable. Others use the card list.
-    if (f.valueChain) return stepProcessMatrix(body, f, c);
-
-    body.appendChild(el("div", "st-q", "Which <b>process</b> inside " + esc(f.name) + "?"));
-    body.appendChild(pickGrid(f.processes, function (p) {
-      var on = c.procId === p.id;
-      return '<div class="pc-main"><div class="pc-t">' + esc(p.name) + '</div>' +
-        '<div class="pc-d">' + esc(p.desc) + '</div></div>' +
-        '<div class="pc-meta">' + p.missions.length + ' missions</div>' + (on ? '<div class="pc-on">✓</div>' : '');
-    }, function (p) {
-      if (c.procId !== p.id) { c.procId = p.id; selectAllMissions(); }  // all missions participate by default
-      redraw();   // stay on the Process tab and reveal its hierarchy
-    }, function (p) { return c.procId === p.id; }));
-
-    var p = proc();
-    if (p) {
-      body.appendChild(hierarchy(f, p));
-      body.appendChild(swimlane(f, p));
-      body.appendChild(nextBar(p.missions.length + " mission" + (p.missions.length !== 1 ? "s" : "") + " mapped",
-        "Continue → Missions", function () { state.step = 3; redraw(); }));
-    }
+    if (c.objectiveId === t.id) { state.step = S_PROC; return redraw(); }
+    c.objectiveId = t.id;
+    c.fnId = O2C;
+    syncProcesses();      // → missions → capabilities → patterns → skills
+    syncPrimaryProc();
+    state.step = S_PROC;
+    redraw();
   }
 
-  /* O2C process selection — objective-aware. When a business objective is chosen,
-     the processes it makes relevant are spotlighted and the rest dimmed (still
-     selectable). The full L1–L4 value-chain landscape is shown below for context. */
-  function stepProcessMatrix(body, f, c) {
-    var obj = objective();
-    var relevant = window.PIQ.objectiveProcessIds();
-    var relSet = {}; relevant.forEach(function (id) { relSet[id] = 1; });
-    var driven = obj && relevant.length;
-    var nRel = f.processes.filter(function (p) { return relSet[p.id]; }).length;
+  /* Section 2 · Processes & KPIs — the impact map.
+     Read-mostly by design: the objective already declares which O2C processes it
+     moves, so the SME is not asked to choose again — they see the scope they just
+     bought and can narrow it. Every process card carries the KPIs its capabilities
+     are measured on, because the KPI is the thing the objective is graded against. */
+  function stepProcesses(body) {
+    var c = C(), f = window.PIQ.fn(), t = objective();
+    if (!t) { state.step = S_OBJ; return redraw(); }
+    if (!f) { ensureFunction(); f = window.PIQ.fn(); }
+    var pool = window.PIQ.impactedProcs();
+    if (!(c.procIds || []).length) { syncProcesses(); syncPrimaryProc(); }
 
-    if (driven) {
-      body.appendChild(el("div", "st-q",
-        "Processes for <b>" + esc(f.name) + "</b> — spotlighting <b>" + esc(obj.name) + "</b>"));
-      body.appendChild(el("p", "st-hint",
-        nRel + " of " + f.processes.length + " processes move this objective most. " +
-        "Highlighted cards are the ones to compose first; the rest are dimmed but still selectable."));
-    } else {
-      body.appendChild(el("div", "st-q", "Which <b>process</b> inside " + esc(f.name) + "?"));
-      body.appendChild(el("p", "st-hint",
-        "Pick a business objective on the previous step to spotlight the processes that move it — or choose any process to compose it."));
+    var k = t.compoundKPI || {};
+    body.appendChild(el("div", "st-q",
+      "What <b>" + esc(t.name) + "</b> moves <span class=\"st-ctx\">Order-to-Cash</span>"));
+    body.appendChild(el("p", "st-hint",
+      "These are the processes this objective runs through and the KPIs they are measured on. " +
+      "All are in scope by default — switch one off to narrow the transformation."));
+
+    if (k.name) {
+      body.appendChild(el("div", "impact-kpi",
+        '<div class="ik-l">Compound KPI</div>' +
+        '<div class="ik-n">' + esc(k.name) + '</div>' +
+        (k.formula ? '<div class="ik-f mono">' + esc(k.formula) + '</div>' : '') +
+        '<div class="ik-v">' + esc(k.current) + ' <i>→</i> <b>' + esc(k.target) + '</b> ' +
+          esc(k.unit || "") + '</div>'));
     }
 
-    var grid = el("div", "pickgrid proc-grid");
-    f.processes.forEach(function (p) {
-      var isRel = !!relSet[p.id];
-      var caps = 0, pats = {};
-      p.missions.forEach(function (m) {
-        caps += (m.capabilities || []).length;
-        (m.capabilities || []).forEach(function (cc) {
-          (cc.patternIds || []).forEach(function (id) { pats[id] = 1; });
-        });
+    body.appendChild(pickGrid(pool, function (p) {
+      var on = (c.procIds || []).indexOf(p.id) >= 0;
+      var kpis = procKpis(p);
+      var chips = kpis.slice(0, 4).map(function (x) {
+        return '<span class="ik-chip">' + esc(x.kpi) + '</span>';
+      }).join("") + (kpis.length > 4 ? '<span class="ik-chip more">+' + (kpis.length - 4) + '</span>' : '');
+      var np = 0;
+      (p.missions || []).forEach(function (r) {
+        (r.capabilities || []).forEach(function (o) { np += (o.patternIds || []).length; });
       });
-      var nPat = Object.keys(pats).length;
-      var cls = "pickcard proc-card" + (c.procId === p.id ? " sel" : "") +
-        (driven ? (isRel ? " relevant" : " dim") : "");
-      var card = el("div", cls,
-        '<div class="pc-main"><div class="pc-t">' + esc(p.name) +
-          (driven && isRel ? ' <span class="relbadge">★ Relevant</span>' : '') + '</div>' +
-        '<div class="pc-d">' + esc(p.desc) + '</div></div>' +
-        '<div class="pc-meta">' + p.missions.length + ' missions · ' + caps + ' capabilities' +
-          (nPat ? ' · <b>' + nPat + '</b> patterns' : ' · <span class="muted">no patterns yet</span>') + '</div>' +
-        (c.procId === p.id ? '<div class="pc-on">✓</div>' : ''));
-      card.onclick = function () {
-        if (c.procId !== p.id) { c.procId = p.id; selectAllMissions(); }
-        redraw();
-      };
-      grid.appendChild(card);
-    });
-    body.appendChild(grid);
+      return '<div class="pc-main"><div class="pc-t">' + esc(p.name) + '</div>' +
+        '<div class="pc-d">' + esc(p.desc || "") + '</div></div>' +
+        '<div class="ik-chips">' + chips + '</div>' +
+        '<div class="pc-meta"><span class="pc-sep">' + (p.missions || []).length + ' missions</span>' +
+          '<span class="pc-sep">' + kpis.length + ' KPIs</span>' +
+          '<span class="pc-sep">' + np + ' patterns</span></div>' +
+        (on ? '<div class="pc-on">✓</div>' : '');
+    }, function (p) { toggleProcess(p); redraw(); },
+       function (p) { return (c.procIds || []).indexOf(p.id) >= 0; }));
 
-    var p = proc();
-    if (p) {
-      body.appendChild(hierarchy(f, p));
-      body.appendChild(swimlane(f, p));
-      body.appendChild(nextBar('Selected: ' + p.name + ' · ' + p.missions.length +
-        " mission" + (p.missions.length !== 1 ? "s" : "") + " mapped",
-        "Continue → Missions", function () { state.step = 3; redraw(); }));
-    } else {
-      body.appendChild(nextBar("Pick a process to compose it", "", null));
-    }
+    var nm = window.PIQ.missions().length;
+    body.appendChild(nextBar((c.procIds || []).length + " process" + ((c.procIds || []).length !== 1 ? "es" : "") +
+      " in scope · " + scopeKpis().length + " KPIs · " + nm + " mission" + (nm !== 1 ? "s" : ""),
+      (c.procIds || []).length ? "Choose persona missions →" : "",
+      function () { state.step = S_MIS; redraw(); }));
 
-    // Full value-chain landscape (L1 → L4) for context; built areas remain clickable.
+    // Full L1–L4 landscape for orientation; L4 items with a process map open it.
     body.appendChild(el("div", "st-subq",
-      "Full " + esc(f.name) + " value-chain landscape <small>L1 → L4 · click a built area, or a map ⤢ to open its process map</small>"));
+      "Full Order-to-Cash value-chain landscape <small>L1 → L4 · in-scope areas are highlighted · click a map ⤢ to open it</small>"));
     body.appendChild(valueChainNode(f, c));
+  }
+
+  // distinct KPIs under a process, with the metric that measures them
+  function procKpis(p) {
+    var seen = {}, out = [];
+    (p.missions || []).forEach(function (r) {
+      (r.capabilities || []).forEach(function (o) {
+        if (seen[o.kpi]) return;
+        seen[o.kpi] = 1;
+        out.push({ kpi: o.kpi, metric: o.metric || {}, capId: o.id });
+      });
+    });
+    return out;
+  }
+
+  function toggleProcess(p) {
+    var c = C(), i = (c.procIds || []).indexOf(p.id);
+    if (i >= 0) {
+      if (c.procIds.length === 1) return;   // never empty the scope
+      c.procIds.splice(i, 1);
+    } else {
+      c.procIds.push(p.id);
+    }
+    syncMissions();      // → capabilities → patterns → skills
+    syncPrimaryProc();
   }
 
   /* The L1 value chain › L2 groups › L3 process areas › L4 sub-processes.
@@ -45598,7 +45950,7 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       g.areas.forEach(function (a) {
         var built = !!a.built;
         var col = el("div", "vc-col" + (built ? " built" : "") +
-          (built && c.procId === a.procId ? " sel" : ""));
+          (built && (c.procIds || []).indexOf(a.procId) >= 0 ? " sel" : ""));
         col.appendChild(el("div", "vc-area",
           '<span class="vc-lvl">L3</span>' + esc(a.name) +
           (built ? '<span class="vc-badge">' + (live ? "Built ✓" : "Sample ✓") + '</span>'
@@ -45624,10 +45976,16 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     return chain;
   }
 
+  /* Clicking a built L3 area toggles its process in or out of scope — the same
+     action as the process cards above, so the landscape stays interactive. */
   function pickBuiltArea(a) {
     var c = C();
-    if (c.procId !== a.procId) { c.procId = a.procId; selectAllMissions(); }
-    redraw();   // reveal the selected process's L1–L4 tree + Continue bar
+    if (!a.procId) return;
+    var f = window.PIQ.fn(); if (!f) return;
+    var p = f.processes.filter(function (x) { return x.id === a.procId; })[0];
+    if (!p) return;
+    toggleProcess(p);
+    redraw();
   }
 
   /* ---- Process map: swimlanes by mission across the cognitive spine ----
@@ -45751,25 +46109,99 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 
   /* L1–L4 process-hierarchy tree: Function › Process › Mission › Capability.
      Hovering a mission (L3) reveals its detail card. */
+  /* Collapse state, keyed per process so the three trees are independent and the
+     state survives a redraw. Capabilities (L4) start closed — with nine missions
+     the fully-open tree runs to several screens, and the useful default is to see
+     the missions and open the one you care about. */
+  function phOpen(key, dflt) {
+    state.ph = state.ph || {};
+    return state.ph[key] === undefined ? dflt : !!state.ph[key];
+  }
+  function phSet(key, v) { state.ph = state.ph || {}; state.ph[key] = v; }
+
+  /* One collapsible branch: a caret, the node itself, and the children it hides. */
+  function branch(nodeEl, childrenEl, key, dflt, countLabel) {
+    var b = el("div", "ph-branch");
+    var open = phOpen(key, dflt);
+    var row = el("div", "ph-row");
+    var tog = el("button", "ph-tog" + (open ? " on" : ""), open ? "▾" : "▸");
+    tog.setAttribute("aria-expanded", open ? "true" : "false");
+    tog.title = (open ? "Collapse " : "Expand ") + (countLabel || "");
+    row.appendChild(tog);
+    row.appendChild(nodeEl);
+    b.appendChild(row);
+    if (!open) childrenEl.classList.add("ph-hide");
+    b.appendChild(childrenEl);
+    tog.onclick = function (e) {
+      e.stopPropagation();
+      var nowOpen = childrenEl.classList.contains("ph-hide");
+      childrenEl.classList.toggle("ph-hide", !nowOpen);
+      tog.textContent = nowOpen ? "▾" : "▸";
+      tog.classList.toggle("on", nowOpen);
+      tog.setAttribute("aria-expanded", nowOpen ? "true" : "false");
+      phSet(key, nowOpen);
+    };
+    return b;
+  }
+
   function hierarchy(f, p) {
     var wrap = el("div", "phier-wrap");
-    wrap.appendChild(el("div", "st-subq", "Process hierarchy <small>L1 → L4 · hover a mission for detail</small>"));
+    var nCap = 0;
+    p.missions.forEach(function (r) { nCap += (r.capabilities || []).length; });
+
+    var head = el("div", "phier-head",
+      '<div class="st-subq">Process hierarchy <small>L1 → L4 · ' + p.missions.length + ' missions · ' +
+      nCap + ' capabilities · hover a mission for detail</small></div>' +
+      '<div class="phier-ctl"><button class="linkbtn" data-all="1">expand all</button>' +
+      '<span class="phier-sep">·</span><button class="linkbtn" data-all="0">collapse all</button></div>');
+    wrap.appendChild(head);
+
     var tree = el("div", "phier");
-    tree.appendChild(node(1, f.name, f.icon));
-    var l2 = el("div", "ph-children");
-    l2.appendChild(node(2, p.name));
+
+    /* L3 missions, each hiding its own L4 capabilities */
     var l3 = el("div", "ph-children");
     p.missions.forEach(function (r) {
-      var branch = el("div", "ph-branch");
-      branch.appendChild(missionNode(r));
+      var caps = r.capabilities || [];
       var l4 = el("div", "ph-children");
-      (r.capabilities || []).forEach(function (o) { l4.appendChild(node(4, o.name, null, o.kpi)); });
-      branch.appendChild(l4);
-      l3.appendChild(branch);
+      caps.forEach(function (o) { l4.appendChild(node(4, o.name, null, o.kpi)); });
+      if (!caps.length) {
+        // nothing to open — a spacer keeps it aligned with its caret-bearing siblings
+        var leaf = el("div", "ph-branch");
+        var row = el("div", "ph-row");
+        row.appendChild(el("span", "ph-tog blank", ""));
+        row.appendChild(missionNode(r));
+        leaf.appendChild(row);
+        l3.appendChild(leaf);
+        return;
+      }
+      l3.appendChild(branch(missionNode(r), l4, p.id + "|" + r.id, false,
+        caps.length + " capabilities"));
     });
-    l2.appendChild(l3);
-    tree.appendChild(l2);
+
+    /* L2 process, hiding the mission list */
+    var l2 = el("div", "ph-children");
+    l2.appendChild(branch(node(2, p.name), l3, p.id + "|L2", true, p.missions.length + " missions"));
+
+    /* L1 function, hiding everything below */
+    tree.appendChild(branch(node(1, f.name, f.icon), l2, p.id + "|L1", true, "the process"));
     wrap.appendChild(tree);
+
+    head.querySelectorAll("[data-all]").forEach(function (btn) {
+      btn.onclick = function (e) {
+        e.stopPropagation();
+        var want = btn.dataset.all === "1";
+        wrap.querySelectorAll(".ph-branch > .ph-children").forEach(function (kids) {
+          kids.classList.toggle("ph-hide", !want);
+        });
+        wrap.querySelectorAll(".ph-tog").forEach(function (t) {
+          t.textContent = want ? "▾" : "▸";
+          t.classList.toggle("on", want);
+          t.setAttribute("aria-expanded", want ? "true" : "false");
+        });
+        phSet(p.id + "|L1", want); phSet(p.id + "|L2", want);
+        p.missions.forEach(function (r) { phSet(p.id + "|" + r.id, want); });
+      };
+    });
     return wrap;
   }
 
@@ -45869,98 +46301,229 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       '<span>' + s.auto + ' auto · ' + s.hitl + ' approval</span></div></div>';
   }
 
-  /* Missions — multi-select, defaulting to every mission in the process. */
+  /* Section 3 · Persona Missions — the accountability layer.
+     Grouped by the process they belong to, because scope now spans several. Each
+     card names the persona who HOLDS the mission and its contribution weight to
+     the objective, so an SME narrowing scope can see what they would give up.
+     All missions are in scope by default; deselecting re-derives capabilities,
+     patterns and skills. */
   function stepMissions(body) {
-    var p = proc(); if (!p) { state.step = 2; return redraw(); }
-    var c = C();
+    var c = C(), procs = window.PIQ.procs();
+    if (!procs.length) { state.step = S_PROC; return redraw(); }
+    var pool = [];
+    procs.forEach(function (p) { (p.missions || []).forEach(function (r) { pool.push(r); }); });
+    if (!pool.length) { state.step = S_PROC; return redraw(); }
+
     body.appendChild(el("div", "st-q",
-      "Select the <b>missions</b> for " + esc(p.name) +
-      '<button class="linkbtn" id="stAllP">' + (c.missionIds.length === p.missions.length ? "clear all" : "select all") + '</button>'));
+      "Which <b>persona missions</b> pursue this objective?" +
+      '<button class="linkbtn" id="stAllP">' +
+      (c.missionIds.length === pool.length ? "clear all" : "select all") + '</button>'));
     body.appendChild(el("p", "st-hint",
-      "Every mission in the process is included by default — the agents coordinate across all of them. Deselect any you want to leave out of scope."));
-    body.appendChild(pickGrid(p.missions, function (r) {
-      var on = c.missionIds.indexOf(r.id) >= 0;
-      var caps = r.capabilities.map(function (o) { return o.name; }).join(" · ");
-      var pers = window.PIQ.personas(r);
-      var extra = window.PIQ.missionRoleCount(r) - 1;   // roles beyond the accountable owner
-      return '<div class="pc-main"><div class="pc-t">' + esc(r.name) + '</div>' +
-        '<div class="pc-d">' + esc(caps) + '</div></div>' +
-        '<div class="pc-meta">' + ownerChip(pers) +
-        (pers.cadence ? '<span class="pc-tag">' + esc(pers.cadence) + '</span>' : '') +
-        '<span class="pc-sep">' + r.capabilities.length + ' capabilities</span>' +
-        (extra > 0 ? '<span class="pc-sep">+' + extra + ' roles</span>' : '') + '</div>' +
-        (on ? '<div class="pc-on">✓</div>' : '');
-    }, function (r) { toggleMission(r); redraw(); },
-       function (r) { return c.missionIds.indexOf(r.id) >= 0; }));
-    body.appendChild(nextBar(c.missionIds.length + " mission" + (c.missionIds.length !== 1 ? "s" : "") + " in scope",
-      c.missionIds.length ? "Choose capabilities →" : "", function () { state.step = 4; redraw(); }));
-    // supplementary context below the sticky CTA, as the Process step does with its
-    // value-chain landscape
-    body.appendChild(personaMatrix(p));
+      "A mission is a unit of accountability owned by one persona. Contribution is how much of the objective " +
+      "this mission carries — weighted by the KPI movement it promises and the patterns it has to get there."));
+
+    var weights = missionWeightsOverPool(pool);
+    procs.forEach(function (p) {
+      var ms = (p.missions || []);
+      if (!ms.length) return;
+      body.appendChild(el("div", "obj-group-h", esc(p.name) +
+        ' <small>' + ms.length + ' mission' + (ms.length !== 1 ? "s" : "") + '</small>'));
+      body.appendChild(pickGrid(ms, function (r) {
+        var on = c.missionIds.indexOf(r.id) >= 0;
+        var pers = window.PIQ.personas(r);
+        var w = Math.round((weights[r.id] || 0) * 100);
+        var extra = window.PIQ.missionRoleCount(r) - 1;
+        // the KPIs this mission actually moves, as chips — the measurement surface
+        // is what an SME is really choosing when they keep a mission in scope
+        var seen = {}, kpis = [];
+        (r.capabilities || []).forEach(function (o) {
+          if (seen[o.kpi]) return; seen[o.kpi] = 1; kpis.push(o);
+        });
+        var chips = kpis.slice(0, 4).map(function (o) {
+          var mt = o.metric || {};
+          var trail = (mt.baseline != null && mt.target != null)
+            ? ' <i>' + esc(mt.baseline) + '→' + esc(mt.target) + '</i>' : '';
+          return '<span class="pc-kpi">' + esc(o.kpi) + trail + '</span>';
+        }).join("") + (kpis.length > 4 ? '<span class="pc-kpi more">+' + (kpis.length - 4) + '</span>' : '');
+        return '<div class="pc-main"><div class="pc-t">' + esc(r.name) + '</div>' +
+          '<div class="pc-kpis"><span class="pck-lab">KPI impacted</span>' + chips + '</div></div>' +
+          '<div class="pc-meta">' + ownerChip(pers) +
+          (pers.cadence ? '<span class="pc-tag">' + esc(pers.cadence) + '</span>' : '') +
+          '<span class="pc-sep">' + (r.capabilities || []).length + ' capabilities</span>' +
+          (extra > 0 ? '<span class="pc-sep">+' + extra + ' roles</span>' : '') + '</div>' +
+          '<div class="mw"><span class="mw-l">Contribution</span>' +
+            '<span class="mw-bar"><i style="width:' + w + '%"></i></span>' +
+            '<span class="mw-v">' + w + '%</span></div>' +
+          (on ? '<div class="pc-on">✓</div>' : '');
+      }, function (r) { toggleMission(r); redraw(); },
+         function (r) { return c.missionIds.indexOf(r.id) >= 0; }));
+    });
+
+    var np = c.patternIds.length;
+    body.appendChild(nextBar(c.missionIds.length + " mission" + (c.missionIds.length !== 1 ? "s" : "") +
+      " in scope · " + np + " pattern" + (np !== 1 ? "s" : ""),
+      c.missionIds.length ? "Review patterns →" : "", function () { state.step = S_PAT; redraw(); }));
+
+    // Supplementary context below the sticky CTA. The hierarchy tree is where
+    // capabilities stay visible now that they are auto-scoped rather than a step —
+    // hovering a mission also opens its RACI persona map.
+    var f = window.PIQ.fn();
+    procs.forEach(function (p) {
+      body.appendChild(personaMatrix(p));
+      if (f) body.appendChild(hierarchy(f, p));
+    });
+
     var all = document.getElementById("stAllP");
     if (all) all.onclick = function (e) {
       e.stopPropagation();
-      c.missionIds = c.missionIds.length === p.missions.length ? [] : p.missions.map(function (r) { return r.id; });
+      c.missionIds = c.missionIds.length === pool.length ? [] : pool.map(function (r) { return r.id; });
       syncCapabilities(false); redraw();
     };
   }
+
+  /* Contribution weight across the whole candidate pool (not just what is
+     selected), so the number on a card does not jump as the SME toggles
+     missions on and off. Same formula as PIQ.missionWeights: normalised KPI
+     ambition scaled by the patterns available to deliver it. */
+  function missionWeightsOverPool(pool) {
+    var raw = {}, total = 0;
+    pool.forEach(function (r) {
+      var span = 0, pats = 0;
+      (r.capabilities || []).forEach(function (o) {
+        var m = o.metric || {};
+        if (m.baseline != null && m.target != null) {
+          span += Math.abs(m.target - m.baseline) / (Math.abs(m.baseline) || 1);
+        }
+        pats += (o.patternIds || []).length;
+      });
+      var w = span * (1 + Math.log(1 + pats));
+      raw[r.id] = w; total += w;
+    });
+    var out = {};
+    pool.forEach(function (r) { out[r.id] = total ? raw[r.id] / total : 1 / (pool.length || 1); });
+    return out;
+  }
+
   function toggleMission(r) {
     var c = C(), i = c.missionIds.indexOf(r.id);
     if (i >= 0) c.missionIds.splice(i, 1); else c.missionIds.push(r.id);
-    syncCapabilities(false);   // re-derive capabilities + patterns for the new mission set
+    syncCapabilities(false);   // re-derive capabilities + patterns + skills
   }
 
-  /* Capabilities — multi-select, grouped by mission, all in scope by default. */
-  function stepCapabilities(body) {
-    var c = C(), missions = window.PIQ.missions();
-    if (!missions.length) { state.step = 3; return redraw(); }
-    var allCapIds = [];
-    missions.forEach(function (r) { (r.capabilities || []).forEach(function (o) { allCapIds.push(o.id); }); });
-    body.appendChild(el("div", "st-q",
-      "Which <b>capabilities</b> should the agents deliver?" +
-      '<button class="linkbtn" id="stAllO">' + (c.capIds.length === allCapIds.length ? "clear all" : "select all") + '</button>'));
-    body.appendChild(el("p", "st-hint",
-      "Capabilities are grouped by mission. All are in scope by default; each maps to the KPI it moves and the patterns that deliver it."));
-    missions.forEach(function (r) {
-      body.appendChild(el("div", "obj-group-h", esc(r.name)));
-      body.appendChild(pickGrid(r.capabilities, function (o) {
-        var on = c.capIds.indexOf(o.id) >= 0;
-        return '<div class="pc-main"><div class="pc-t">' + esc(o.name) + '</div>' +
-          '<div class="pc-d">Measured by <b>' + esc(o.kpi) + '</b></div></div>' +
-          '<div class="pc-meta"><span class="pc-n">' + o.patternCount + '</span> patterns</div>' +
-          (on ? '<div class="pc-on">✓</div>' : '');
-      }, function (o) { toggleCapability(o); redraw(); },
-         function (o) { return c.capIds.indexOf(o.id) >= 0; }));
-    });
-    var np = c.patternIds.length;
-    body.appendChild(nextBar(c.capIds.length + " capabilit" + (c.capIds.length !== 1 ? "ies" : "y") + " · " + np + " pattern" + (np !== 1 ? "s" : ""),
-      c.capIds.length ? "Review patterns →" : "", function () { state.step = 5; redraw(); }));
-    var all = document.getElementById("stAllO");
-    if (all) all.onclick = function (e) {
-      e.stopPropagation();
-      c.capIds = c.capIds.length === allCapIds.length ? [] : allCapIds.slice();
-      syncPatterns(); redraw();
-    };
-  }
-  function toggleCapability(o) {
-    var c = C(), i = c.capIds.indexOf(o.id);
-    if (i >= 0) c.capIds.splice(i, 1); else c.capIds.push(o.id);
-    syncPatterns();
-  }
-
+  /* Section 4 · Patterns — the evidence layer.
+     Grouped by the mission that carries them, so an SME reads "this is what my
+     Collections Lead actually knows how to spot". Capabilities are auto-scoped
+     and no longer a section, but they are named on each group header because a
+     capability is the KPI instrument the patterns serve. */
   function stepPatterns(body) {
     var c = C();
-    var ids = window.PIQ.capabilityPatternIds(); if (!ids.length) { state.step = 4; return redraw(); }
-    var pats = ids.map(window.PIQ.pattern).filter(Boolean);
-    var p0 = proc();
-    body.appendChild(el("div", "st-q",
-      "Select the <b>patterns</b> to deploy for “" + esc(p0 ? p0.name : "this process") + "”" +
-      '<button class="linkbtn" id="stAll">' + (c.patternIds.length === pats.length ? "clear all" : "select all") + '</button>'));
-    body.appendChild(el("p", "st-hint",
-      "Each pattern encodes the analyst's judgement: a happy path (straight-through) plus a branching DAG that handles the variations. " +
-      "Tick the circle to add a pattern; click the card to open its detail and customise the happy-path DAG."));
+    var missions = window.PIQ.missions();
+    if (!missions.length) { state.step = S_MIS; return redraw(); }
+    var all = window.PIQ.capabilityPatternIds();
+    if (!all.length) {
+      body.appendChild(el("div", "st-q", "No patterns in scope"));
+      body.appendChild(el("p", "st-hint",
+        "The capabilities under these missions have no pattern library authored yet — they are the capability " +
+        "gaps this transformation would build next. Continue to see the action chains for what does exist."));
+      body.appendChild(nextBar("0 patterns", "Compose action chains →",
+        function () { state.step = S_CHAIN; redraw(); }));
+      return;
+    }
 
-    var grid = el("div", "patgrid");
+    body.appendChild(el("div", "st-q",
+      "The <b>patterns</b> underneath" +
+      '<button class="linkbtn" id="stAll">' +
+      (c.patternIds.length === all.length ? "clear all" : "select all") + '</button>'));
+    body.appendChild(el("p", "st-hint",
+      "A pattern encodes the analyst's judgement: a standard path plus the branches that handle variation. " +
+      "They are grouped by the mission that owns them. Tick the circle to include a pattern; click a card to " +
+      "open its detail and edit its standard chain."));
+
+    var groupsWrap = el("div", "pgroups");
+    body.appendChild(groupsWrap);
+
+    var drawn = {}, shown = 0;
+    missions.forEach(function (r) {
+      var ids = [];
+      (r.capabilities || []).forEach(function (o) {
+        if (c.capIds.indexOf(o.id) < 0) return;
+        (o.patternIds || []).forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); });
+      });
+      ids = ids.filter(function (id) { if (drawn[id]) return false; drawn[id] = 1; return true; });
+      if (!ids.length) return;
+      // first group open so the step never looks empty; the rest collapsed so the
+      // page stays scannable with 31 pattern cards in scope
+      groupsWrap.appendChild(patternGroup(r, ids, shown === 0));
+      shown++;
+    });
+
+    body.appendChild(nextBar(c.patternIds.length + " pattern" + (c.patternIds.length !== 1 ? "s" : "") + " selected",
+      c.patternIds.length ? "Compose action chains →" : "", function () { state.step = S_CHAIN; redraw(); }));
+
+    var ab = document.getElementById("stAll");
+    if (ab) ab.onclick = function (e) {
+      e.stopPropagation();
+      c.patternIds = c.patternIds.length === all.length ? [] : all.slice();
+      autoConfigureSkills(); redraw();
+    };
+  }
+
+  /* One collapsible mission group in the Patterns section. The header carries the
+     three things an SME scans for: who holds it, how many patterns sit under it,
+     and which KPI those patterns move. Capability ids (OC-21 …) are internal
+     plumbing and are deliberately not shown. */
+  function patternGroup(r, ids, dfltOpen) {
+    var c = C();
+    var pers = window.PIQ.personas(r);
+    var key = "pg|" + r.id;
+    var open = phOpen(key, dfltOpen);
+    var pats = ids.map(window.PIQ.pattern).filter(Boolean);
+    var sel = ids.filter(function (id) { return c.patternIds.indexOf(id) >= 0; }).length;
+
+    // distinct KPIs this mission's pattern-backed capabilities actually move
+    var seen = {}, kpis = [];
+    (r.capabilities || []).forEach(function (o) {
+      if (c.capIds.indexOf(o.id) < 0 || !(o.patternIds || []).length) return;
+      if (seen[o.kpi]) return;
+      seen[o.kpi] = 1; kpis.push(o.kpi);
+    });
+
+    var g = el("div", "pgroup" + (open ? " open" : ""));
+    var head = el("div", "pg-head",
+      '<button class="ph-tog' + (open ? " on" : "") + '" aria-expanded="' + (open ? "true" : "false") + '">' +
+        (open ? "▾" : "▸") + '</button>' +
+      '<span class="pg-av">' + esc(pers.accountable.initials) + '</span>' +
+      '<span class="pg-main"><span class="pg-role">' + esc(pers.accountable.role) + '</span>' +
+        '<span class="pg-mis">' + esc(r.name) + '</span></span>' +
+      '<span class="pg-kpis">' + (kpis.length
+          ? '<i>KPI impacted</i>' + kpis.map(function (k) {
+              return '<span class="pg-kpi">' + esc(k) + '</span>'; }).join("")
+          : '') + '</span>' +
+      '<span class="pg-count"><b>' + pats.length + '</b>' +
+        (sel === pats.length ? ' selected' : ' patterns · ' + sel + ' on') + '</span>');
+    g.appendChild(head);
+
+    var bodyEl = el("div", "pg-body");
+    bodyEl.appendChild(patternGrid(pats));
+    if (!open) bodyEl.classList.add("ph-hide");
+    g.appendChild(bodyEl);
+
+    var tog = head.querySelector(".ph-tog");
+    function flip() {
+      var nowOpen = bodyEl.classList.contains("ph-hide");
+      bodyEl.classList.toggle("ph-hide", !nowOpen);
+      g.classList.toggle("open", nowOpen);
+      tog.textContent = nowOpen ? "▾" : "▸";
+      tog.classList.toggle("on", nowOpen);
+      tog.setAttribute("aria-expanded", nowOpen ? "true" : "false");
+      phSet(key, nowOpen);
+    }
+    head.onclick = flip;
+    return g;
+  }
+
+  function patternGrid(pats) {
+    var c = C(), grid = el("div", "patgrid");
     pats.forEach(function (p) {
       var sel = c.patternIds.indexOf(p.id) >= 0;
       var branches = (p.branchingDAG || []).length;
@@ -45971,34 +46534,25 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       var card = el("div", "patcard" + (sel ? " sel" : ""),
         '<div class="pat-top"><span class="pat-prio" style="background:' + PRIO[p.priority] + '"></span>' +
         '<div class="pat-n">' + esc(p.name) + (p.sample ? ' <span class="statusbadge sample">sample</span>' : '') +
-          (custom ? ' <span class="dagbadge">✎ DAG edited</span>' : '') + '</div>' +
+          (custom ? ' <span class="dagbadge">✎ chain edited</span>' : '') + '</div>' +
         '<button class="pat-check' + (sel ? " on" : "") + '" title="' + (sel ? "Remove from composition" : "Add to composition") + '">' + (sel ? "✓" : "+") + '</button></div>' +
         '<div class="pat-mm">“' + esc(trim(p.mentalModel, 150)) + '”</div>' +
-        '<div class="pat-flow"><span class="flab">Happy path</span>' + (flow || '<span class="muted">no steps</span>') +
+        '<div class="pat-flow"><span class="flab">Standard chain</span>' + (flow || '<span class="muted">no steps</span>') +
           (happy.length > 4 ? '<i>→</i><span class="mini-b more">+' + (happy.length - 4) + '</span>' : '') + '</div>' +
-        '<div class="pat-foot"><span>' + branches + ' variation branches · ' +
+        '<div class="pat-foot"><span>' + branches + ' dynamic branch' + (branches !== 1 ? "es" : "") + ' · ' +
           (gates ? '🔒 ' + gates + ' gate' + (gates > 1 ? "s" : "") : 'no gates') + '</span>' +
-        '<span class="pat-cue">✎ details &amp; DAG</span></div>');
+        '<span class="pat-cue">✎ details &amp; chain</span></div>');
       card.onclick = function () { openPatternDetail(p); };
       card.querySelector(".pat-check").onclick = function (e) {
         e.stopPropagation();
         var i = c.patternIds.indexOf(p.id);
         if (i >= 0) c.patternIds.splice(i, 1); else c.patternIds.push(p.id);
-        c.skills = {};   // selection changed → reconfigure
+        autoConfigureSkills();
         redraw();
       };
       grid.appendChild(card);
     });
-    body.appendChild(grid);
-    body.appendChild(nextBar(c.patternIds.length + " pattern" + (c.patternIds.length !== 1 ? "s" : "") + " selected",
-      c.patternIds.length ? "Configure skills →" : "", function () { state.step = 6; redraw(); }));
-
-    var all = document.getElementById("stAll");
-    if (all) all.onclick = function (e) {
-      e.stopPropagation();
-      c.patternIds = c.patternIds.length === pats.length ? [] : pats.map(function (p) { return p.id; });
-      c.skills = {}; redraw();
-    };
+    return grid;
   }
 
   /* ---- Pattern detail + happy-path DAG editor (opened from a pattern card) --
@@ -46185,75 +46739,213 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     return "LLM Agent";
   }
 
-  function stepSkills(body) {
+  /* Section 5 - Action Chains: how a mission actually executes.
+       Standard Action Chain - the straight-through spine (originalDAG). Editable:
+                               reorder blocks or switch them off; edits flow to
+                               Fitment, the Build engine and Runtime.
+       Dynamic Action Chain  - the variation branches (branchingDAG). Read-only:
+                               each is a condition that fires a different set of
+                               actions, some behind an approval gate.
+     Skills are auto-configured behind this section (autoConfigureSkills); the
+     per-skill executor override now lives in Discover & Fit. */
+  function stepActionChains(body) {
     var c = C();
-    if (!c.patternIds.length) { state.step = 5; return redraw(); }
+    if (!c.missionIds.length) { state.step = S_MIS; return redraw(); }
+    if (!c.patternIds.length) syncPatterns();
+    if (!c.patternIds.length) {
+      body.appendChild(el("div", "st-q", "No action chains yet"));
+      body.appendChild(el("p", "st-hint",
+        "No patterns are in scope, so there is nothing to execute. Go back and include at least one pattern."));
+      body.appendChild(nextBar("0 chains", "\u2190 Back to patterns", function () { state.step = S_PAT; redraw(); }));
+      return;
+    }
+
+    var pats = window.PIQ.selectedPatterns();
+    var ch = window.PIQ.chainCounts();
     var skills = window.PIQ.collectSkills(c.patternIds);
-    // seed config for any unconfigured skill
-    skills.forEach(function (b) {
-      if (!c.skills[b.key]) {
-        var fit = window.PIQ.fitment(b);
-        c.skills[b.key] = { mode: fit.mode, tech: defaultTech(b), configured: false };
-      }
-    });
 
-    var happy = skills.filter(function (b) { return b.source === "happy"; });
-    var vary = skills.filter(function (b) { return b.source !== "happy"; });
-    body.appendChild(el("div", "st-q", "Configure the <b>skills</b>"));
+    body.appendChild(el("div", "st-q", "Compose the <b>action chains</b>"));
     body.appendChild(el("p", "st-hint",
-      "These are the atomic actions your selected patterns sequence. Happy-path skills are straight-through candidates; " +
-      "variation skills fire only when a pattern's branch matches. Set the technology and execution mode for each."));
+      "An action chain is how a mission executes. The <b>standard</b> chain is the straight-through spine that " +
+      "runs when nothing is unusual. The <b>dynamic</b> chain is what fires when a variation is detected \u2014 " +
+      "branch by branch, with approval gates where a human must decide."));
 
-    body.appendChild(skillGroup("Happy path — straight-through spine", "happy", happy, c));
-    body.appendChild(skillGroup("Variation handling — fires on pattern match", "vary", vary, c));
+    body.appendChild(el("div", "ac-sum",
+      '<div class="acs-i"><b>' + pats.length + '</b><span>chains</span></div><i>\u00b7</i>' +
+      '<div class="acs-i"><b>' + ch.standard + '</b><span>standard blocks</span></div><i>\u00b7</i>' +
+      '<div class="acs-i"><b>' + ch.dynamic + '</b><span>dynamic branches</span></div><i>\u00b7</i>' +
+      '<div class="acs-i"><b>' + ch.gates + '</b><span>approval gates</span></div><i>\u00b7</i>' +
+      '<div class="acs-i"><b>' + skills.length + '</b><span>skills auto-configured</span></div>'));
 
-    var nConf = Object.keys(c.skills).filter(function (k) { return c.skills[k].configured; }).length;
-    body.appendChild(nextBar(nConf + " / " + skills.length + " skills configured",
-      "Send to Discover & Fit →", function () {
-        // mark all touched; commit and advance stage
-        skills.forEach(function (b) { c.skills[b.key].configured = true; });
-        window.PIQ.go("fitment");
-      }));
+    var tab = state.acTab || "standard";
+    var tabs = el("div", "st-subtabs",
+      '<button class="st-subtab' + (tab === "standard" ? " on" : "") + '" data-at="standard">' +
+        'Standard Action Chain <span class="st-subn">' + ch.standard + '</span></button>' +
+      '<button class="st-subtab' + (tab === "dynamic" ? " on" : "") + '" data-at="dynamic">' +
+        'Dynamic Action Chain <span class="st-subn">' + ch.dynamic + '</span></button>');
+    tabs.querySelectorAll(".st-subtab").forEach(function (b) {
+      b.onclick = function () { state.acTab = b.dataset.at; redraw(); };
+    });
+    body.appendChild(tabs);
+
+    var list = el("div", "aclist");
+    if (tab === "dynamic") {
+      body.appendChild(el("p", "st-hint",
+        "Each branch is a named condition the pattern watches for. When it matches, the standard chain is " +
+        "replaced by these actions. \ud83d\udd12 marks a branch that waits for human approval before it runs."));
+      pats.forEach(function (p) { list.appendChild(dynamicCard(p)); });
+    } else {
+      body.appendChild(el("p", "st-hint",
+        "The ordered blocks that run end-to-end on the happy path. Reorder or switch blocks off \u2014 " +
+        "edits flow through to Discover & Fit, the Build engine and Runtime."));
+      pats.forEach(function (p) { list.appendChild(chainCard(p)); });
+    }
+    body.appendChild(list);
+
+    body.appendChild(nextBar(
+      pats.length + " chain" + (pats.length !== 1 ? "s" : "") + " \u00b7 " + ch.standard + " standard \u00b7 " +
+      ch.dynamic + " dynamic \u00b7 " + skills.length + " skills ready",
+      "Send to Discover & Fit \u2192", function () { window.PIQ.go("fitment"); }));
+
+    // How each mission's chains distribute across the cognitive spine \u2014 the
+    // clearest read of "where is this mission straight-through vs gated".
+    // One map for the whole composition: swimlane() already lanes every in-scope
+    // mission, so it must NOT be drawn per process.
+    var f = window.PIQ.fn();
+    if (f) body.appendChild(swimlane(f, window.PIQ.proc()));
   }
 
-  function skillGroup(title, kind, skills, c) {
-    var g = el("div", "blkgroup k-" + kind);
-    if (!skills.length) return g;
-    g.appendChild(el("div", "blk-h", title + ' <span class="blk-c">' + skills.length + '</span>'));
-    var list = el("div", "blklist");
-    skills.forEach(function (b) {
-      var cfg = c.skills[b.key];
-      var fit = window.PIQ.fitment(b);
-      var row = el("div", "blk" + (cfg.configured ? " done" : ""));
-      var techOpts = TECHS.map(function (t) { return '<option' + (t === cfg.tech ? " selected" : "") + '>' + t + '</option>'; }).join("");
-      row.innerHTML =
-        '<div class="blk-tag k-' + kind + '"></div>' +
-        '<div class="blk-main"><div class="blk-name">' + esc(b.label) + '</div>' +
-        '<div class="blk-key mono">' + esc(b.key) + '</div>' +
-        '<div class="blk-sub">used by ' + b.patterns.length + ' pattern' + (b.patterns.length > 1 ? "s" : "") + (b.hitl ? ' · <span class="blk-hitl">needs approval</span>' : '') + '</div></div>' +
-        '<div class="blk-fit"><span class="fitchip f-' + fit.mode + '">' + fit.tier + '</span></div>' +
-        '<select class="blk-tech" data-k="' + esc(b.key) + '">' + techOpts + '</select>' +
-        '<div class="blk-mode" data-k="' + esc(b.key) + '">' +
-          '<button class="mode' + (cfg.mode === "auto" ? " on" : "") + '" data-m="auto">Auto</button>' +
-          '<button class="mode' + (cfg.mode === "hitl" ? " on" : "") + '" data-m="hitl">Approval</button></div>';
-      list.appendChild(row);
-    });
-    g.appendChild(list);
-    // wiring
-    g.querySelectorAll(".blk-tech").forEach(function (s) {
-      s.onchange = function () { c.skills[s.dataset.k].tech = s.value; c.skills[s.dataset.k].configured = true; markDone(s); };
-    });
-    g.querySelectorAll(".blk-mode").forEach(function (m) {
-      m.onclick = function (e) {
-        var b = e.target.closest("[data-m]"); if (!b) return;
-        c.skills[m.dataset.k].mode = b.dataset.m; c.skills[m.dataset.k].configured = true;
-        m.querySelectorAll(".mode").forEach(function (x) { x.classList.toggle("on", x === b); });
-        markDone(m);
+  /* one read-only Dynamic Action Chain card - the pattern's variation branches */
+  function dynamicCard(p) {
+    var card = el("div", "accard dyn");
+    renderDynamicCard(card, p);
+    return card;
+  }
+  function renderDynamicCard(card, p) {
+    var open = isOpen("dyn", p.id);
+    var brs = p.branchingDAG || [];
+    var gates = p.hitlGates || [];
+    var rows = brs.length ? brs.map(function (b, i) {
+      var acts = (b.actions || []).map(function (a) {
+        return (a || "").split(" + ").map(function (raw) {
+          return '<span class="mini-b">' + esc(window.PIQ.prettify(raw.trim())) + '</span>';
+        }).join('<i>+</i>');
+      }).join('<i>\u2192</i>') || '<span class="muted">no actions</span>';
+      var tier = b.tier ? '<span class="dyn-tier t-' + esc(b.tier) + '">' + esc(b.tier) +
+        (b.escLevel ? " L" + b.escLevel : "") + '</span>' : "";
+      return '<div class="dynbr">' +
+        '<div class="dynbr-h"><span class="dynbr-n">' + (i + 1) + '</span>' +
+          '<code class="dynbr-c">' + esc(b.condition || "\u2014") + '</code>' + tier +
+          (b.hitl ? '<span class="dynbr-gate">\ud83d\udd12 approval</span>' : '') + '</div>' +
+        '<div class="dynbr-a">' + acts + '</div></div>';
+    }).join("") : '<p class="st-hint muted">This pattern has no variation branches \u2014 it always runs its standard chain.</p>';
+
+    var peek = brs.slice(0, 2).map(function (b) {
+      return '<span class="dynpeek">' + esc(trim(b.condition || "\u2014", 58)) + '</span>';
+    }).join("") + (brs.length > 2 ? '<span class="dynpeek more">+' + (brs.length - 2) + ' more</span>' : '');
+
+    card.innerHTML =
+      '<div class="accard-h"><span class="pat-prio" style="background:' + PRIO[p.priority] + '"></span>' +
+        '<div class="accard-n">' + esc(p.name) + (p.sample ? ' <span class="statusbadge sample">sample</span>' : '') + '</div>' +
+        '<span class="accard-meta">' + brs.length + ' branch' + (brs.length !== 1 ? "es" : "") +
+          (gates.length ? ' \u00b7 \ud83d\udd12 ' + gates.length : '') + '</span>' +
+        '<button class="linkbtn" data-detail="1">open detail</button>' +
+        '<button class="ac-toggle" data-toggle="1" aria-expanded="' + (open ? "true" : "false") + '">' +
+          (open ? "\u25be" : "\u25b8") + '</button></div>' +
+      (open
+        ? '<div class="dynlist">' + rows + '</div>' +
+          (gates.length ? '<div class="dyngates"><span class="flab">Approval gates</span>' +
+            gates.map(function (g) { return '<span class="gatechip">\ud83d\udd12 ' + esc(g) + '</span>'; }).join("") + '</div>' : '')
+        : '<div class="dynpeeks">' + peek + '</div>');
+
+    var det = card.querySelector("[data-detail]");
+    if (det) det.onclick = function () { openPatternDetail(p); };
+    bindToggle(card, "dyn", p.id, function () { renderDynamicCard(card, p); });
+  }
+
+  /* one editable Standard Action Chain card */
+  function chainCard(p) {
+    var card = el("div", "accard");
+    renderChainCard(card, p);
+    return card;
+  }
+  function renderChainCard(card, p) {
+    var open = isOpen("std", p.id);
+    var steps = window.PIQ.dagSteps(p.id);
+    var onCount = steps.filter(function (s) { return s.on; }).length;
+    var custom = window.PIQ.dagCustomised(p.id);
+    var rows = steps.map(function (s, i) {
+      var rm = s.added ? '<button class="dstep-rm" data-rm="' + i + '" title="Remove block">\u2715</button>' : '';
+      var tag = s.added ? ' <span class="dstep-added">added</span>' : '';
+      return '<div class="dstep' + (s.on ? "" : " off") + (s.added ? " added" : "") + '">' +
+        '<div class="dstep-ord">' +
+          '<button data-mv="-1" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + '>\u2191</button>' +
+          '<button data-mv="1" data-i="' + i + '"' + (i === steps.length - 1 ? " disabled" : "") + '>\u2193</button></div>' +
+        '<span class="dstep-n">' + (i + 1) + '</span>' +
+        '<div class="dstep-k mono">' + esc(window.PIQ.prettify(s.k)) + tag + '</div>' +
+        '<button class="dstep-tog' + (s.on ? " on" : "") + '" data-tog="' + i + '">' + (s.on ? "On" : "Off") + '</button>' + rm +
+      '</div>';
+    }).join("");
+    var prev = window.PIQ.happyDAG(p.id).map(function (s) {
+      return '<span class="mini-b">' + esc(window.PIQ.prettify(s)) + '</span>'; }).join('<i>\u2192</i>')
+      || '<span class="muted">no blocks enabled</span>';
+
+    card.innerHTML =
+      '<div class="accard-h"><span class="pat-prio" style="background:' + PRIO[p.priority] + '"></span>' +
+        '<div class="accard-n">' + esc(p.name) + (p.sample ? ' <span class="statusbadge sample">sample</span>' : '') +
+          (custom ? ' <span class="dagbadge">\u270e edited</span>' : '') + '</div>' +
+        '<span class="accard-meta">' + onCount + '/' + steps.length + ' blocks</span>' +
+        (custom ? '<button class="linkbtn" data-reset="1">reset</button>' : '') +
+        '<button class="linkbtn" data-detail="1">open detail</button>' +
+        '<button class="ac-toggle" data-toggle="1" aria-expanded="' + (open ? "true" : "false") + '">' +
+          (open ? "\u25be" : "\u25b8") + '</button></div>' +
+      (open
+        ? '<div class="dsteps">' + rows + '</div>' +
+          '<div class="dprev"><span class="flab">Resulting sequence <b>' + onCount + '/' + steps.length + '</b></span>' + prev + '</div>'
+        : '<div class="dprev collapsed">' + prev + '</div>');
+
+    card.querySelectorAll("[data-mv]").forEach(function (b) {
+      b.onclick = function () {
+        var d = ensureDag(p.id), i = +b.dataset.i, j = i + (+b.dataset.mv);
+        if (j < 0 || j >= d.steps.length) return;
+        var tmp = d.steps[i]; d.steps[i] = d.steps[j]; d.steps[j] = tmp;
+        afterDagEdit(); renderChainCard(card, p);
       };
     });
-    return g;
+    card.querySelectorAll("[data-tog]").forEach(function (b) {
+      b.onclick = function () {
+        var d = ensureDag(p.id); d.steps[+b.dataset.tog].on = !d.steps[+b.dataset.tog].on;
+        afterDagEdit(); renderChainCard(card, p);
+      };
+    });
+    card.querySelectorAll("[data-rm]").forEach(function (b) {
+      b.onclick = function () {
+        var d = ensureDag(p.id); d.steps.splice(+b.dataset.rm, 1);
+        afterDagEdit(); renderChainCard(card, p);
+      };
+    });
+    var rst = card.querySelector("[data-reset]");
+    if (rst) rst.onclick = function () { window.PIQ.resetDag(p.id); afterDagEdit(); renderChainCard(card, p); };
+    var det = card.querySelector("[data-detail]");
+    if (det) det.onclick = function () { openPatternDetail(p); };
+    bindToggle(card, "std", p.id, function () { renderChainCard(card, p); });
   }
-  function markDone(node) { var row = node.closest(".blk"); if (row) row.classList.add("done"); }
+
+  /* per-card expand/collapse, remembered across redraws */
+  function isOpen(kind, id) {
+    state.open = state.open || {};
+    return !!state.open[kind + ":" + id];
+  }
+  function bindToggle(card, kind, id, rerender) {
+    var t = card.querySelector("[data-toggle]");
+    if (!t) return;
+    t.onclick = function () {
+      state.open = state.open || {};
+      var k = kind + ":" + id;
+      state.open[k] = !state.open[k];
+      rerender();
+    };
+  }
 
   function nextBar(label, cta, onNext) {
     var bar = el("div", "st-next");
@@ -46902,10 +47594,28 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
      so the campaign board and this console can never disagree). Builds the queue
      on demand, so a campaign renders at baseline before anyone presses Step. */
   window.PIQ.missionRuntime = function () {
-    if (!C().patternIds.length) return { started: false, cursor: 0, queued: 0, byMission: {} };
+    if (!C().patternIds.length) return { started: false, cursor: 0, queued: 0, byMission: {}, q: [] };
     ensureSim(false);
     return { started: sim.cursor > 0, cursor: sim.cursor, queued: sim.q.length,
-             byMission: missionProgress() };
+             byMission: missionProgress(), q: sim.q.slice() };
+  };
+
+  /* The queue as one mission sees it: the variations its own patterns matched,
+     plus the happy-path volume every mission shares. Persona View renders this,
+     so an analyst sees only the work that is theirs. */
+  window.PIQ.missionQueue = function (missionId) {
+    var rt = window.PIQ.missionRuntime();
+    var out = [];
+    rt.q.forEach(function (t, i) {
+      var mine = false;
+      if (t.kind === "variation" && t.patternId != null) {
+        mine = window.PIQ.patternAttribution(t.patternId).missionIds.indexOf(missionId) >= 0;
+      } else {
+        mine = true;    // straight-through throughput belongs to every mission
+      }
+      if (mine) out.push({ t: t, idx: i, own: t.kind === "variation" });
+    });
+    return { rows: out, cursor: rt.cursor, started: rt.started };
   };
 
   // baseline → target interpolated by how much of the mission's work is settled
@@ -47129,15 +47839,17 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   window.PIQ.onErp(function () { if (window.PIQ.active === "runtime") { var v = document.getElementById("view"); v.innerHTML = ""; render(v); } });
 })();
 
-/* Run & Monitor — Mission Command
- * The campaign board. Mission Operations shows one analyst working one queue;
- * this shows the whole multi-front effort converging on a single business
- * objective: every persona mission, what it is moving, how far it has come, and
- * where one mission's progress lifts another's ceiling.
+/* Mission Command · Campaign HQ
+ * The objective-level view — "how are we doing against the outcome we bought?"
  *
- * Everything here is derived — no Math.random, no Date.now. Live counters come
- * from PIQ.missionRuntime() (the same simulator Mission Operations runs, so the
- * two boards can never disagree); structure and weighting come from the taxonomy.
+ * Mission Operations shows one analyst working one queue. This shows the whole
+ * multi-front campaign converging on a single objective: the compound KPI as a
+ * gauge, a Sankey of objective → persona missions → KPI impact, and a card per
+ * mission carrying the value it has captured and the value still on the table.
+ *
+ * Everything is derived — no Math.random, no Date.now. Live counters come from
+ * PIQ.missionRuntime() (the same simulator Mission Operations runs, so the two
+ * boards can never disagree); structure and weighting come from the taxonomy.
  */
 (function () {
   "use strict";
@@ -47147,10 +47859,10 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   function C() { return window.PIQ.composition; }
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function round(v, d) { var f = Math.pow(10, d || 0); return Math.round(v * f) / f; }
+  function money(n) { return window.PIQ.E._money(n); }
 
-  var MEDAL = ["#c9a227", "#8c8f94", "#a9713b"];   // 1st / 2nd / 3rd on the leaderboard
+  var LANE = ["#8e44ad", "#2980b9", "#16a085", "#d68910", "#c0392b", "#7c4dff", "#e0529c", "#2c7a5f"];
 
-  /* ---- value formatting (mirrors the runtime mission band) ---------------- */
   function fmt(v, unit) {
     if (unit === "$")  return "$" + v;
     if (unit === "$K") return "$" + v + "K";
@@ -47160,29 +47872,22 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   }
   function kpiAt(m, pct) {
     var v = m.baseline + (m.target - m.baseline) * pct;
-    var abs = Math.abs(v);
-    return round(v, abs < 20 ? 1 : 0);
+    return round(v, Math.abs(v) < 20 ? 1 : 0);
   }
-  // how far a KPI has travelled from baseline toward target, 0..1
-  function travelled(m, pct) { return clamp(pct, 0, 1); }
 
-  /* ---- campaign model -----------------------------------------------------
-     One pass that resolves every mission into the shape the board renders:
-     persona, KPI travel, pattern/transaction counts, share of the objective and
-     the badges earned so far. */
+  /* ---- campaign model ---------------------------------------------------- */
   function campaign() {
     var rt = window.PIQ.missionRuntime();
     var mm = window.PIQ.missionMetrics();
+    var weights = window.PIQ.missionWeights();
     var selected = {};
     C().patternIds.forEach(function (id) { selected[id] = 1; });
 
-    var rows = mm.map(function (m) {
+    var rows = mm.map(function (m, i) {
       var st = rt.byMission[m.mission.id] ||
                { total: 0, done: 0, pending: 0, stp: 0, matched: 0, gates: 0, resolved: 0, value: 0 };
       var pct = st.total ? st.done / st.total : 0;
 
-      // this mission's patterns: every id its capabilities reference, and how
-      // many of those the SME actually pulled into the composition
       var own = {}, ownN = 0, active = 0;
       (m.mission.capabilities || []).forEach(function (o) {
         (o.patternIds || []).forEach(function (id) {
@@ -47195,91 +47900,38 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       var metrics = m.metrics.map(function (k) {
         var cur = kpiAt(k, pct);
         var hit = k.better === "up" ? cur >= k.target : cur <= k.target;
-        return { k: k, cur: cur, travel: travelled(k, pct), hit: hit };
+        // what is still unrealised on this KPI, in the KPI's own unit
+        var gap = round(Math.abs(k.target - cur), Math.abs(k.target - cur) < 20 ? 1 : 0);
+        return { k: k, cur: cur, hit: hit, gap: gap, travel: clamp(pct, 0, 1) };
       });
 
+      // value on the table: the share of the run-rate this mission has NOT yet
+      // converted, scaled by how much of its KPI journey remains
+      var captured = st.value;
+      var onTable = Math.round(captured / (pct || 1) * (1 - pct));
+
       return {
-        mission: m.mission, personas: m.personas, metrics: metrics,
-        st: st, pct: pct, patterns: ownN, active: active,
-        targetHit: metrics.some(function (x) { return x.hit; }),
+        mission: m.mission, personas: m.personas, metrics: metrics, st: st, pct: pct,
+        patterns: ownN, active: active, captured: captured, onTable: onTable,
+        share: weights[m.mission.id] || 0, lane: LANE[i % LANE.length],
+        proc: window.PIQ.missionProc(m.mission.id),
       };
     });
-
-    // Share of the objective. Patterns are the execution muscle that moves a
-    // KPI, so weight by the patterns a mission actually has in play; if nothing
-    // is selected yet, fall back to an even split across capabilities so the
-    // parts still add to the whole.
-    var totalActive = rows.reduce(function (n, r) { return n + r.active; }, 0);
-    var totalCaps = rows.reduce(function (n, r) { return n + r.metrics.length; }, 0);
-    rows.forEach(function (r) {
-      r.share = totalActive ? r.active / totalActive
-              : (totalCaps ? r.metrics.length / totalCaps : (rows.length ? 1 / rows.length : 0));
-    });
-
-    rows.forEach(function (r) { r.badges = badgesFor(r); });
     return { rt: rt, rows: rows };
   }
 
-  /* ---- badges: earned from what actually happened, never decorative ------- */
-  function badgesFor(r) {
-    var s = r.st;
-    var settled = s.done;
-    return [
-      { id: "first", label: "First blood", tip: "First transaction cleared for this mission",
-        on: s.matched > 0 || settled > 0 },
-      { id: "stp", label: "Straight-through champion", tip: "Over 80% of settled work needed no human touch",
-        on: settled > 0 && (s.stp / settled) > 0.8 },
-      { id: "dag", label: "DAG master", tip: "Every approval gate this mission raised has been resolved",
-        on: s.gates > 0 && s.resolved === s.gates },
-      { id: "target", label: "Target breaker", tip: "A capability KPI reached its target",
-        on: r.targetHit },
-    ];
-  }
-
-  /* ---- cross-mission dependencies ----------------------------------------
-     Two links, both real and both in the data:
-       • shared capability — capability ids (OC-*) are deliberately reused across
-         missions, so progress on a shared capability lifts both missions at once
-       • process flow — missions are authored in the order the process runs
-         (credit → collections → cash application → disputes), so each mission
-         hands off to the next. */
-  function dependencies(rows) {
-    var links = [], pair = {};
-    function key(a, b) { return a.mission.id + ">" + b.mission.id; }
-    for (var i = 0; i < rows.length; i++) {
-      for (var j = i + 1; j < rows.length; j++) {
-        var a = rows[i], b = rows[j], shared = [];
-        a.metrics.forEach(function (x) {
-          b.metrics.forEach(function (y) { if (x.k.capId === y.k.capId) shared.push(x.k); });
-        });
-        if (shared.length) {
-          pair[key(a, b)] = 1;
-          links.push({ from: a, to: b, kind: "shared", cap: shared[0],
-            label: "shares " + shared[0].capId + " · " + shared[0].kpi });
-        }
-      }
-    }
-    // process-flow hand-offs, skipped where a shared capability already links the
-    // pair — one line per relationship, and the stronger claim wins
-    for (var n = 0; n < rows.length - 1; n++) {
-      if (pair[key(rows[n], rows[n + 1])]) continue;
-      links.push({ from: rows[n], to: rows[n + 1], kind: "flow", label: "hands off to" });
-    }
-    return links;
-  }
-
-  /* ---- objective gauge (SVG ring, same idiom as the cockpit gauge) -------- */
+  /* ---- objective gauge (SVG ring) ---------------------------------------- */
   function ring(pct, col, cur, unit, label) {
-    var r = 52, c = 2 * Math.PI * r, off = c * (1 - clamp(pct, 0, 1));
-    return '<svg class="mc-ring" width="132" height="132" viewBox="0 0 132 132" role="img" ' +
-      'aria-label="' + esc(label) + ' ' + Math.round(pct * 100) + ' percent to target">' +
-      '<circle cx="66" cy="66" r="' + r + '" fill="none" stroke="#e7e1d6" stroke-width="11"/>' +
-      '<circle cx="66" cy="66" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="11" ' +
+    var r = 58, c = 2 * Math.PI * r, off = c * (1 - clamp(pct, 0, 1));
+    return '<svg class="mc-ring" width="146" height="146" viewBox="0 0 146 146" role="img" ' +
+      'aria-label="' + esc(label) + ' — ' + Math.round(pct * 100) + ' percent to target">' +
+      '<circle cx="73" cy="73" r="' + r + '" fill="none" stroke="#e7e1d6" stroke-width="12"/>' +
+      '<circle cx="73" cy="73" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="12" ' +
       'stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '" ' +
-      'transform="rotate(-90 66 66)" class="mc-ringbar"/>' +
-      '<text x="66" y="63" text-anchor="middle" font-size="27" font-weight="800" fill="#211c18">' +
+      'transform="rotate(-90 73 73)" class="mc-ringbar"/>' +
+      '<text x="73" y="70" text-anchor="middle" font-size="30" font-weight="800" fill="#211c18">' +
         esc(String(cur)) + '</text>' +
-      '<text x="66" y="81" text-anchor="middle" font-size="10" font-weight="700" fill="#6c655c" ' +
+      '<text x="73" y="89" text-anchor="middle" font-size="10" font-weight="700" fill="#6c655c" ' +
         'letter-spacing="1">' + esc(String(unit || "").toUpperCase()) + '</text></svg>';
   }
 
@@ -47289,20 +47941,18 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       var d = el("div", "mc-noobj",
         '<div class="kv">Mission Command</div><h2>No objective selected</h2>' +
         '<p>This board shows how every mission converges on one business objective. ' +
-        'Pick an objective in the <b>Mission Builder</b> and the campaign appears here.</p>' +
-        '<button class="btn go" id="mcToStudio">← Go to Mission Builder</button>');
+        'Pick an objective in the <b>Transformation Builder</b> and the campaign appears here.</p>' +
+        '<button class="btn go" id="mcToStudio">← Go to Transformation Builder</button>');
       d.querySelector("#mcToStudio").onclick = function () { window.PIQ.go("studio"); };
       return d;
     }
     var k = obj.compoundKPI || {};
-    // campaign progress = the mean KPI travel across every mission in the field,
-    // weighted by each mission's share of the objective
     var prog = cmp.rows.reduce(function (n, r) { return n + r.pct * r.share; }, 0);
     var cur = (k.current != null && k.target != null)
-      ? round(k.current + (k.target - k.current) * prog, k.unit === "days" ? 1 : 0)
-      : "—";
+      ? round(k.current + (k.target - k.current) * prog, k.unit === "days" ? 1 : 0) : "—";
     var col = obj.accent || "#d3600f";
-    var moved = (k.current != null) ? round(Math.abs(cur - k.current), 1) : 0;
+    var moved = (k.current != null && cur !== "—") ? round(Math.abs(cur - k.current), 1) : 0;
+    var onTable = cmp.rows.reduce(function (n, r) { return n + r.onTable; }, 0);
 
     var band = el("div", "mc-obj");
     band.style.setProperty("--oc", col);
@@ -47312,10 +47962,8 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
         '<div class="kv">Campaign objective</div>' +
         '<h2>' + esc(obj.name) + '</h2>' +
         '<p class="mc-tag">' + esc(obj.tagline || "") + '</p>' +
-        '<div class="mc-kpi">' +
-          '<span class="mc-kn">' + esc(k.name || "") + '</span>' +
-          (k.formula ? '<span class="mc-kf mono">' + esc(k.formula) + '</span>' : '') +
-        '</div>' +
+        '<div class="mc-kpi"><span class="mc-kn">' + esc(k.name || "") + '</span>' +
+          (k.formula ? '<span class="mc-kf mono">' + esc(k.formula) + '</span>' : '') + '</div>' +
         '<div class="mc-track">' +
           '<span class="mc-tv"><b>' + esc(String(k.current)) + '</b><small>start</small></span>' +
           '<span class="mc-tbar"><i style="width:' + Math.round(clamp(prog, 0, 1) * 100) + '%"></i></span>' +
@@ -47329,19 +47977,407 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
         '<div class="mc-sub">' + (cmp.rt.started
             ? cmp.rt.cursor + ' of ' + cmp.rt.queued + ' transactions processed'
             : 'campaign not started') + '</div>' +
-        (moved ? '<div class="mc-moved">' + esc(k.name) + ' moved ' + moved + ' ' +
-                 esc(k.unit || "") + '</div>' : '') +
+        (moved ? '<div class="mc-moved">' + esc(k.name) + ' moved ' + moved + ' ' + esc(k.unit || "") + '</div>' : '') +
+        (onTable ? '<div class="mc-table">' + money(onTable) + ' still on the table</div>' : '') +
       '</div>';
     return band;
   }
 
-  /* ---- one persona mission card ------------------------------------------ */
-  function missionCard(r, rank) {
+  /* ---- Sankey: objective → persona missions → KPI impact ------------------
+     Pure inline SVG. Flow width = the mission's contribution weight; the right
+     stub is filled to the share of that flow actually realised so far, so the
+     picture reads as "how much of what this mission owes has landed". */
+  /* ---- Sankey: objective -> persona missions -> KPI impact ----------------
+     Pure inline SVG. Ribbon width is the mission's share of the objective; the
+     filled core is the share of that already delivered. Mission nodes expand
+     inline, and the "Show all details" toggle pins every panel open so the board
+     can be read (or walked through on a screen) without clicking. */
+  var SK_W = 1080, SK_HEAD = 34, SK_PAD_T = 22, SK_PAD_B = 16;
+  var SK_OX = 16,  SK_OW = 150;
+  var SK_MX = 372, SK_MW = 300;
+  var SK_KX = 830, SK_KW = 234;
+  var SK_GAP = 8, SK_CONTENT = 560, SK_MIN = 58, SK_BARMIN = 76, SK_OPEN = 226;
+  var SK_TOP = SK_HEAD + SK_PAD_T;   /* first node sits below the tower headers */
+
+  /* Pipe breadth is the mission's share of the objective, full stop — it is NOT
+     clamped to the node's minimum height. A 2% mission therefore draws a hairline
+     and a 22% mission draws a band eleven times thicker, which is the whole point
+     of the picture. Node height keeps its own floor so the text stays readable. */
+  function flowW(r) { return Math.max(3, r.share * SK_CONTENT); }
+
+  var mcExpanded = null;      /* mission id currently expanded, or null */
+  var mcPinAll = false;       /* details-always-on toggle */
+  var mcAnim = null;
+
+  function sankeyLayout(rows, expanded, pinAll) {
+    var i, hs = [], open = [];
+    for (i = 0; i < rows.length; i++) {
+      hs.push(Math.max(SK_MIN, rows[i].share * SK_CONTENT));
+      open.push(pinAll || expanded === rows[i].mission.id);
+      if (open[i]) hs[i] = Math.max(hs[i], SK_OPEN);
+    }
+    var missions = [], y = SK_TOP;
+    for (i = 0; i < rows.length; i++) {
+      missions.push({ r: rows[i], idx: i, x: SK_MX, w: SK_MW, y: y, h: hs[i], open: open[i] });
+      y += hs[i] + SK_GAP;
+    }
+    var total = y - SK_GAP - SK_TOP;
+    return { missions: missions, total: total,
+             obj: { x: SK_OX, w: SK_OW, y: SK_TOP, h: total },
+             height: SK_TOP + total + SK_PAD_B };
+  }
+
+  function sankeyLerp(a, b, t) {
+    function n(x, y) { return x + (y - x) * t; }
+    var out = { height: n(a.height, b.height), total: n(a.total, b.total),
+                obj: { x: a.obj.x, w: a.obj.w, y: n(a.obj.y, b.obj.y), h: n(a.obj.h, b.obj.h) },
+                missions: [] };
+    for (var i = 0; i < a.missions.length; i++) {
+      var s0 = a.missions[i], s1 = b.missions[i], o = {};
+      for (var k in s0) o[k] = s0[k];
+      o.y = n(s0.y, s1.y); o.h = n(s0.h, s1.h);
+      o.open = t > 0.5 ? s1.open : s0.open;
+      out.missions.push(o);
+    }
+    return out;
+  }
+
+  function sankeyDraw(L, obj) {
+    var s = '', i;
+    var oc = (obj && obj.accent) || "#d3600f";
+
+    /* flows: objective -> mission, then mission -> its KPI impact node.
+       Width = contribution share; the brighter core inside is the part delivered. */
+    for (i = 0; i < L.missions.length; i++) {
+      var n = L.missions[i], r = n.r;
+      var base = Math.max(SK_MIN, r.share * SK_CONTENT);
+      var mid = n.y + Math.min(n.h, base) / 2;
+      var fw = flowW(r);
+      var core = Math.max(2, fw * clamp(r.pct, 0.04, 1));
+      s += '<g class="mcs-flow" data-flow="o:' + esc(r.mission.id) + '">' +
+           ribbon(L.obj.x + L.obj.w, mid, n.x, mid, fw, core, r.lane, 0.24) + '</g>';
+      s += '<g class="mcs-flow" data-flow="k:' + esc(r.mission.id) + '">' +
+           ribbon(n.x + n.w, mid, SK_KX, mid, fw, core, r.lane, 0.32) + '</g>';
+    }
+
+    /* tower headers, sitting above their columns */
+    s += tower(SK_OX, SK_OW, 'OBJECTIVE', 'what we are steering to');
+    s += tower(SK_MX, SK_MW, 'PERSONA & MISSION', 'who holds it, and what they owe');
+    s += tower(SK_KX, SK_KW, 'OUTCOME', 'the KPI it lands on');
+
+    /* objective node */
+    var k = (obj && obj.compoundKPI) || {};
+    s += '<rect x="' + L.obj.x + '" y="' + L.obj.y.toFixed(1) + '" width="' + L.obj.w +
+         '" height="' + L.obj.h.toFixed(1) + '" rx="9" fill="' + oc + '" opacity="0.12" stroke="' + oc + '" stroke-width="1.5"/>';
+    var t = wrapText((obj && obj.name) || "Objective", 16);
+    for (i = 0; i < t.length; i++) {
+      s += '<text class="mcs-t" x="' + (L.obj.x + 14) + '" y="' + (L.obj.y + 26 + i * 15) + '">' + esc(t[i]) + '</text>';
+    }
+    if (k.name) {
+      s += '<text class="mcs-s" x="' + (L.obj.x + 14) + '" y="' + (L.obj.y + 76) + '">' + esc(k.name) + '</text>';
+      s += '<text class="mcs-n" x="' + (L.obj.x + 14) + '" y="' + (L.obj.y + 97) + '">' +
+           esc(k.current) + ' → ' + esc(k.target) + '</text>';
+      s += '<text class="mcs-s" x="' + (L.obj.x + 14) + '" y="' + (L.obj.y + 113) + '">' + esc(k.unit || "") + '</text>';
+    }
+
+    /* mission nodes, then the KPI-impact node each one lands on */
+    for (i = 0; i < L.missions.length; i++) s += sankeyMission(L.missions[i]);
+    for (i = 0; i < L.missions.length; i++) s += sankeyImpact(L.missions[i]);
+
+    return '<svg viewBox="0 0 ' + SK_W + ' ' + Math.round(L.height) + '" width="100%" role="img" ' +
+           'aria-label="Flow from the objective through ' + L.missions.length +
+           ' persona missions to their KPI impact">' + s + '</svg>';
+  }
+
+  function sankeyMission(n) {
+    var r = n.r, x = n.x, y = n.y, w = n.w, h = n.h, p = r.personas;
+    var s = '<g class="mcs-node" data-mission="' + esc(r.mission.id) + '" tabindex="0" role="button" ' +
+            'aria-expanded="' + (n.open ? 'true' : 'false') + '">';
+    s += '<rect class="mcs-box" x="' + x + '" y="' + y.toFixed(1) + '" width="' + w + '" height="' + h.toFixed(1) +
+         '" rx="9" fill="#fff" stroke="' + r.lane + '" stroke-width="1.5"/>';
+    s += '<circle cx="' + (x + 24) + '" cy="' + (y + 24) + '" r="13" fill="' + r.lane + '"/>';
+    s += '<text class="mcs-av" x="' + (x + 24) + '" y="' + (y + 28) + '" text-anchor="middle">' +
+         esc(p.accountable.initials) + '</text>';
+    s += '<text class="mcs-t" x="' + (x + 44) + '" y="' + (y + 21) + '">' + esc(clip(p.accountable.role, 30)) + '</text>';
+    s += '<text class="mcs-s" x="' + (x + 44) + '" y="' + (y + 36) + '">' + Math.round(r.share * 100) +
+         '% of objective · ' + Math.round(r.pct * 100) + '% delivered</text>';
+    s += '<text class="mcs-chev" x="' + (x + w - 16) + '" y="' + (y + 24) + '">' + (n.open ? '▾' : '▸') + '</text>';
+
+    if (!n.open && h >= SK_BARMIN) {
+      var by = y + h - 16;
+      s += '<rect class="mcs-track" x="' + (x + 14) + '" y="' + by.toFixed(1) + '" width="' + (w - 28) + '" height="5" rx="2.5"/>';
+      s += '<rect x="' + (x + 14) + '" y="' + by.toFixed(1) + '" width="' + ((w - 28) * clamp(r.pct, 0, 1)).toFixed(1) +
+           '" height="5" rx="2.5" fill="' + r.lane + '"/>';
+    } else if (n.open) {
+      s += sankeyPanel(n);
+    }
+    s += '</g>';
+    return s;
+  }
+
+  /* One tower header: the column's name and what it answers. */
+  function tower(x, w, name, sub) {
+    return '<text class="mcs-tow" x="' + x + '" y="14">' + esc(name) + '</text>' +
+           '<text class="mcs-towsub" x="' + x + '" y="27">' + esc(sub) + '</text>' +
+           '<line class="mcs-rule" x1="' + x + '" y1="' + (SK_HEAD - 2) + '" x2="' + (x + w) +
+           '" y2="' + (SK_HEAD - 2) + '"/>';
+  }
+
+  /* The KPI this mission actually moves, sitting at the end of its ribbon. Height
+     tracks the mission's own base height so the pair reads as one lane; it does
+     not grow when the mission expands. */
+  function sankeyImpact(n) {
+    var r = n.r;
+    var base = Math.max(SK_MIN, r.share * SK_CONTENT);
+    var h = Math.min(n.h, base), y = n.y, x = SK_KX, w = SK_KW;
+    var m0 = r.metrics[0];
+    var s = '<rect x="' + x + '" y="' + y.toFixed(1) + '" width="' + w + '" height="' + h.toFixed(1) +
+            '" rx="9" fill="' + r.lane + '" opacity="0.08"/>';
+    s += '<rect x="' + x + '" y="' + y.toFixed(1) + '" width="3" height="' + h.toFixed(1) +
+         '" rx="2" fill="' + r.lane + '"/>';
+    if (!m0) {
+      s += '<text class="mcs-s" x="' + (x + 14) + '" y="' + (y + h / 2 + 4) + '">no measured KPI</text>';
+      return s;
+    }
+    s += '<text class="mcs-s" x="' + (x + 14) + '" y="' + (y + 19) + '">' +
+         esc(clip(String(m0.k.kpi).toUpperCase(), 28)) + '</text>';
+    if (h >= 52) {
+      s += '<text class="mcs-n" x="' + (x + 14) + '" y="' + (y + 41) + '">' + esc(fmt(m0.cur, m0.k.unit)) + '</text>';
+      s += '<text class="mcs-m" x="' + (x + 14) + '" y="' + (y + 56) + '">from ' + esc(fmt(m0.k.baseline, m0.k.unit)) +
+           ' · target ' + esc(fmt(m0.k.target, m0.k.unit)) + '</text>';
+    } else {
+      s += '<text class="mcs-n" x="' + (x + w - 14) + '" y="' + (y + 19) + '" text-anchor="end">' +
+           esc(fmt(m0.cur, m0.k.unit)) + '</text>';
+    }
+    if (r.metrics.length > 1 && h >= 52) {
+      s += '<text class="mcs-m" x="' + (x + w - 12) + '" y="' + (y + 19) + '" text-anchor="end">+' +
+           (r.metrics.length - 1) + ' more</text>';
+    }
+    return s;
+  }
+
+  function sankeyPanel(n) {
+    var r = n.r, x = n.x, y = n.y, w = n.w;
+    var py = y + 52;
+    var s = '<line class="mcs-rule" x1="' + (x + 12) + '" y1="' + (py - 8) + '" x2="' + (x + w - 12) + '" y2="' + (py - 8) + '"/>';
+    var st = wrapText(r.mission.name, 52).slice(0, 2);
+    for (var i = 0; i < st.length; i++) {
+      s += '<text class="mcs-m" x="' + (x + 14) + '" y="' + (py + 6 + i * 13) + '">' + esc(st[i]) + '</text>';
+    }
+    var ky = py + 40;
+    var m0 = r.metrics[0];
+    if (m0) {
+      s += '<text class="mcs-s" x="' + (x + 14) + '" y="' + ky + '">' + esc(clip(m0.k.kpi, 26)) + '</text>';
+      s += '<text class="mcs-t" x="' + (x + w - 14) + '" y="' + ky + '" text-anchor="end">' +
+           esc(fmt(m0.k.baseline, m0.k.unit)) + ' → ' + esc(fmt(m0.cur, m0.k.unit)) +
+           ' → ' + esc(fmt(m0.k.target, m0.k.unit)) + '</text>';
+      s += '<rect class="mcs-track" x="' + (x + 14) + '" y="' + (ky + 8) + '" width="' + (w - 28) + '" height="6" rx="3"/>';
+      s += '<rect x="' + (x + 14) + '" y="' + (ky + 8) + '" width="' + ((w - 28) * clamp(m0.travel, 0, 1)).toFixed(1) +
+           '" height="6" rx="3" fill="' + r.lane + '"/>';
+    }
+    s += '<text class="mcs-m" x="' + (x + 14) + '" y="' + (ky + 34) + '">' +
+         (r.active === 0
+            ? 'No patterns active · ' + r.patterns + ' available'
+            : r.active + ' of ' + r.patterns + ' patterns active · ' + r.st.matched + ' matched · ' +
+              money(r.captured) + ' released') + '</text>';
+    s += '<text class="mcs-s" x="' + (x + 14) + '" y="' + (ky + 52) + '">Captured ' + money(r.captured) +
+         ' · On table ' + money(r.onTable) + '</text>';
+    if (r.st.pending) {
+      s += '<text class="mcs-warn" x="' + (x + 14) + '" y="' + (ky + 68) + '">' + r.st.pending + ' awaiting approval</text>';
+    }
+    var ly = ky + 90;
+    s += '<rect class="mcs-linkhit" data-persona="' + esc(r.mission.id) + '" x="' + (x + 12) + '" y="' + (ly - 11) +
+         '" width="120" height="18" rx="4"/>';
+    s += '<text class="mcs-link" x="' + (x + 14) + '" y="' + ly + '">Open Persona View →</text>';
+    return s;
+  }
+
+  /* ---- hover tooltip ---------------------------------------------------- */
+  function tipEl() {
+    var t = document.getElementById('mcTip');
+    if (!t) {
+      t = el("div", "mcs-tip"); t.id = "mcTip";
+      document.body.appendChild(t);
+      document.addEventListener('mousemove', function (e) {
+        if (!t.classList.contains('on')) return;
+        var x = e.clientX + 14, y = e.clientY - 8;
+        if (x + 320 > window.innerWidth) x = e.clientX - 334;
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+      });
+    }
+    return t;
+  }
+  function tipShow(html) { if (!html) return; var t = tipEl(); t.innerHTML = html; t.classList.add('on'); }
+  function tipHide() { var t = document.getElementById('mcTip'); if (t) t.classList.remove('on'); }
+
+  function rowById(cmp, id) {
+    for (var i = 0; i < cmp.rows.length; i++) if (cmp.rows[i].mission.id === id) return cmp.rows[i];
+    return null;
+  }
+  function flowTip(cmp, key) {
+    var parts = key.split(':'), r = rowById(cmp, parts[1]);
+    if (!r) return '';
+    var m0 = r.metrics[0];
+    if (parts[0] === 'o') {
+      return '<b>Objective → ' + esc(r.personas.accountable.role) + '</b>' +
+        '<i>' + Math.round(r.share * 100) + '% of the objective · ' + Math.round(r.pct * 100) +
+        '% delivered · ' + money(r.captured) + ' released</i>';
+    }
+    return '<b>' + esc(r.personas.accountable.role) + ' → ' + esc(m0 ? m0.k.kpi : 'outcome') + '</b>' +
+      (m0 ? '<i>' + esc(fmt(m0.k.baseline, m0.k.unit)) + ' → ' + esc(fmt(m0.cur, m0.k.unit)) +
+            ' → target ' + esc(fmt(m0.k.target, m0.k.unit)) + ' · ' + money(r.onTable) + ' still on the table</i>'
+          : '<i>no measured KPI</i>');
+  }
+  function nodeTip(cmp, id) {
+    var r = rowById(cmp, id);
+    if (!r) return '';
+    return '<b>' + esc(r.personas.accountable.role) + '</b>' +
+      '<i>' + esc(r.mission.name) + '</i>' +
+      '<i>' + Math.round(r.share * 100) + '% of the objective · ' + r.active + ' of ' + r.patterns +
+      ' patterns active' + (mcPinAll ? '' : ' · click to expand') + '</i>';
+  }
+
+  function sankeyBind(host, cmp) {
+    var nodes = host.querySelectorAll('[data-mission]');
+    for (var i = 0; i < nodes.length; i++) {
+      (function (g) {
+        var id = g.getAttribute('data-mission');
+        g.addEventListener('click', function (e) {
+          if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-persona')) return;
+          if (mcPinAll) return;      /* already showing — nothing to toggle */
+          tipHide();
+          sankeyToggle(id, cmp);
+        });
+        g.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!mcPinAll) sankeyToggle(id, cmp); }
+        });
+        g.addEventListener('mouseenter', function () { tipShow(nodeTip(cmp, id)); });
+        g.addEventListener('mouseleave', tipHide);
+      })(nodes[i]);
+    }
+
+    var flows = host.querySelectorAll('[data-flow]');
+    for (i = 0; i < flows.length; i++) {
+      (function (g) {
+        var key = g.getAttribute('data-flow');
+        g.addEventListener('mouseenter', function () { tipShow(flowTip(cmp, key)); });
+        g.addEventListener('mouseleave', tipHide);
+      })(flows[i]);
+    }
+    var links = host.querySelectorAll('[data-persona]');
+    for (i = 0; i < links.length; i++) {
+      (function (rect) {
+        rect.addEventListener('click', function (e) {
+          e.stopPropagation();
+          window.PIQ.personaFocus = rect.getAttribute('data-persona');
+          window.PIQ.go('missionpersona');
+        });
+      })(links[i]);
+    }
+  }
+
+  function sankeyToggle(id, cmp) {
+    var next = mcExpanded === id ? null : id;
+    var from = sankeyLayout(cmp.rows, mcExpanded, mcPinAll);
+    var to = sankeyLayout(cmp.rows, next, mcPinAll);
+    mcExpanded = next;
+    sankeyAnimate(from, to, cmp);
+  }
+
+  function sankeyTogglePin(cmp) {
+    var from = sankeyLayout(cmp.rows, mcExpanded, mcPinAll);
+    mcPinAll = !mcPinAll;
+    if (mcPinAll) mcExpanded = null;
+    var to = sankeyLayout(cmp.rows, mcExpanded, mcPinAll);
+    syncPinBtn();
+    sankeyAnimate(from, to, cmp);
+  }
+
+  function syncPinBtn() {
+    var b = document.getElementById('mcPin');
+    if (!b) return;
+    b.classList.toggle('on', mcPinAll);
+    b.setAttribute('aria-pressed', mcPinAll ? 'true' : 'false');
+    b.innerHTML = '<span class="mcs-switch"><i></i></span>' +
+      (mcPinAll ? 'Details always on' : 'Show all details');
+  }
+
+  function sankeyAnimate(from, to, cmp) {
+    var host = document.getElementById('mcSankey');
+    if (!host) return;
+    if (mcAnim) { cancelAnimationFrame(mcAnim); mcAnim = null; }
+    var obj = window.PIQ.objective(), DUR = 300, start = null;
+    function frame(ts) {
+      if (start === null) start = ts;
+      var t = Math.min(1, (ts - start) / DUR);
+      var e = 1 - Math.pow(1 - t, 3);
+      host.innerHTML = sankeyDraw(sankeyLerp(from, to, e), obj);
+      if (t < 1) { mcAnim = requestAnimationFrame(frame); }
+      else { mcAnim = null; host.innerHTML = sankeyDraw(to, obj); sankeyBind(host, cmp); }
+    }
+    mcAnim = requestAnimationFrame(frame);
+  }
+
+  function sankey(cmp) {
+    var obj = window.PIQ.objective();
+    if (!obj || !cmp.rows.length) return null;
+
+    var wrap = el("div", "mc-sankeywrap");
+    var head = el("div", "mcs-head",
+      '<div class="mc-h">Objective flow <small>ribbon width is the mission’s share of the objective · ' +
+      'the filled core is what has landed · click a mission to expand it</small></div>' +
+      '<button class="mcs-pin" id="mcPin" type="button" aria-pressed="false" ' +
+      'title="Keep every mission’s detail panel open">' +
+      '<span class="mcs-switch"><i></i></span>Show all details</button>');
+    wrap.appendChild(head);
+
+    var scroll = el("div", "mc-scroll");
+    var host = el("div", "mcs-svg"); host.id = "mcSankey";
+    host.innerHTML = sankeyDraw(sankeyLayout(cmp.rows, mcExpanded, mcPinAll), obj);
+    scroll.appendChild(host);
+    wrap.appendChild(scroll);
+
+    setTimeout(function () {
+      sankeyBind(host, cmp);
+      syncPinBtn();
+      var b = document.getElementById('mcPin');
+      if (b) b.onclick = function () { sankeyTogglePin(cmp); };
+    }, 0);
+    return wrap;
+  }
+
+  function ribbon(x0, y0, x1, y1, w0, wFill, col, op) {
+    var cx = (x0 + x1) / 2;
+    function band(w, opacity) {
+      var h = w / 2;
+      return '<path d="M' + x0 + ',' + (y0 - h) +
+        ' C' + cx + ',' + (y0 - h) + ' ' + cx + ',' + (y1 - h) + ' ' + x1 + ',' + (y1 - h) +
+        ' L' + x1 + ',' + (y1 + h) +
+        ' C' + cx + ',' + (y1 + h) + ' ' + cx + ',' + (y0 + h) + ' ' + x0 + ',' + (y0 + h) +
+        ' Z" fill="' + col + '" opacity="' + opacity + '"/>';
+    }
+    return band(w0, op) + band(Math.min(wFill, w0), Math.min(0.85, op + 0.45));
+  }
+
+  function wrapText(s, n) {
+    var words = String(s || "").split(/\s+/), lines = [], cur = "";
+    words.forEach(function (w) {
+      if ((cur + " " + w).trim().length > n) { if (cur) lines.push(cur); cur = w; }
+      else { cur = (cur + " " + w).trim(); }
+    });
+    if (cur) lines.push(cur);
+    return lines.slice(0, 3);
+  }
+  function clip(s, n) { s = String(s || ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+  /* ---- mission cards ------------------------------------------------------ */
+  function missionCard(r) {
     var p = r.personas;
     var card = el("div", "mc-card" + (r.pct > 0 ? " live" : ""));
+    card.style.setProperty("--lane", r.lane);
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
-    card.title = "Open " + r.mission.name + " in Mission Operations";
+    card.title = "Open " + p.accountable.role + " in Persona View";
 
     var bars = r.metrics.map(function (x) {
       var k = x.k;
@@ -47356,91 +48392,68 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
       '</div>';
     }).join("") || '<div class="mc-mnone">No measured capability in scope.</div>';
 
-    var badges = r.badges.map(function (b) {
-      return '<span class="mc-badge' + (b.on ? " on b-" + b.id : "") + '" title="' + esc(b.tip) + '">' +
-        esc(b.label) + '</span>';
-    }).join("");
-
     card.innerHTML =
       '<div class="mc-ch">' +
-        '<span class="mc-av">' + esc(p.accountable.initials) +
-          (rank < 3 ? '<i class="mc-rank" style="background:' + MEDAL[rank] + '">' + (rank + 1) + '</i>' : '') +
-        '</span>' +
+        '<span class="mc-av" style="background:' + r.lane + '">' + esc(p.accountable.initials) + '</span>' +
         '<span class="mc-who"><b>' + esc(p.accountable.role) + '</b>' +
-          '<small>' + esc(p.cadence || "") + (p.responsible.length ? ' · ' + p.responsible.length + ' operating roles' : '') +
-        '</small></span>' +
+          '<small>' + esc(r.proc ? r.proc.name : "") + (p.cadence ? ' · ' + esc(p.cadence) : '') + '</small></span>' +
+        '<span class="mc-shr">' + Math.round(r.share * 100) + '%</span>' +
       '</div>' +
       '<div class="mc-stmt">' + esc(r.mission.name) + '</div>' +
       '<div class="mc-metrics">' + bars + '</div>' +
       '<div class="mc-exec">' +
         '<span class="mc-e"><b>' + r.active + '</b> of ' + r.patterns + ' patterns active</span>' +
-        '<span class="mc-e"><b>' + r.st.done + '</b> of ' + r.st.total + ' transactions cleared</span>' +
+        '<span class="mc-e"><b>' + r.st.matched + '</b> matched</span>' +
+        '<span class="mc-e"><b>' + money(r.captured) + '</b> released</span>' +
         (r.st.pending ? '<span class="mc-e warn"><b>' + r.st.pending + '</b> awaiting approval</span>' : '') +
       '</div>' +
-      '<div class="mc-contrib">' +
-        '<span class="mc-cl">Contributing</span>' +
-        '<span class="mc-cbar"><i style="width:' + Math.round(r.share * 100) + '%"></i></span>' +
-        '<span class="mc-cv">' + Math.round(r.share * 100) + '%</span>' +
-      '</div>' +
-      '<div class="mc-badges">' + badges + '</div>';
+      '<div class="mc-gap">' +
+        '<span class="mc-gl">Value on the table</span>' +
+        '<span class="mc-gv">' + money(r.onTable) + '</span>' +
+        '<span class="mc-gd">' + gapNote(r) + '</span>' +
+      '</div>';
 
-    function open() { window.PIQ.go("runtime"); }
+    function open() { window.PIQ.personaFocus = r.mission.id; window.PIQ.go("missionpersona"); }
     card.onclick = open;
     card.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
     return card;
   }
 
-  /* ---- the dependency board ---------------------------------------------- */
-  function dependencyBoard(rows) {
-    var links = dependencies(rows);
-    var wrap = el("div", "mc-deps");
-    wrap.appendChild(el("div", "mc-h",
-      'Cross-mission dependencies <small>where one mission\'s progress lifts another\'s ceiling</small>'));
-    if (!links.length) {
-      wrap.appendChild(el("div", "mc-mnone", "Only one mission in scope — no cross-mission dependencies."));
-      return wrap;
-    }
-    var list = el("div", "mc-dlist");
-    links.forEach(function (l) {
-      var done = l.from.pct >= 0.99;
-      list.appendChild(el("div", "mc-dep k-" + l.kind + (done ? " unlocked" : ""),
-        '<span class="mc-dfrom">' + esc(l.from.personas.accountable.role) + '</span>' +
-        '<span class="mc-darr"><i>' + esc(l.label) + '</i>→</span>' +
-        '<span class="mc-dto">' + esc(l.to.personas.accountable.role) + '</span>' +
-        '<span class="mc-dstate">' + (done ? "unlocked" : Math.round(l.from.pct * 100) + "% to unlock") + '</span>'));
-    });
-    wrap.appendChild(list);
-    return wrap;
+  function gapNote(r) {
+    var k = r.metrics[0];
+    if (!k) return "no measured KPI";
+    if (k.hit) return k.k.kpi + " at target";
+    return k.k.kpi + " " + fmt(k.gap, k.k.unit) + " from target";
   }
 
-  /* ---- render ------------------------------------------------------------ */
+  /* ---- render ------------------------------------------------------------- */
   function render(view) {
-    if (!C().procId) { view.appendChild(empty()); return; }
+    if (!C().procIds || !C().procIds.length) { view.appendChild(empty()); return; }
     var cmp = campaign();
     var root = el("div", "mc");
 
-    var f = window.PIQ.fn(), p = window.PIQ.proc();
     root.appendChild(el("div", "mc-head",
-      '<div><div class="kv">Run & Monitor — Campaign HQ</div>' +
-      '<h2>' + esc((f || {}).name || "") + ' › ' + esc((p || {}).name || "") +
+      '<div><div class="kv">Mission Command — Campaign HQ</div>' +
+      '<h2>Order-to-Cash › ' + esc(window.PIQ.scopeLabel()) +
       ' <span class="livedot">● LIVE</span></h2></div>' +
       '<div class="mc-ctrl"><button class="btn go sm" id="mcOps">Open Mission Operations →</button></div>'));
 
     root.appendChild(objectiveBand(cmp));
 
     if (cmp.rows.length) {
+      var sk = sankey(cmp);
+      if (sk) root.appendChild(sk);
+
       root.appendChild(el("div", "mc-h",
-        'Persona missions <small>each front of the campaign · click a card to work its queue</small>'));
-      // leaderboard order: furthest along first, so the board reads as a standing
+        'Persona missions <small>each front of the campaign · click a card to open its Persona View</small>'));
       var ranked = cmp.rows.slice().sort(function (a, b) {
-        return (b.pct - a.pct) || (b.share - a.share);
+        return (b.share - a.share) || (b.pct - a.pct);
       });
       var grid = el("div", "mc-grid");
-      ranked.forEach(function (r, i) { grid.appendChild(missionCard(r, i)); });
+      ranked.forEach(function (r) { grid.appendChild(missionCard(r)); });
       root.appendChild(grid);
-      root.appendChild(dependencyBoard(cmp.rows));
     } else {
-      root.appendChild(el("div", "mc-mnone", "No missions in scope. Select missions in the Mission Builder."));
+      root.appendChild(el("div", "mc-mnone", "No missions in scope. Select missions in the Transformation Builder."));
     }
 
     view.appendChild(root);
@@ -47451,14 +48464,359 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   function empty() {
     var d = el("div", "fit-empty",
       '<div class="kv">Mission Command</div><h2>No campaign composed</h2>' +
-      '<p>Compose a process in the <b>Mission Builder</b> — objective, missions and patterns — ' +
-      'and the campaign board appears here.</p>' +
-      '<button class="btn go" id="mcStudio">← Go to Mission Builder</button>');
+      '<p>Compose the transformation in the <b>Transformation Builder</b> — objective, processes, ' +
+      'missions and patterns — and the campaign board appears here.</p>' +
+      '<button class="btn go" id="mcStudio">← Go to Transformation Builder</button>');
     d.querySelector("#mcStudio").onclick = function () { window.PIQ.go("studio"); };
     return d;
   }
 
-  window.PIQ.modules.missioncmd = { render: render };
+  window.PIQ.modules.missionhq = { render: render };
+})();
+
+/* Mission Command · Persona View
+ * The per-persona drill-down — what a Collections Lead or a Cash Application
+ * Lead actually sees. Campaign HQ answers "how is the objective doing"; this
+ * answers "how is MY mission doing, and what is still on my table".
+ *
+ * Four bands:
+ *   1. Header      — who they are, their mission, their share of the objective
+ *   2. KPI board   — each capability's KPI with a gauge, driving patterns, trend
+ *   3. Their queue — the transaction stream filtered to this mission's patterns
+ *   4. Improvement — value captured, value on the table, and what to do next
+ *
+ * Deterministic throughout: the trend sparkline is an interpolation of the KPI's
+ * own baseline→current journey, not invented data, and every counter comes from
+ * PIQ.missionQueue / PIQ.missionRuntime — the same simulator Mission Operations
+ * runs.
+ */
+(function () {
+  "use strict";
+  var PRIO = window.PIQ.meta.priorityLegend;
+
+  function el(t, c, h) { var n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; }
+  function esc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function C() { return window.PIQ.composition; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function round(v, d) { var f = Math.pow(10, d || 0); return Math.round(v * f) / f; }
+  function money(n) { return window.PIQ.E._money(n); }
+
+  var LANE = ["#8e44ad", "#2980b9", "#16a085", "#d68910", "#c0392b", "#7c4dff", "#e0529c", "#2c7a5f"];
+
+  function fmt(v, unit) {
+    if (unit === "$")  return "$" + v;
+    if (unit === "$K") return "$" + v + "K";
+    if (unit === "$M") return "$" + v + "M";
+    if (unit === "%")  return v + "%";
+    return String(v);
+  }
+  function kpiAt(m, pct) {
+    var v = m.baseline + (m.target - m.baseline) * pct;
+    return round(v, Math.abs(v) < 20 ? 1 : 0);
+  }
+
+  /* which mission is in focus — set by a Campaign HQ card, else the first */
+  function focused(rows) {
+    var want = window.PIQ.personaFocus;
+    var hit = rows.filter(function (r) { return r.mission.id === want; })[0];
+    return hit || rows[0] || null;
+  }
+
+  function model() {
+    var rt = window.PIQ.missionRuntime();
+    var weights = window.PIQ.missionWeights();
+    var selected = {};
+    C().patternIds.forEach(function (id) { selected[id] = 1; });
+
+    return window.PIQ.missionMetrics().map(function (m, i) {
+      var st = rt.byMission[m.mission.id] ||
+               { total: 0, done: 0, pending: 0, stp: 0, matched: 0, gates: 0, resolved: 0, value: 0 };
+      var pct = st.total ? st.done / st.total : 0;
+      var patIds = [], active = [];
+      (m.mission.capabilities || []).forEach(function (o) {
+        (o.patternIds || []).forEach(function (id) {
+          if (patIds.indexOf(id) < 0) patIds.push(id);
+          if (selected[id] && active.indexOf(id) < 0) active.push(id);
+        });
+      });
+      var captured = st.value;
+      return {
+        mission: m.mission, personas: m.personas, metrics: m.metrics, st: st, pct: pct,
+        patIds: patIds, active: active, captured: captured,
+        onTable: Math.round(captured / (pct || 1) * (1 - pct)),
+        share: weights[m.mission.id] || 0, lane: LANE[i % LANE.length],
+        proc: window.PIQ.missionProc(m.mission.id),
+      };
+    });
+  }
+
+  /* ---- persona switcher --------------------------------------------------- */
+  function rail(rows, cur) {
+    var r = el("div", "fp-chips");
+    rows.forEach(function (row, i) {
+      var b = el("button", "fp-chip" + (row.mission.id === cur.mission.id ? " on" : ""),
+        '<span class="fp-av" style="background:' + row.lane + '">' +
+          esc(row.personas.accountable.initials) + '</span>' +
+        '<span class="fp-txt"><b>' + esc(row.personas.accountable.role) + '</b>' +
+        '<small>' + Math.round(row.share * 100) + '% of objective</small></span>');
+      b.onclick = function () { window.PIQ.personaFocus = row.mission.id; window.PIQ.go("missionpersona"); };
+      r.appendChild(b);
+    });
+    return r;
+  }
+
+  /* ---- 1 · header --------------------------------------------------------- */
+  function header(row) {
+    var obj = window.PIQ.objective();
+    var k = obj && obj.compoundKPI ? obj.compoundKPI : {};
+    var h = el("div", "pv-head");
+    h.style.setProperty("--lane", row.lane);
+    h.innerHTML =
+      '<span class="pv-av" style="background:' + row.lane + '">' +
+        esc(row.personas.accountable.initials) + '</span>' +
+      '<div class="pv-hmain">' +
+        '<div class="kv">' + esc(row.proc ? row.proc.name : "") +
+          (row.personas.cadence ? ' · ' + esc(row.personas.cadence) : '') + '</div>' +
+        '<h2>' + esc(row.personas.accountable.role) + '</h2>' +
+        '<p class="pv-stmt">' + esc(row.mission.name) + '</p>' +
+        '<div class="pv-team">' +
+          teamRow("Operates", row.personas.responsible) +
+          teamRow("Approves", row.personas.approvers) +
+        '</div>' +
+      '</div>' +
+      '<div class="pv-contrib">' +
+        '<div class="pv-cv">' + Math.round(row.share * 100) + '<small>%</small></div>' +
+        '<div class="pv-cl">contributing to<br><b>' + esc(k.name || (obj ? obj.name : "the objective")) + '</b></div>' +
+      '</div>';
+    return h;
+  }
+  function teamRow(label, list) {
+    if (!list || !list.length) return "";
+    return '<span class="pv-tr"><i>' + label + '</i>' +
+      list.slice(0, 4).map(function (x) { return '<span class="rchip">' + esc(x) + '</span>'; }).join("") +
+      '</span>';
+  }
+
+  /* ---- 2 · KPI board ------------------------------------------------------ */
+  /* The sparkline is an honest interpolation: 12 weekly points walking the KPI
+     from its baseline to where the simulator has actually taken it. It shows the
+     shape of the journey travelled so far — it does not forecast. */
+  function sparkline(m, pct, col) {
+    var N = 12, W = 132, H = 30, pts = [];
+    var lo = Math.min(m.baseline, m.target), hi = Math.max(m.baseline, m.target);
+    var span = (hi - lo) || 1;
+    for (var i = 0; i < N; i++) {
+      var t = (i / (N - 1)) * clamp(pct, 0, 1);
+      // ease-out: early weeks move fastest, which is how these programmes land
+      var e = 1 - Math.pow(1 - t, 1.7);
+      var v = m.baseline + (m.target - m.baseline) * e;
+      var x = (i / (N - 1)) * W;
+      var y = H - ((v - lo) / span) * H;
+      pts.push([round(x, 1), round(clamp(y, 1, H - 1), 1)]);
+    }
+    var d = pts.map(function (p, i) { return (i ? "L" : "M") + p[0] + "," + p[1]; }).join(" ");
+    var area = d + " L" + W + "," + H + " L0," + H + " Z";
+    var last = pts[pts.length - 1];
+    return '<svg class="pv-spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" ' +
+      'role="img" aria-label="12-week trend"><path d="' + area + '" fill="' + col + '" opacity="0.10"/>' +
+      '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="1.8" stroke-linecap="round"/>' +
+      '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="2.6" fill="' + col + '"/></svg>';
+  }
+
+  function gauge(pct, col) {
+    var r = 26, c = 2 * Math.PI * r, off = c * (1 - clamp(pct, 0, 1));
+    return '<svg class="pv-g" width="66" height="66" viewBox="0 0 66 66" aria-hidden="true">' +
+      '<circle cx="33" cy="33" r="' + r + '" fill="none" stroke="#e7e1d6" stroke-width="7"/>' +
+      '<circle cx="33" cy="33" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="7" ' +
+      'stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '" ' +
+      'transform="rotate(-90 33 33)"/>' +
+      '<text x="33" y="37" text-anchor="middle" font-size="14" font-weight="800" fill="#211c18">' +
+        Math.round(clamp(pct, 0, 1) * 100) + '</text></svg>';
+  }
+
+  function kpiBoard(row) {
+    var wrap = el("div", "pv-sec");
+    wrap.appendChild(el("div", "mc-h",
+      'KPI dashboard <small>every capability this mission owns · trend is the journey travelled so far</small>'));
+    if (!row.metrics.length) {
+      wrap.appendChild(el("div", "mc-mnone", "No measured capability in scope for this mission."));
+      return wrap;
+    }
+    var grid = el("div", "pv-kgrid");
+    // PIQ.missionMetrics() yields flat metric records
+    // ({capId, capName, kpi, unit, baseline, target, better}) — use them directly.
+    row.metrics.forEach(function (k) {
+      var cur = kpiAt(k, row.pct);
+      var hit = k.better === "up" ? cur >= k.target : cur <= k.target;
+      // which patterns drive this KPI
+      var drivers = (row.mission.capabilities || []).filter(function (o) { return o.id === k.capId; })
+        .reduce(function (acc, o) { return acc.concat(o.patternIds || []); }, [])
+        .map(window.PIQ.pattern).filter(Boolean);
+      var chips = drivers.slice(0, 5).map(function (p) {
+        return '<span class="pv-pat"><i style="background:' + PRIO[p.priority] + '"></i>' + esc(p.name) + '</span>';
+      }).join("") + (drivers.length > 5 ? '<span class="pv-pat more">+' + (drivers.length - 5) + '</span>' : '') ||
+        '<span class="pv-pat none">no patterns authored yet</span>';
+
+      grid.appendChild(el("div", "pv-kcard" + (hit ? " hit" : ""),
+        '<div class="pv-kh">' + gauge(row.pct, row.lane) +
+          '<div class="pv-kt"><span class="pv-kn">' + esc(k.kpi) + '</span>' +
+          '<span class="pv-kv">' + esc(fmt(cur, k.unit)) + (hit ? ' <i>✓ at target</i>' : '') + '</span>' +
+          '<span class="pv-kr">' + esc(fmt(k.baseline, k.unit)) + ' → target ' +
+            esc(fmt(k.target, k.unit)) + '</span></div>' +
+          sparkline(k, row.pct, row.lane) + '</div>' +
+        '<div class="pv-kcap">' + esc(k.capId) + ' · ' + esc(k.capName) + '</div>' +
+        '<div class="pv-kdrv"><span class="flab">Driven by</span>' + chips + '</div>'));
+    });
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  /* ---- 3 · their transaction stream --------------------------------------- */
+  function stream(row) {
+    var q = window.PIQ.missionQueue(row.mission.id);
+    var wrap = el("div", "pv-sec");
+    var settled = row.st.done, stpPct = settled ? Math.round(100 * row.st.stp / settled) : 0;
+
+    wrap.appendChild(el("div", "mc-h",
+      'Their transaction queue <small>only the work this mission owns · ' +
+      q.rows.length + ' of ' + (window.PIQ.missionRuntime().queued || 0) + ' transactions</small>'));
+
+    wrap.appendChild(el("div", "pv-stats",
+      stat(stpPct + "%", "Straight-through") +
+      stat(row.st.matched, "Matched to their patterns") +
+      stat(row.st.pending, "Pending their approval") +
+      stat(money(row.captured), "Value released")));
+
+    var rows = q.rows.slice(0, 12).map(function (item) {
+      var t = item.t;
+      var badge, sub;
+      if (t.status === "queued") { badge = '<span class="rtx-b q">queued</span>'; sub = ""; }
+      else if (t.kind === "clean") { badge = '<span class="rtx-b stp">STRAIGHT-THROUGH</span>'; sub = "happy path · touchless"; }
+      else {
+        var p = window.PIQ.pattern(t.patternId);
+        if (t.status === "pending") badge = '<span class="rtx-b pend">AWAITING YOUR APPROVAL</span>';
+        else if (t.status === "approved") badge = '<span class="rtx-b appr">APPROVED ✓</span>';
+        else if (t.status === "rejected") badge = '<span class="rtx-b rej">REJECTED ✕</span>';
+        else badge = '<span class="rtx-b auto">AUTO-RESOLVED</span>';
+        sub = 'matched <b>' + esc(p ? p.name : "pattern") + '</b>';
+      }
+      return '<div class="rtx s-' + t.status + '"><div class="rtx-n">' + t.n + '</div>' +
+        '<div class="rtx-main"><div class="rtx-id">' + esc(t.id) + ' · ' + esc(t.entity) +
+        '<span class="rtx-amt">' + money(t.amt) + '</span></div>' +
+        '<div class="rtx-sub">' + sub + '</div></div>' + badge + '</div>';
+    }).join("");
+
+    var box = el("div", "rt-stream pv-stream", rows ||
+      '<div class="ap-empty">Nothing in this mission’s queue yet.</div>');
+    wrap.appendChild(box);
+    if (q.rows.length > 12) {
+      wrap.appendChild(el("div", "pv-more", "Showing 12 of " + q.rows.length +
+        " — open Mission Operations to work the full queue."));
+    }
+    return wrap;
+  }
+  function stat(v, l) {
+    return '<div class="rkpi"><b>' + esc(String(v)) + '</b><span>' + esc(l) + '</span></div>';
+  }
+
+  /* ---- 4 · improvement scope ---------------------------------------------- */
+  /* Unrealised value per pattern: the mission's remaining value split across the
+     patterns it owns, weighted by how much of the library is still unexecuted.
+     Patterns already in the composition are discounted — the biggest opportunity
+     is a high-priority pattern that is NOT yet switched on. */
+  function improvement(row) {
+    var wrap = el("div", "pv-sec");
+    wrap.appendChild(el("div", "mc-h",
+      'Improvement scope <small>what is captured, what is still on the table, and what to switch on next</small>'));
+
+    var sel = {}; C().patternIds.forEach(function (id) { sel[id] = 1; });
+    var PRI = { Critical: 4, High: 3, Medium: 2, Low: 1 };
+    var scored = row.patIds.map(window.PIQ.pattern).filter(Boolean).map(function (p) {
+      var on = !!sel[p.id];
+      var w = (PRI[p.priority] || 1) * (1 + (p.branchingDAG || []).length * 0.25);
+      // an inactive pattern carries its whole value as opportunity; an active one
+      // only the part its mission has not yet delivered
+      return { p: p, on: on, w: w * (on ? (1 - clamp(row.pct, 0, 1)) : 1) };
+    }).sort(function (a, b) { return b.w - a.w; });
+
+    var totW = scored.reduce(function (n, x) { return n + x.w; }, 0) || 1;
+    var top = scored.slice(0, 3);
+
+    wrap.appendChild(el("div", "pv-scope",
+      '<div class="pv-sc"><span class="pv-scl">Value captured</span>' +
+        '<span class="pv-scv good">' + money(row.captured) + '</span>' +
+        '<span class="pv-scd">attributed to this mission so far</span></div>' +
+      '<div class="pv-sc"><span class="pv-scl">Value on the table</span>' +
+        '<span class="pv-scv bad">' + money(row.onTable) + '</span>' +
+        '<span class="pv-scd">' + Math.round((1 - clamp(row.pct, 0, 1)) * 100) + '% of this mission’s journey remains</span></div>' +
+      '<div class="pv-sc"><span class="pv-scl">Patterns in play</span>' +
+        '<span class="pv-scv">' + row.active.length + ' / ' + row.patIds.length + '</span>' +
+        '<span class="pv-scd">' + (row.patIds.length - row.active.length) + ' available but not switched on</span></div>'));
+
+    if (top.length) {
+      var list = el("div", "pv-recs");
+      top.forEach(function (x, i) {
+        var share = Math.round(x.w / totW * 100);
+        list.appendChild(el("div", "pv-rec" + (x.on ? " on" : ""),
+          '<span class="pv-rn">' + (i + 1) + '</span>' +
+          '<span class="pat-prio" style="background:' + PRIO[x.p.priority] + '"></span>' +
+          '<div class="pv-rmain"><div class="pv-rt">' + esc(x.p.name) + '</div>' +
+            '<div class="pv-rd">' + esc(x.p.category || "") + ' · ' +
+              (x.p.branchingDAG || []).length + ' dynamic branches</div></div>' +
+          '<span class="pv-rw">' + share + '%<small>of remaining</small></span>' +
+          '<span class="pv-rs ' + (x.on ? "on" : "off") + '">' + (x.on ? "active" : "not active") + '</span>'));
+      });
+      wrap.appendChild(list);
+      var offTop = top.filter(function (x) { return !x.on; })[0];
+      wrap.appendChild(el("div", "pv-nextup",
+        offTop
+          ? '<b>Recommendation</b> — switch on <b>' + esc(offTop.p.name) + '</b>. It is ' +
+            esc(String(offTop.p.priority).toLowerCase()) + ' priority and carries the largest unrealised ' +
+            'share of this mission’s remaining value.'
+          : '<b>Recommendation</b> — every pattern this mission owns is already active. The remaining ' +
+            money(row.onTable) + ' comes from working the queue, not from adding patterns.'));
+    }
+    return wrap;
+  }
+
+  /* ---- render -------------------------------------------------------------- */
+  function render(view) {
+    if (!C().procIds || !C().procIds.length) { view.appendChild(empty()); return; }
+    var rows = model();
+    if (!rows.length) { view.appendChild(empty()); return; }
+    var row = focused(rows);
+
+    var root = el("div", "mc pv");
+    root.appendChild(el("div", "mc-head",
+      '<div><div class="kv">Mission Command — Persona View</div>' +
+      '<h2>' + esc(row.personas.accountable.role) + ' <span class="livedot">● LIVE</span></h2></div>' +
+      '<div class="mc-ctrl"><button class="btn sm" id="pvHq">← Campaign HQ</button>' +
+      '<button class="btn go sm" id="pvOps">Work the queue →</button></div>'));
+
+    root.appendChild(rail(rows, row));
+    root.appendChild(header(row));
+    root.appendChild(kpiBoard(row));
+    root.appendChild(stream(row));
+    root.appendChild(improvement(row));
+    view.appendChild(root);
+
+    var hq = root.querySelector("#pvHq");
+    if (hq) hq.onclick = function () { window.PIQ.go("missionhq"); };
+    var ops = root.querySelector("#pvOps");
+    if (ops) ops.onclick = function () { window.PIQ.go("runtime"); };
+  }
+
+  function empty() {
+    var d = el("div", "fit-empty",
+      '<div class="kv">Mission Command — Persona View</div><h2>No mission in scope</h2>' +
+      '<p>Compose the transformation in the <b>Transformation Builder</b>, then pick a persona ' +
+      'from <b>Campaign HQ</b> to see their board.</p>' +
+      '<button class="btn go" id="pvStudio">← Go to Transformation Builder</button>');
+    d.querySelector("#pvStudio").onclick = function () { window.PIQ.go("studio"); };
+    return d;
+  }
+
+  window.PIQ.modules.missionpersona = { render: render };
 })();
 
 /* ProcessIQ — The Provocation (Module 1)

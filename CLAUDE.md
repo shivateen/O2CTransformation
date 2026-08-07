@@ -11,12 +11,20 @@ serve `public/`. (The single-file output is still `public/processiq.html`.)
 
 ## The hierarchy (the mental model)
 
-The SME builds top-down:
+The model is unchanged; the **Transformation Builder** now walks five of its levels:
 
-    Objective → Function → Process → Missions → Capabilities → Patterns → Skills
+    Objective → Processes & KPIs → Persona Missions → Patterns → Action Chains
 
-- **Objective** — the CFO-level business outcome (Working Capital, Revenue Leakage, …); a
-  lens that spans functions and rolls up to a compound KPI. Optional (skip to go bottoms-up).
+Function, Capability and Skill are still real levels — they are just no longer steps:
+**Function** is fixed to Order-to-Cash (context, not a choice); **Capability** is auto-scoped
+from the selected missions; **Skills** are auto-configured (`autoConfigureSkills`) and
+overridden per-skill in Discover & Fit. Process scope is a **set** — `composition.procIds`
+— because one objective moves several processes at once.
+
+- **Objective** — the CFO-level business outcome (Working Capital, Revenue Leakage, …); rolls
+  up to a compound KPI and declares the processes it moves (`theme.processIds`). It is now the
+  **entry point**: choosing one scopes processes → missions → capabilities → patterns → skills
+  in a single step.
 - **Missions** — the units of work in a process (e.g. Run Collections, Apply Incoming Cash).
   Every mission carries a **persona map** (`mission.personas`, RACI): `accountable` (from
   `mission.owner`), `responsible` (authored from the process-map swimlane role vocabulary),
@@ -35,23 +43,30 @@ The SME builds top-down:
 
 Two-level nav: **stages** (top) × **sub-views** (second row), driven by `window.PIQ`.
 
-1. **Setup** — Mission Builder wizard (Objective→Function→Process→Missions→Capabilities→Patterns→Skills)
-   + Pattern Library. Output: a `PIQ.composition` (selected patterns + configured skills).
+1. **Setup** — Transformation Builder, five sections
+   (Objective→Processes & KPIs→Persona Missions→Patterns→Action Chains) + Pattern Library.
+   Output: a `PIQ.composition` (processes, missions, patterns, auto-configured skills).
 2. **Discover & Fit** — Skill Fitment (per-skill verdict + happy-path agentivisation + to-be
    flow) + Discovery Engine.
 3. **Build** — Skill Workshop: configured skills + fitment verdicts assembled into an
    executable, validated agent chain, then promoted to live.
-4. **Run & Monitor** — opens on **Mission Command**, the campaign board: the objective's compound
-   KPI as an animated gauge, one card per persona mission (avatar + mission statement + KPI
-   progress + patterns active + share of the objective + earned badges), and the cross-mission
-   dependency board. Clicking a card drills into Mission Operations, which leads with a
-   **mission-outcome band** (each
+4. **Run & Monitor** — Mission Operations, which leads with a **mission-outcome band** (each
    in-scope mission, its accountable owner, and its capability KPIs walking baseline→target as
    the queue is cleared) above the process-operations throughput strip; then the transaction
    queue (STP on the happy path; variations matched to patterns → DAG approval, each approval
    card showing the contribution chain pattern → capability → mission → objective)
    + Central Nervous System + Governance + Value Measurement.
-5. **Finance Command Centre** — the finance-leadership consumption surface (Command Center,
+5. **Mission Command Centre** — the objective-achievement surface, and its own landing tile
+   (`processiq.html?persona=mission`). **Campaign HQ** (`missionhq`):
+   compound-KPI gauge, an inline-SVG Sankey of objective → persona missions → KPI impact
+   (ribbon width = contribution weight, filled core = what has landed) whose mission nodes
+   **expand inline** — with a "Show all details" toggle that pins every panel open for a
+   walkthrough — and a card per
+   mission carrying value captured and **value on the table**. **Persona View**
+   (`missionpersona`): one persona's KPI dashboard (gauge + 12-week trend + driving
+   patterns), their filtered transaction queue, and an improvement-scope panel that ranks
+   the patterns holding the most unrealised value.
+6. **Finance Command Centre** — the finance-leadership consumption surface (Command Center,
    Intelligence, Scenarios, Trajectory), fronted by a persona rail: CFO (whole book), Controller,
    Treasurer, Credit & Collections Lead, AR / O2C Lead, FP&A Lead — each scoped to the objectives
    they own, so tiles, decision queue and insights narrow to their remit.
@@ -87,12 +102,13 @@ Generated. All edits go to `src/` (or the `scripts/` generators).
 | `scripts/build_discovery.py` | Generates `src/data/discovery.json` (anomaly scatter, clusters, candidate) |
 | `scripts/build_cfo.py` | Generates `src/data/cfo.json` (decisions, insights, scenarios) |
 | `src/js/engine.js` | Cognitive engine — Sense→Diagnose→Decide→Act, on-device, deterministic |
-| `src/js/shell.js` | Platform shell — `window.PIQ` state, **two-level journey router**, `composition` state (`objectiveId`, `missionIds`, `capIds`, `patternIds`, `skills`), ERP toggle, cross-pattern helpers (`PIQ.pattern`, `PIQ.collectSkills`, `PIQ.missions`, `PIQ.capabilities`, `PIQ.fitment`, `PIQ.go`), persona helpers (`PIQ.personas`, `PIQ.initials`, `PIQ.missionRoleCount`) and the tie-back index (`PIQ.patternAttribution` pattern→capability→mission, `PIQ.missionMetrics`) |
-| `src/js/studio.js` | **Setup** — Mission Builder wizard (Objective→Function→Process→Missions→Capabilities→Patterns→Skills) + the Mission persona map (`personaMatrix`, `raciBlock`, `ownerChip`) |
+| `src/js/shell.js` | Platform shell — `window.PIQ` state, **two-level journey router**, `composition` state (`objectiveId`, `missionIds`, `capIds`, `patternIds`, `skills`), ERP toggle, cross-pattern helpers (`PIQ.pattern`, `PIQ.collectSkills`, `PIQ.missions`, `PIQ.capabilities`, `PIQ.fitment`, `PIQ.go`), multi-process scope (`procIds`, `PIQ.procs`, `PIQ.impactedProcs`, `PIQ.scopeLabel`, `PIQ.missionProc`), persona helpers (`PIQ.personas`, `PIQ.initials`, `PIQ.missionRoleCount`), `PIQ.chainCounts`, `PIQ.missionWeights` and the tie-back index (`PIQ.patternAttribution` pattern→capability→mission, `PIQ.missionMetrics`) |
+| `src/js/studio.js` | **Setup** — Transformation Builder: five sections (Objective→Processes & KPIs→Persona Missions→Patterns→Action Chains), the persona map (`personaMatrix`, `raciBlock`), the L1–L4 impact map (`valueChainNode`, `hierarchy`) and the cognitive-spine `swimlane`. `autoConfigureSkills` replaces the old Skills step |
 | `src/js/fitment.js` | **Discover & Fit** — skill-fitment table + happy-path agentivisation + to-be flow |
 | `src/js/build.js` | **Build** — Skill Workshop: agent-chain assembly + pre-flight validation + promote to live |
-| `src/js/runtime.js` | **Run & Monitor** — Mission Operations console; mission-outcome band (`missionBand`/`missionProgress`/`drawMissionKpis`), variation→pattern-match→DAG approval with the contribution `chainLine`, live process KPIs. Exposes `PIQ.missionRuntime()` — the read-only per-mission simulator stats Mission Command reads, so the two boards can't disagree |
-| `src/js/mission_command.js` | **Run & Monitor** (first sub-view) — Mission Command campaign board: objective gauge, persona mission cards with KPI progress + badges, cross-mission dependencies. Fully derived — badges from simulator state, objective share weighted by patterns in play, dependencies from shared capability ids + process order |
+| `src/js/runtime.js` | **Run & Monitor** — Mission Operations console; mission-outcome band (`missionBand`/`missionProgress`/`drawMissionKpis`), variation→pattern-match→DAG approval with the contribution `chainLine`, live process KPIs. Exposes `PIQ.missionRuntime()` and `PIQ.missionQueue(missionId)` — the read-only simulator state Mission Command reads, so the boards can't disagree |
+| `src/js/mission_command.js` | **Mission Command Centre · Campaign HQ** (`missionhq`) — objective gauge, inline-SVG Sankey (objective → missions → KPI impact) with expandable mission nodes + the `mcPinAll` details toggle (`sankeyLayout`/`sankeyDraw`/`sankeyAnimate`), mission cards with value captured / value on the table |
+| `src/js/mission_persona.js` | **Mission Command Centre · Persona View** (`missionpersona`) — per-persona KPI dashboard (gauge + deterministic 12-week sparkline + driving patterns), their filtered transaction queue (`PIQ.missionQueue`), improvement scope + recommendation |
 | `src/js/provocation.js` | The Provocation (scrollytelling intro; reachable via the topbar "Why" link) |
 | `src/js/library.js` | Pattern Library (filterable master-detail) — Setup sub-view |
 | `src/js/cockpit.js` | Central Nervous System UI render logic — Run & Monitor sub-view |
