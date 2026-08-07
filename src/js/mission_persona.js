@@ -327,7 +327,10 @@
     var hq = root.querySelector("#pvHq");
     if (hq) hq.onclick = function () { window.PIQ.go("missionhq"); };
     var ops = root.querySelector("#pvOps");
-    if (ops) ops.onclick = function () { window.PIQ.go("runtime"); };
+    if (ops) ops.onclick = function () {
+      window.PIQ.runtimeFocus = row.mission.id;   // land on their outcomes, not everyone's
+      window.PIQ.go("runtime");
+    };
   }
 
   function empty() {

@@ -26,6 +26,18 @@ h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.01em}
 .mono{font-family:var(--mono);font-size:12px}
 button{font-family:inherit;cursor:pointer}
 
+/* ---- scrollbars ----
+   The native Windows bar is ~17px with stepper arrows, which reads as chrome
+   next to these panels. Slim it everywhere and drop the arrows; the standard
+   properties cover Firefox and newer Chromium, the -webkit rules the rest. */
+*{scrollbar-width:thin;scrollbar-color:#cfc7ba transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cfc7ba;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#b5aa9a}
+::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-button{display:none;width:0;height:0}
+
 /* ---- top bar ---- */
 .topbar{display:flex;align-items:center;gap:18px;padding:12px 22px;background:var(--brand);
   color:#fff;position:sticky;top:0;z-index:20}
@@ -1526,6 +1538,9 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   color:var(--brand2);margin:22px 0 9px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .mk-h small{font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
 .mk-band{display:flex;flex-direction:column;gap:12px}
+/* lead filter on the mission-outcome band — one chip per accountable owner */
+.mk-rail{margin-bottom:2px}
+.mk-rail .fp-txt small{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mk-mission{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brand2);
   border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
 .mk-mh{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
@@ -51542,6 +51557,10 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 
   var sim = null;     // simulator state (rebuilt when the composition changes)
   var timer = null;
+  /* which lead's outcomes the mission band is showing — a mission id, or null for
+     every mission. Set by the rail, or pinned by PIQ.runtimeFocus when you arrive
+     from a Persona View ("Work the queue →") rather than from the objective. */
+  var rtPersona = null;
 
   function pickBranch(p, i) {
     var bs = p.branchingDAG || [];
@@ -51635,6 +51654,11 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   function render(view) {
     stopAuto();
     if (!C().patternIds.length) { view.appendChild(empty()); return; }
+    // arriving from a Persona View pins that lead; from Campaign HQ ("") clears it
+    if (window.PIQ.runtimeFocus != null) {
+      rtPersona = window.PIQ.runtimeFocus || null;
+      window.PIQ.runtimeFocus = null;
+    }
     ensureSim(false);
     var root = el("div", "rt");
     root.appendChild(head());
@@ -51793,6 +51817,24 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     return band;
   }
 
+  /* One chip per accountable lead, plus "All missions". Reuses the Persona View
+     rail's styling so the two boards look like the same control. */
+  function missionRail(mm, cur) {
+    var s = '<div class="fp-chips mk-rail">' +
+      '<button type="button" class="fp-chip' + (cur ? '' : ' on') + '" data-mkp="">' +
+        '<span class="fp-av">ALL</span>' +
+        '<span class="fp-txt"><b>All missions</b><small>' + mm.length + ' leads in scope</small></span>' +
+      '</button>';
+    mm.forEach(function (m) {
+      var on = m.mission.id === cur;
+      s += '<button type="button" class="fp-chip' + (on ? ' on' : '') + '" data-mkp="' + esc(m.mission.id) + '">' +
+        '<span class="fp-av">' + esc(m.personas.accountable.initials) + '</span>' +
+        '<span class="fp-txt"><b>' + esc(m.personas.accountable.role) + '</b>' +
+        '<small>' + esc(m.mission.name) + '</small></span></button>';
+    });
+    return s + '</div>';
+  }
+
   function drawMissionKpis() {
     var host = document.getElementById("rtMission"); if (!host) return;
     var mm = window.PIQ.missionMetrics();
@@ -51800,9 +51842,18 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     var prog = missionProgress();
     var obj = window.PIQ.objective();
 
+    // a lead that has dropped out of scope silently falls back to every mission
+    var shown = mm.filter(function (m) { return m.mission.id === rtPersona; });
+    if (!shown.length) { rtPersona = null; shown = mm; }
+    var lead = rtPersona ? shown[0].personas.accountable.role : "";
+
     host.innerHTML = '<div class="mk-h">Mission outcomes ' +
-      '<small>what this queue is moving · capability KPI → mission → objective</small></div>' +
-      mm.map(function (m) {
+      '<small>' + (rtPersona
+        ? esc(lead) + ' only · 1 of ' + mm.length + ' missions · pick another lead below'
+        : 'what this queue is moving · capability KPI → mission → objective') +
+      '</small></div>' +
+      missionRail(mm, rtPersona) +
+      shown.map(function (m) {
         var e = prog[m.mission.id] || { total: 0, done: 0, pending: 0 };
         var pct = e.total ? e.done / e.total : 0;
         var tiles = m.metrics.map(function (k) {
@@ -51839,6 +51890,14 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
                  : '<div class="mk-none">No measured capability in scope for this mission.</div>') +
         '</div>';
       }).join("");
+
+    // host survives every redraw, its markup does not — delegate
+    host.onclick = function (e) {
+      var b = e.target.closest ? e.target.closest("[data-mkp]") : null;
+      if (!b) return;
+      rtPersona = b.getAttribute("data-mkp") || null;
+      drawMissionKpis();
+    };
   }
 
   function drawStream() {
@@ -52564,7 +52623,10 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
 
     view.appendChild(root);
     var b = root.querySelector("#mcOps");
-    if (b) b.onclick = function () { window.PIQ.go("runtime"); };
+    if (b) b.onclick = function () {
+      window.PIQ.runtimeFocus = "";   // objective-level entry — show every mission
+      window.PIQ.go("runtime");
+    };
   }
 
   function empty() {
@@ -52909,7 +52971,10 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
     var hq = root.querySelector("#pvHq");
     if (hq) hq.onclick = function () { window.PIQ.go("missionhq"); };
     var ops = root.querySelector("#pvOps");
-    if (ops) ops.onclick = function () { window.PIQ.go("runtime"); };
+    if (ops) ops.onclick = function () {
+      window.PIQ.runtimeFocus = row.mission.id;   // land on their outcomes, not everyone's
+      window.PIQ.go("runtime");
+    };
   }
 
   function empty() {

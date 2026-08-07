@@ -16,6 +16,18 @@ h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.01em}
 .mono{font-family:var(--mono);font-size:12px}
 button{font-family:inherit;cursor:pointer}
 
+/* ---- scrollbars ----
+   The native Windows bar is ~17px with stepper arrows, which reads as chrome
+   next to these panels. Slim it everywhere and drop the arrows; the standard
+   properties cover Firefox and newer Chromium, the -webkit rules the rest. */
+*{scrollbar-width:thin;scrollbar-color:#cfc7ba transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cfc7ba;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#b5aa9a}
+::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-button{display:none;width:0;height:0}
+
 /* ---- top bar ---- */
 .topbar{display:flex;align-items:center;gap:18px;padding:12px 22px;background:var(--brand);
   color:#fff;position:sticky;top:0;z-index:20}
@@ -1516,6 +1528,9 @@ textarea.pmi-in{resize:vertical;line-height:1.45}
   color:var(--brand2);margin:22px 0 9px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .mk-h small{font-size:11px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
 .mk-band{display:flex;flex-direction:column;gap:12px}
+/* lead filter on the mission-outcome band — one chip per accountable owner */
+.mk-rail{margin-bottom:2px}
+.mk-rail .fp-txt small{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mk-mission{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brand2);
   border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
 .mk-mh{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;

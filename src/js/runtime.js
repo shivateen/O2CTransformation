@@ -20,6 +20,10 @@
 
   var sim = null;     // simulator state (rebuilt when the composition changes)
   var timer = null;
+  /* which lead's outcomes the mission band is showing — a mission id, or null for
+     every mission. Set by the rail, or pinned by PIQ.runtimeFocus when you arrive
+     from a Persona View ("Work the queue →") rather than from the objective. */
+  var rtPersona = null;
 
   function pickBranch(p, i) {
     var bs = p.branchingDAG || [];
@@ -113,6 +117,11 @@
   function render(view) {
     stopAuto();
     if (!C().patternIds.length) { view.appendChild(empty()); return; }
+    // arriving from a Persona View pins that lead; from Campaign HQ ("") clears it
+    if (window.PIQ.runtimeFocus != null) {
+      rtPersona = window.PIQ.runtimeFocus || null;
+      window.PIQ.runtimeFocus = null;
+    }
     ensureSim(false);
     var root = el("div", "rt");
     root.appendChild(head());
@@ -271,6 +280,24 @@
     return band;
   }
 
+  /* One chip per accountable lead, plus "All missions". Reuses the Persona View
+     rail's styling so the two boards look like the same control. */
+  function missionRail(mm, cur) {
+    var s = '<div class="fp-chips mk-rail">' +
+      '<button type="button" class="fp-chip' + (cur ? '' : ' on') + '" data-mkp="">' +
+        '<span class="fp-av">ALL</span>' +
+        '<span class="fp-txt"><b>All missions</b><small>' + mm.length + ' leads in scope</small></span>' +
+      '</button>';
+    mm.forEach(function (m) {
+      var on = m.mission.id === cur;
+      s += '<button type="button" class="fp-chip' + (on ? ' on' : '') + '" data-mkp="' + esc(m.mission.id) + '">' +
+        '<span class="fp-av">' + esc(m.personas.accountable.initials) + '</span>' +
+        '<span class="fp-txt"><b>' + esc(m.personas.accountable.role) + '</b>' +
+        '<small>' + esc(m.mission.name) + '</small></span></button>';
+    });
+    return s + '</div>';
+  }
+
   function drawMissionKpis() {
     var host = document.getElementById("rtMission"); if (!host) return;
     var mm = window.PIQ.missionMetrics();
@@ -278,9 +305,18 @@
     var prog = missionProgress();
     var obj = window.PIQ.objective();
 
+    // a lead that has dropped out of scope silently falls back to every mission
+    var shown = mm.filter(function (m) { return m.mission.id === rtPersona; });
+    if (!shown.length) { rtPersona = null; shown = mm; }
+    var lead = rtPersona ? shown[0].personas.accountable.role : "";
+
     host.innerHTML = '<div class="mk-h">Mission outcomes ' +
-      '<small>what this queue is moving · capability KPI → mission → objective</small></div>' +
-      mm.map(function (m) {
+      '<small>' + (rtPersona
+        ? esc(lead) + ' only · 1 of ' + mm.length + ' missions · pick another lead below'
+        : 'what this queue is moving · capability KPI → mission → objective') +
+      '</small></div>' +
+      missionRail(mm, rtPersona) +
+      shown.map(function (m) {
         var e = prog[m.mission.id] || { total: 0, done: 0, pending: 0 };
         var pct = e.total ? e.done / e.total : 0;
         var tiles = m.metrics.map(function (k) {
@@ -317,6 +353,14 @@
                  : '<div class="mk-none">No measured capability in scope for this mission.</div>') +
         '</div>';
       }).join("");
+
+    // host survives every redraw, its markup does not — delegate
+    host.onclick = function (e) {
+      var b = e.target.closest ? e.target.closest("[data-mkp]") : null;
+      if (!b) return;
+      rtPersona = b.getAttribute("data-mkp") || null;
+      drawMissionKpis();
+    };
   }
 
   function drawStream() {
