@@ -570,7 +570,10 @@
 
     view.appendChild(root);
     var b = root.querySelector("#mcOps");
-    if (b) b.onclick = function () { window.PIQ.go("runtime"); };
+    if (b) b.onclick = function () {
+      window.PIQ.runtimeFocus = "";   // objective-level entry — show every mission
+      window.PIQ.go("runtime");
+    };
   }
 
   function empty() {
