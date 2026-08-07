@@ -15,8 +15,20 @@
   h1{font-size:36px;margin:0 0 8px;letter-spacing:-.02em}
   .hero p{opacity:.82;line-height:1.55;font-size:15px;margin:0}
   .who{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#f0a866;margin:0 0 14px}
-  .grid{display:grid;grid-template-columns:minmax(320px,460px);justify-content:center;gap:18px;width:100%;max-width:720px}
-  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  /* two towers side by side: build it on the left, then consume it on the right */
+  .grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;justify-content:center;
+    gap:18px;width:100%;max-width:1060px}
+  .flow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    color:rgba(255,255,255,.4);align-self:center}
+  .flow i{font-style:normal;font-size:22px;color:rgba(244,122,30,.75)}
+  .flow span{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+    writing-mode:vertical-rl;text-orientation:mixed}
+  @media(max-width:860px){
+    .grid{grid-template-columns:1fr;max-width:460px}
+    .flow{flex-direction:row}
+    .flow i{transform:rotate(90deg)}
+    .flow span{writing-mode:horizontal-tb}
+  }
   a.persona{display:block;text-decoration:none;color:#fff;background:rgba(255,255,255,.06);
     border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:20px 22px;transition:.16s}
   a.persona:hover{background:rgba(255,255,255,.1);border-color:rgba(244,122,30,.6);transform:translateY(-3px)}
@@ -48,18 +60,35 @@
 
     <a class="persona" href="processiq.html">
       <div class="p-ic">🚀</div>
-      <div class="p-name">O2C Transformation</div>
-      <div class="p-desc">The full journey in one flow: build the mission top-down, fit and configure the skills, then run and monitor the agentic workflow in production — Setup → Discover &amp; Fit → Build → Run &amp; Monitor.</div>
+      <div class="p-name">O2C Transformation Builder</div>
+      <div class="p-desc">Build it. Compose the transformation top-down — objective, processes and KPIs,
+        persona missions, patterns, action chains — then fit and configure the skills and run the
+        agentic workflow in production.</div>
       <div class="strip">
         <span class="st on">1</span><span class="st on">2</span><span class="st on">3</span><span class="st on">4</span>
         <span class="st sep"></span><span class="st">5</span>
       </div>
-      <div class="p-enter">Launch O2C Transformation →</div>
+      <div class="p-enter">Launch the Builder →</div>
+    </a>
+
+    <div class="flow"><i>→</i><span>then</span></div>
+
+    <a class="persona" href="processiq.html?persona=mission">
+      <div class="p-ic">🎯</div>
+      <div class="p-name">Mission Command Centre</div>
+      <div class="p-desc">Run it. Once the build is done, this is where you watch it land: every persona
+        mission converging on one compound KPI, an objective flow you can expand mission by mission, then a
+        single persona&rsquo;s KPI dashboard, their queue and the value still on the table.</div>
+      <div class="strip">
+        <span class="st">1</span><span class="st">2</span><span class="st">3</span><span class="st">4</span>
+        <span class="st sep"></span><span class="st on">5</span>
+      </div>
+      <div class="p-enter">Open Mission Command Centre →</div>
     </a>
 
   </div>
 
-  <a class="full" href="processiq.html">Includes the Finance Command Centre (stage 5) →</a>
+  <a class="full" href="processiq.html">Includes the Finance Command Centre (stage 6) →</a>
 
   <small class="foot">Tiger Analytics · Order-to-Cash &amp; Procure-to-Pay fully mapped (L4 process maps + behavioural pattern library) · R2R, HR &amp; Supply Chain as samples</small>
 </body>

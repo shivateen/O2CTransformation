@@ -26,8 +26,10 @@
     // the mission an SME is composing — threaded through all stages
     composition: {
       objectiveId: null,  // business objective (spans functions) — top-level lens
-      fnId: null, procId: null,
-      missionIds: [],     // all missions participating in the chosen process
+      fnId: null,
+      procId: null,       // primary process (= procIds[0]); kept for compact labels
+      procIds: [],        // every process the objective impacts and that is in scope
+      missionIds: [],     // all missions participating across the in-scope processes
       capIds: [],         // capabilities in scope (across the selected missions)
       patternIds: [],     // selected patterns
       skills: {},         // skillKey -> { mode:'auto'|'hitl', tech:string, configured:bool }
@@ -47,12 +49,14 @@
     { id: "build", n: 3, label: "Build", tag: "Skill Configuration", sub: [
         { id: "build", label: "Skill Workshop" } ] },
     { id: "run", n: 4, label: "Run & Monitor", tag: "Mission Execution", sub: [
-        { id: "missioncmd", label: "Mission Command" },
         { id: "runtime", label: "Mission Operations" },
         { id: "cockpit", label: "Central Nervous System" },
         { id: "governance", label: "Governance" },
         { id: "roi", label: "Value Measurement" } ] },
-    { id: "cfo", n: 5, label: "Finance Command Centre", tag: "Finance Leadership Consumption", sub: [
+    { id: "mission", n: 5, label: "Mission Command Centre", tag: "Objective Achievement", sub: [
+        { id: "missionhq", label: "Campaign HQ" },
+        { id: "missionpersona", label: "Persona View" } ] },
+    { id: "cfo", n: 6, label: "Finance Command Centre", tag: "Finance Leadership Consumption", sub: [
         { id: "command", label: "Command Center" },
         { id: "intelligence", label: "Intelligence" },
         { id: "scenarios", label: "Scenarios" },
@@ -67,7 +71,8 @@
     cfo:      { label: "Finance Command Centre",   stages: ["cfo"],           entry: "command" },
     designer: { label: "Transformation Designer",  stages: ["design"],        entry: "studio" },
     studio:   { label: "Implementation Studio",    stages: ["fit", "build"],  entry: "fitment" },
-    manage:   { label: "Manage & Operate",         stages: ["run"],           entry: "missioncmd" },
+    manage:   { label: "Manage & Operate",         stages: ["run"],           entry: "runtime" },
+    mission:  { label: "Mission Command Centre",   stages: ["mission"],       entry: "missionhq" },
   };
   PIQ.persona = null;
   function personaAllows(stageId) {
@@ -148,21 +153,57 @@
   PIQ.fn = function () {
     return (PIQ.tax.functions || []).filter(function (f) { return f.id === PIQ.composition.fnId; })[0] || null;
   };
+  // the primary in-scope process — a compact label for headers that name just one
   PIQ.proc = function () {
     var f = PIQ.fn(); var c = PIQ.composition; if (!f) return null;
-    return f.processes.filter(function (x) { return x.id === c.procId; })[0] || null;
+    var id = c.procId || (c.procIds || [])[0];
+    return f.processes.filter(function (x) { return x.id === id; })[0] || null;
   };
-  // missions currently in scope
+  /* Every process in scope. An objective impacts several processes at once
+     (Working Capital touches AR, Billing and DSD), so scope is a set — procId is
+     just the first of them, kept so single-process headers still render. */
+  PIQ.procs = function () {
+    var f = PIQ.fn(); var c = PIQ.composition; if (!f) return [];
+    var ids = (c.procIds && c.procIds.length) ? c.procIds : (c.procId ? [c.procId] : []);
+    return f.processes.filter(function (x) { return ids.indexOf(x.id) >= 0; });
+  };
+  // processes the selected objective impacts (the candidate pool, before narrowing)
+  PIQ.impactedProcs = function () {
+    var f = PIQ.fn(); if (!f) return [];
+    var ids = PIQ.objectiveProcessIds();
+    if (!ids.length) return f.processes.slice();
+    var hit = f.processes.filter(function (p) { return ids.indexOf(p.id) >= 0; });
+    return hit.length ? hit : f.processes.slice();
+  };
+  // "Accounts Receivable" / "3 processes" — honest when scope spans more than one
+  PIQ.scopeLabel = function () {
+    var ps = PIQ.procs();
+    if (!ps.length) return "";
+    return ps.length === 1 ? ps[0].name : ps.length + " processes";
+  };
+  // missions currently in scope, across every in-scope process
   PIQ.missions = function () {
-    var p = PIQ.proc(); var c = PIQ.composition; if (!p) return [];
-    return p.missions.filter(function (r) { return c.missionIds.indexOf(r.id) >= 0; });
+    var c = PIQ.composition, out = [];
+    PIQ.procs().forEach(function (p) {
+      (p.missions || []).forEach(function (r) {
+        if (c.missionIds.indexOf(r.id) >= 0) out.push(r);
+      });
+    });
+    return out;
+  };
+  // the process a mission belongs to (missions carry no back-reference)
+  PIQ.missionProc = function (missionId) {
+    var f = PIQ.fn(); if (!f) return null;
+    var hit = null;
+    f.processes.forEach(function (p) {
+      (p.missions || []).forEach(function (r) { if (r.id === missionId) hit = p; });
+    });
+    return hit;
   };
   // capabilities in scope, across every selected mission
   PIQ.capabilities = function () {
-    var p = PIQ.proc(); var c = PIQ.composition; if (!p) return [];
-    var out = [];
-    p.missions.forEach(function (r) {
-      if (c.missionIds.indexOf(r.id) < 0) return;
+    var c = PIQ.composition, out = [];
+    PIQ.missions().forEach(function (r) {
       (r.capabilities || []).forEach(function (o) { if (c.capIds.indexOf(o.id) >= 0) out.push(o); });
     });
     return out;
@@ -219,7 +260,7 @@
   // Memoised per composition scope (same idea as PIQ._actionRepo).
   function attributionIndex() {
     var c = PIQ.composition;
-    var sig = c.procId + "|" + c.missionIds.join(",") + "|" + c.capIds.join(",");
+    var sig = (c.procIds || []).join(",") + "|" + c.missionIds.join(",") + "|" + c.capIds.join(",");
     if (PIQ._attrIdx && PIQ._attrSig === sig) return PIQ._attrIdx;
     var idx = {};
     PIQ.missions().forEach(function (m) {
@@ -237,6 +278,44 @@
   }
   PIQ.patternAttribution = function (patternId) {
     return attributionIndex()[patternId] || { capIds: [], missionIds: [], caps: [], missions: [] };
+  };
+
+  /* Action-chain counts across the composition: the standard (happy-path) chains
+     and the dynamic (variation) branches. Used by the crumb, the Studio summary
+     and the Action Chains section so they always agree. */
+  PIQ.chainCounts = function () {
+    var std = 0, dyn = 0, gates = 0;
+    PIQ.selectedPatterns().forEach(function (p) {
+      std += PIQ.happyDAG(p.id).length;
+      dyn += (p.branchingDAG || []).length;
+      gates += (p.hitlGates || []).length;
+    });
+    return { standard: std, dynamic: dyn, gates: gates, patterns: PIQ.composition.patternIds.length };
+  };
+
+  /* Contribution weight of each in-scope mission toward the objective.
+     A mission that moves DSO 10 days contributes more than one moving dispute
+     cycle 3 days, so weight by the normalised baseline→target delta its
+     capabilities promise, scaled by how many patterns it actually has in play.
+     Returns { missionId: 0..1 } summing to 1. */
+  PIQ.missionWeights = function () {
+    var raw = {}, total = 0;
+    PIQ.missionMetrics().forEach(function (m) {
+      var span = 0;
+      m.metrics.forEach(function (k) {
+        if (k.baseline == null || k.target == null) return;
+        var denom = Math.abs(k.baseline) || 1;
+        span += Math.abs(k.target - k.baseline) / denom;   // normalised ambition
+      });
+      var pats = 0;
+      (m.mission.capabilities || []).forEach(function (o) { pats += (o.patternIds || []).length; });
+      // a KPI nobody can act on moves nothing — patterns are the execution muscle
+      var w = span * (1 + Math.log(1 + pats));
+      raw[m.mission.id] = w; total += w;
+    });
+    var out = {}, ids = Object.keys(raw);
+    ids.forEach(function (id) { out[id] = total ? raw[id] / total : (ids.length ? 1 / ids.length : 0); });
+    return out;
   };
 
   // in-scope missions with their capability KPIs resolved to numbers, for the
@@ -338,8 +417,8 @@
   };
 
   PIQ.resetComposition = function () {
-    PIQ.composition = { objectiveId: null, fnId: null, procId: null, missionIds: [], capIds: [],
-      patternIds: [], skills: {}, dag: {}, live: false };
+    PIQ.composition = { objectiveId: null, fnId: null, procId: null, procIds: [],
+      missionIds: [], capIds: [], patternIds: [], skills: {}, dag: {}, live: false };
     PIQ.persistComposition();
   };
 
@@ -357,6 +436,9 @@
       PIQ.composition = {
         objectiveId: saved.objectiveId || null,
         fnId: saved.fnId || null, procId: saved.procId || null,
+        // pre-multi-process compositions saved a single procId — widen it
+        procIds: Array.isArray(saved.procIds) && saved.procIds.length
+          ? saved.procIds : (saved.procId ? [saved.procId] : []),
         missionIds: Array.isArray(saved.missionIds) ? saved.missionIds : [],
         capIds: Array.isArray(saved.capIds) ? saved.capIds : [],
         patternIds: Array.isArray(saved.patternIds) ? saved.patternIds : [],
@@ -373,9 +455,9 @@
     var stage = stageOf(PIQ.active);
     nav.innerHTML = "";
     STAGES.forEach(function (st, i) {
-      // the CFO layer is the consumption surface, not part of the build pipeline —
-      // separate it visually from the earlier stages.
-      if (st.id === "cfo") {
+      // Mission Command and the Finance Command Centre are consumption surfaces,
+      // not part of the build pipeline — separate them visually from stages 1–4.
+      if (st.id === "mission") {
         var sep = document.createElement("span"); sep.className = "stage-sep";
         sep.innerHTML = '<span class="sep-line"></span>'; nav.appendChild(sep);
       }
@@ -410,19 +492,23 @@
     });
   }
 
+  /* Mirrors the five Studio sections:
+     Objective › Processes › Missions › Patterns › Action Chains */
   function crumb() {
     var c = PIQ.composition, f = PIQ.fn(), t = PIQ.objective();
     if (!f && !t) return '<span class="cr-empty">No mission selected — start in the Mission Builder</span>';
     var parts = [];
     if (t) parts.push(t.name);
-    if (f) parts.push(f.name);
-    var p = PIQ.proc();
-    if (p) parts.push(p.name);
+    var np = PIQ.procs().length;
+    if (np) parts.push(PIQ.scopeLabel());
     var s = parts.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('<i>›</i>');
     var nr = c.missionIds.length;
     if (nr) s += '<i>›</i><span class="cr-count">' + nr + ' mission' + (nr > 1 ? "s" : "") + '</span>';
     var n = c.patternIds.length;
     if (n) s += '<i>›</i><span class="cr-count">' + n + ' pattern' + (n > 1 ? "s" : "") + '</span>';
+    var ch = n ? PIQ.chainCounts() : null;
+    if (ch) s += '<i>›</i><span class="cr-count">' + ch.standard + ' std · ' + ch.dynamic + ' dyn chain' +
+      ((ch.standard + ch.dynamic) > 1 ? "s" : "") + '</span>';
     if (c.live) s += '<span class="cr-live">● LIVE</span>';
     return s;
   }
