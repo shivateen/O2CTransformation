@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "ProcessIQ — Continuous Discovery",
-    "existingPatternCount": 101,
-    "candidateId": 102,
+    "existingPatternCount": 152,
+    "candidateId": 153,
     "note": "The LLM explains the anomaly; it does not invent it. Candidates are proposals, not conclusions — an SME panel gates every promotion."
   },
   "stage1": {
@@ -273,7 +273,7 @@
     ]
   },
   "candidate": {
-    "id": 102,
+    "id": 153,
     "proposedName": "Seasonal Treasury Squeeze",
     "vertical": "Retail / CPG",
     "proposedCategory": "Credit Risk & Insolvency Indicators",

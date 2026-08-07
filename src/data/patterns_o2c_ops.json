@@ -1,0 +1,3113 @@
+{
+  "meta": {
+    "note": "Hand-authored O2C operational pattern library — the domains the AR-centric library never covered: pricing & rebates, logistics & freight, direct store delivery, returns & returnable assets, and master data / channels / controls. Same shape as an xlsx-derived pattern; priorityRank, featureSlug and hitlGates are re-derived at build time. Merged into patterns.json by build_patterns.py.",
+    "idRange": "102+",
+    "voice": "Written in the first person of the operator who owns the mission — the thing a 20-year practitioner notices before the report does."
+  },
+  "patterns": [
+    {
+      "id": 102,
+      "name": "Condition Record Overlap",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "Critical",
+      "mentalModel": "Two valid condition records can cover the same customer/material at the same time, and SAP will silently pick the most specific one — which is almost never the one I intended. I have watched a national price increase land while a forgotten customer-specific record from a two-year-old promotion kept winning the access sequence. Nobody raises a ticket, because the order prices successfully. Let me pull KONH validity windows per access-sequence key and find the ones that overlap; wherever they do, I want to know which record actually won on the last hundred orders and what that cost per case.",
+      "sources": {
+        "sap": [
+          "KONH (KSCHL, DATAB, DATBI, KNUMH) - condition header validity windows",
+          "KONP (KBETR, KONWA) - condition rate per record",
+          "PRCD_ELEMENTS / KONV (KNUMH, KWERT) - which record actually priced the document",
+          "T682I - access sequence, to know which key combination outranks which"
+        ],
+        "oracle": [
+          "QP_LIST_HEADERS_ALL (START_DATE_ACTIVE, END_DATE_ACTIVE) [Fusion] - price list validity",
+          "QP_LIST_LINES (OPERAND, PRECEDENCE) [Fusion] - line precedence resolution",
+          "QP_PRICING_ATTRIBUTES - qualifier overlap"
+        ]
+      },
+      "layer1_logicalMapping": "For each access-sequence key combination, self-join KONH to itself on the same key and test whether the DATAB-DATBI windows intersect, then join PRCD_ELEMENTS to see which KNUMH actually priced recent documents.",
+      "layer2_eventSeries": "Sequence Condition_Record_Created, Validity_Window_Overlap_Begins and Applied_On_Document events to expose the date at which the wrong record began winning.",
+      "layer3_feature": "Overlapping_Condition_Precedence",
+      "conceptualSQL": "SELECT a.KNUMH, b.KNUMH, SUM(v.KWERT) AS priced_value\nFROM KONH a JOIN KONH b ON a.key_combo = b.key_combo AND a.KNUMH <> b.KNUMH\n  AND a.DATAB <= b.DATBI AND b.DATAB <= a.DATBI\nJOIN PRCD_ELEMENTS v ON v.KNUMH = b.KNUMH\nWHERE b.KBETR < a.KBETR -> flag Overlap_Losing_Margin",
+      "originalDAG": [
+        "Extract_Condition_Validity_Windows",
+        "Detect_Overlapping_Key_Combinations",
+        "Resolve_Winning_Record_Per_Document",
+        "Quantify_Margin_Delta_Per_Case",
+        "Route_Pricing_Analyst_Review"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Overlap_Exists AND Margin_Delta_Per_Case < 0.5% AND Documents_Priced < 20",
+          "actions": [
+            "Close_Redundant_Record + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Margin_Delta_Annualised >= 250K",
+          "actions": [
+            "Freeze_Losing_Record + Simulate_Reprice",
+            "Notify_Pricing_Operations_Lead"
+          ],
+          "hitl": "Pricing Operations Lead approves condition record closure",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Overlap_Spans_Multiple_Sales_Orgs AND Contract_Backed",
+          "actions": [
+            "Halt_Auto_Correction + Assemble_Contract_Evidence",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves cross-org price correction",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "name": "Open-Ended Validity Drift",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "High",
+      "mentalModel": "A promotional condition entered with an end date of 31.12.9999 is not a promotion, it is a permanent price cut that nobody signed off. The person who keyed it meant to come back and close it. They never do. I check every condition record whose validity end is beyond the horizon and whose condition type is a discount, then ask when the underlying deal actually expired — the gap between those two dates, multiplied by volume, is pure unbudgeted spend.",
+      "sources": {
+        "sap": [
+          "KONH (DATBI, KSCHL, ERDAT, ERNAM) - end date, type and who created it",
+          "KONP (KBETR) - the discount rate still running",
+          "VBRP (FKIMG, NETWR) - volume invoiced under the record since deal expiry",
+          "CDHDR/CDPOS (KONH) - change history on the validity date"
+        ],
+        "oracle": [
+          "QP_LIST_LINES (END_DATE_ACTIVE) [Fusion] - open-ended modifier lines",
+          "OZF_OFFERS (END_DATE, STATUS_CODE) [Fusion] - the offer the line was meant to serve"
+        ]
+      },
+      "layer1_logicalMapping": "Filter KONH to discount condition types with DATBI >= 9999-12-31, join to the source deal or offer record to recover the intended end date, then join VBRP for volume invoiced after that date.",
+      "layer2_eventSeries": "Sequence Deal_Expiry_Date against Condition_Still_Active and Invoice_Discounted events to measure the unbudgeted tail.",
+      "layer3_feature": "Perpetual_Discount_Tail",
+      "conceptualSQL": "SELECT h.KNUMH, h.KSCHL, h.ERNAM, SUM(p.NETWR * k.KBETR/100) AS unbudgeted_spend\nFROM KONH h JOIN KONP k USING(KNUMH) JOIN VBRP p ON p.KNUMH = h.KNUMH\nWHERE h.DATBI >= '99991231' AND h.KSCHL IN (discount_types)\n  AND p.FKDAT > deal_expiry -> flag Perpetual_Discount",
+      "originalDAG": [
+        "Scan_Open_Ended_Condition_Records",
+        "Recover_Intended_Deal_Expiry",
+        "Compute_Post_Expiry_Spend",
+        "Rank_By_Unbudgeted_Value",
+        "Route_Pricing_Governance"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Post_Expiry_Spend < 10K AND Deal_Renewed",
+          "actions": [
+            "Set_Correct_End_Date + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Post_Expiry_Spend >= 100K AND No_Renewal_Evidence",
+          "actions": [
+            "Close_Condition_Record + Notify_Account_Owner",
+            "Raise_Recovery_Assessment"
+          ],
+          "hitl": "Pricing Operations Lead approves record closure and recovery assessment",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Creator_Has_Multiple_Open_Ended_Records",
+          "actions": [
+            "Bundle_By_Creator + Trigger_Control_Review",
+            "Escalate_OTC_Controls_Lead"
+          ],
+          "hitl": "OTC Controls Lead approves user-level access review",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "name": "Deal Sheet Divergence",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "Critical",
+      "mentalModel": "The contract says ten percent. The condition record says twelve. Somebody fat-fingered it eighteen months ago and every invoice since has been two points light. This is the most boring and most expensive defect in pricing, because it never errors — it just quietly underbills. I reconcile the signed commercial terms line by line against the live condition records and treat any variance beyond rounding as a recoverable, not a correction.",
+      "sources": {
+        "sap": [
+          "KONA (KNUMA, BOART, KUNNR) - the agreement as signed",
+          "KONP (KBETR) - the rate actually configured",
+          "WCOCO / WCOCOH (S/4 condition contract header and conditions)",
+          "VBRP (NETWR, FKIMG) - value invoiced under the diverging rate"
+        ],
+        "oracle": [
+          "OZF_OFFERS (OFFER_CODE, DISCOUNT_VALUE) [Fusion] - agreed offer terms",
+          "QP_LIST_LINES (OPERAND) [Fusion] - configured rate",
+          "OKC_K_LINES_B - contract line terms"
+        ]
+      },
+      "layer1_logicalMapping": "Join the agreement or contract terms to the executing condition record on agreement number and compare the negotiated rate to the configured rate, then value the delta against invoiced volume.",
+      "layer2_eventSeries": "Sequence Contract_Signed, Condition_Configured and Invoice_Priced events to date the divergence and size the exposure since.",
+      "layer3_feature": "Contract_To_Condition_Variance",
+      "conceptualSQL": "SELECT a.KNUMA, a.agreed_rate, k.KBETR AS configured_rate,\n       SUM(p.NETWR) * ABS(a.agreed_rate - k.KBETR)/100 AS exposure\nFROM KONA a JOIN KONP k USING(KNUMA) JOIN VBRP p USING(KNUMA)\nWHERE ABS(a.agreed_rate - k.KBETR) > 0.05 -> flag Deal_Divergence",
+      "originalDAG": [
+        "Extract_Signed_Commercial_Terms",
+        "Extract_Live_Condition_Rates",
+        "Reconcile_Rate_By_Agreement_Line",
+        "Value_Divergence_Against_Invoiced_Volume",
+        "Route_Contract_Administrator"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Variance <= 0.05pp AND Exposure < 5K",
+          "actions": [
+            "Correct_Condition_Record + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Variance_Favours_Customer AND Exposure >= 50K",
+          "actions": [
+            "Correct_Forward_Rate + Quantify_Recoverable",
+            "Notify_Account_Owner_Before_Contact"
+          ],
+          "hitl": "Commercial Finance approves retrospective recovery approach",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Variance_Favours_Company AND Customer_Facing_Risk",
+          "actions": [
+            "Self_Report_And_Credit + Prepare_Customer_Communication",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves proactive customer credit",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 105,
+      "name": "Accrual Attainment Drift",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "Critical",
+      "mentalModel": "We accrue rebate at the rate we expect the customer to earn. If they are tracking to a higher tier than the accrual assumes, the true-up at settlement is a P&L shock in the worst quarter to take one. I run attainment-to-date against the tier table every month and compare the implied final rate to the rate we are actually accruing at. A widening gap in either direction is a controllable warning, not a year-end surprise.",
+      "sources": {
+        "sap": [
+          "KONA (KNUMA, BOART) - rebate agreement and type",
+          "KOTE / rebate scales - the tier table and thresholds",
+          "VBOX / S/4 condition contract settlement index - volume accumulated to date",
+          "BSEG (HKONT, DMBTR) - accrual actually posted"
+        ],
+        "oracle": [
+          "OZF_FUNDS_ALL_B (ORIGINAL_BUDGET, UTILIZED_AMT) [Fusion] - accrued fund position",
+          "OZF_OFFER_TIERS - tier thresholds",
+          "OZF_FUNDS_UTILIZED_ALL_B - utilisation to date"
+        ]
+      },
+      "layer1_logicalMapping": "Accumulate qualifying volume per agreement to date, resolve the tier that volume implies at period end, and compare the implied rate to the rate underlying the posted accrual.",
+      "layer2_eventSeries": "Sequence Monthly_Attainment, Implied_Tier_Change and Accrual_Posted events to expose the month the accrual stopped tracking reality.",
+      "layer3_feature": "Accrual_To_Attainment_Gap",
+      "conceptualSQL": "SELECT a.KNUMA, implied_tier_rate, accrued_rate,\n       (implied_tier_rate - accrued_rate) * ytd_volume AS true_up_exposure\nFROM KONA a JOIN attainment USING(KNUMA) JOIN accrual USING(KNUMA)\nWHERE ABS(implied_tier_rate - accrued_rate) >= 1.0 -> flag Accrual_Drift",
+      "originalDAG": [
+        "Accumulate_Qualifying_Volume",
+        "Resolve_Implied_Final_Tier",
+        "Compare_To_Posted_Accrual_Rate",
+        "Project_True_Up_Exposure",
+        "Route_Contract_Rebates_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Gap < 0.5pp AND Period_Remaining > 3 months",
+          "actions": [
+            "Monitor_Next_Cycle + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF True_Up_Exposure >= 250K AND Gap_Widening_3_Months",
+          "actions": [
+            "Propose_Accrual_Rate_Change + Model_P&L_Impact",
+            "Notify_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves accrual rate change",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Under_Accrued AND Period_End_Within_1_Month",
+          "actions": [
+            "Book_Catch_Up_Provision + Flag_To_Close_Process",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves catch-up provision at close",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 106,
+      "name": "Retro Tier Reach-Back",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "High",
+      "mentalModel": "A customer crosses a volume threshold in the last week of the period and then claims the higher rate on everything they bought all year. If the contract says the tier applies prospectively, that claim is worth nothing — but it will be paid unless somebody reads the clause. I watch for tier crossings late in the period and check the retroactivity wording before the settlement run goes anywhere near it.",
+      "sources": {
+        "sap": [
+          "KONA (KNUMA) + rebate scale - tier thresholds and retroactivity flag",
+          "VBOX - period volume accumulation by date",
+          "KONB / settlement documents - what the settlement proposes to pay",
+          "VBRK (FKDAT) - the invoice dates the claim reaches back over"
+        ],
+        "oracle": [
+          "OZF_CLAIMS_ALL (CLAIM_DATE, CLAIM_AMOUNT) [Fusion] - the retro claim",
+          "OZF_OFFER_TIERS (TIER_TYPE) [Fusion] - retroactive vs prospective flag"
+        ]
+      },
+      "layer1_logicalMapping": "Detect the date a customer crosses a tier threshold, read the agreement retroactivity flag, and compare the settlement basis to the volume that occurred after the crossing.",
+      "layer2_eventSeries": "Sequence Threshold_Crossing_Date, Claim_Basis_Start_Date and Settlement_Proposed events to expose claims that reach back before entitlement began.",
+      "layer3_feature": "Retro_Claim_Reach_Back",
+      "conceptualSQL": "SELECT c.KNUMA, crossing_date, claim_basis_start,\n       SUM(pre_crossing_volume * tier_delta) AS over_claim\nFROM claims c JOIN KONA a USING(KNUMA)\nWHERE a.retroactive_flag = 'N' AND claim_basis_start < crossing_date -> flag Reach_Back",
+      "originalDAG": [
+        "Detect_Tier_Threshold_Crossing",
+        "Read_Retroactivity_Clause",
+        "Recompute_Entitled_Basis",
+        "Quantify_Over_Claim",
+        "Route_Rebates_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Retroactive_Flag = Y AND Basis_Matches_Contract",
+          "actions": [
+            "Approve_Settlement + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Retroactive_Flag = N AND Over_Claim >= 25K",
+          "actions": [
+            "Recalculate_To_Prospective_Basis + Hold_Settlement",
+            "Notify_Contract_Rebates_Lead"
+          ],
+          "hitl": "Contract & Rebates Operations Lead approves settlement recalculation",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Crossing_Within_Final_5_Days AND Volume_Spike > 3x_Run_Rate",
+          "actions": [
+            "Test_For_Period_End_Loading + Assemble_Order_Evidence",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves challenge to period-end loading",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 107,
+      "name": "Buying Group Double Dip",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "Critical",
+      "mentalModel": "In any buying-group or multi-company-code structure the same case of product can be claimed twice — once by the member who bought it and once by the group that aggregates it. Each claim looks clean in isolation because they sit in different agreements. I have to net them at the volume level, not the claim level. Any case number that appears under both a member agreement and a group agreement in the same period is being paid for twice.",
+      "sources": {
+        "sap": [
+          "KNVH (HITYP, HKUNNR) - customer hierarchy, member to group",
+          "KONA (KNUMA, KUNNR) - agreements at both member and group level",
+          "VBRP (VGBEL, FKIMG) - the invoiced volume both claims rest on",
+          "VBOX - rebate index showing which agreements captured the same billing doc"
+        ],
+        "oracle": [
+          "HZ_RELATIONSHIPS (SUBJECT_ID, OBJECT_ID) [Fusion] - group membership",
+          "OZF_CLAIMS_ALL (CUST_ACCOUNT_ID, CLAIM_AMOUNT) [Fusion] - claims at both levels"
+        ]
+      },
+      "layer1_logicalMapping": "Resolve each billing document to both its member and its hierarchy parent, then test whether rebate accrual or settlement exists against the same document under more than one agreement.",
+      "layer2_eventSeries": "Sequence Billing_Doc_Created, Member_Claim_Applied and Group_Claim_Applied to expose documents captured twice in one period.",
+      "layer3_feature": "Hierarchy_Claim_Duplication",
+      "conceptualSQL": "SELECT p.VBELN, COUNT(DISTINCT b.KNUMA) AS agreements, SUM(b.rebate_value) AS paid\nFROM VBRP p JOIN VBOX b ON b.VBELN = p.VBELN\nJOIN KNVH h ON h.KUNNR = p.KUNAG\nGROUP BY p.VBELN HAVING agreements > 1 -> flag Double_Dip",
+      "originalDAG": [
+        "Resolve_Customer_Hierarchy",
+        "Map_Billing_Docs_To_Agreements",
+        "Detect_Multi_Agreement_Capture",
+        "Quantify_Duplicate_Settlement",
+        "Route_Contract_Administrator"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Agreements_Are_Complementary AND Contract_Permits_Stacking",
+          "actions": [
+            "Approve_Both_Claims + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Duplicate_Settlement >= 50K",
+          "actions": [
+            "Net_At_Volume_Level + Hold_Second_Settlement",
+            "Notify_Contract_Rebates_Lead"
+          ],
+          "hitl": "Contract & Rebates Operations Lead approves claim netting",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Pattern_Repeats_Across_3_Periods",
+          "actions": [
+            "Restructure_Agreement_Scope + Quantify_Historic_Recovery",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves agreement restructure and recovery claim",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 108,
+      "name": "Off-Invoice On-Accrual Overlap",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "High",
+      "mentalModel": "The same allowance can be granted twice in two different currencies of the P&L — once as an off-invoice discount that reduces net price, and once as an accrued rebate that hits trade spend. Gross-to-net looks fine on either report alone. I reconcile the condition types applied on the invoice against the accrual conditions on the same document; where a discount and an accrual describe the same commercial promise, one of them is double-counted.",
+      "sources": {
+        "sap": [
+          "PRCD_ELEMENTS / KONV (KSCHL, KWERT) - all condition types on the billing document",
+          "T685 (KSCHL, KRECH) - condition type semantics: discount vs accrual",
+          "KONA (BOART) - the agreement behind the accrual",
+          "VBRP (NETWR, KZWI1..KZWI6) - subtotal buckets carrying gross-to-net"
+        ],
+        "oracle": [
+          "QP_LIST_LINES (LIST_LINE_TYPE_CODE) [Fusion] - discount vs promotion line",
+          "OZF_FUNDS_UTILIZED_ALL_B [Fusion] - accrual utilisation against the same order"
+        ]
+      },
+      "layer1_logicalMapping": "For each billing document, classify every applied condition type as off-invoice discount or accrual, then group by the commercial promise they trace to and flag documents carrying both.",
+      "layer2_eventSeries": "Sequence Discount_Applied and Accrual_Posted events against a single billing document to expose the same promise funded twice.",
+      "layer3_feature": "Duplicate_Promise_Funding",
+      "conceptualSQL": "SELECT v.VBELN, SUM(CASE WHEN t.type='discount' THEN v.KWERT END) AS off_invoice,\n       SUM(CASE WHEN t.type='accrual' THEN v.KWERT END) AS accrued\nFROM PRCD_ELEMENTS v JOIN T685 t USING(KSCHL)\nGROUP BY v.VBELN HAVING off_invoice IS NOT NULL AND accrued IS NOT NULL\n  AND same_promise = 1 -> flag Overlap",
+      "originalDAG": [
+        "Classify_Condition_Types",
+        "Trace_Conditions_To_Commercial_Promise",
+        "Detect_Discount_Accrual_Overlap",
+        "Quantify_Gross_To_Net_Overstatement",
+        "Route_Commercial_Finance"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Overlap_Value < 5K AND Promises_Are_Distinct",
+          "actions": [
+            "Confirm_Distinct + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Overlap_Value >= 100K",
+          "actions": [
+            "Suppress_Duplicate_Accrual + Restate_Gross_To_Net",
+            "Notify_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves gross-to-net restatement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Overlap_Spans_Reported_Period",
+          "actions": [
+            "Halt_Auto_Correction + Assemble_Audit_Trail",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves prior-period gross-to-net adjustment",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 109,
+      "name": "Dormant Agreement Accrual",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "Medium",
+      "mentalModel": "A rebate agreement that is still open against a customer who stopped buying eight months ago is a liability nobody is looking at. It either accrues on nothing and sits stale on the balance sheet, or worse, it stays live for the day that customer returns and claims against terms we would never sign today. I age every open agreement by last qualifying transaction and force a decision on anything dormant beyond two settlement cycles.",
+      "sources": {
+        "sap": [
+          "KONA (KNUMA, BOSTA, DATBI) - agreement status and validity",
+          "VBOX - last qualifying billing document per agreement",
+          "BSEG (HKONT, DMBTR) - accrual balance still carried",
+          "KNB1 / VBAK - whether the customer is still trading at all"
+        ],
+        "oracle": [
+          "OZF_FUNDS_ALL_B (STATUS_CODE, END_DATE_ACTIVE) [Fusion] - open fund position",
+          "OZF_FUNDS_UTILIZED_ALL_B (UTILIZATION_DATE) [Fusion] - last utilisation"
+        ]
+      },
+      "layer1_logicalMapping": "Age each open agreement by the date of its last qualifying billing document and join to the carried accrual balance and the customer's overall trading activity.",
+      "layer2_eventSeries": "Sequence Last_Qualifying_Transaction, Settlement_Cycles_Elapsed and Accrual_Balance_Carried to expose agreements that are open but inert.",
+      "layer3_feature": "Dormant_Agreement_Liability",
+      "conceptualSQL": "SELECT a.KNUMA, MAX(b.FKDAT) AS last_activity, bal.DMBTR AS carried_accrual\nFROM KONA a LEFT JOIN VBOX b USING(KNUMA) JOIN accrual_bal bal USING(KNUMA)\nWHERE a.BOSTA = 'open' AND MONTHS_BETWEEN(today, MAX(b.FKDAT)) >= 6\n  -> flag Dormant_Agreement",
+      "originalDAG": [
+        "Age_Open_Agreements_By_Last_Activity",
+        "Join_Carried_Accrual_Balance",
+        "Test_Customer_Trading_Status",
+        "Propose_Close_Or_Release",
+        "Route_Rebates_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Dormant < 2 settlement cycles AND Customer_Still_Trading",
+          "actions": [
+            "Monitor_Next_Cycle + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Dormant >= 2 cycles AND Carried_Accrual >= 25K",
+          "actions": [
+            "Propose_Accrual_Release + Close_Agreement",
+            "Notify_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves accrual release",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Customer_Ceased_Trading AND Terms_Below_Current_Standard",
+          "actions": [
+            "Close_Agreement_Permanently + Flag_Reinstatement_Block",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves permanent agreement closure",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 110,
+      "name": "Sub-Threshold Override Cluster",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "High",
+      "mentalModel": "Every pricing approval matrix has a number in it, and every number creates a shadow just underneath. When one user grants manual price overrides to the same customer group again and again, each a whisker below their approval limit, that is not commercial judgement — that is someone who has learned where the control sits. I cluster overrides by user, customer and distance-to-threshold; a tight cluster just under the line is the signal, not the individual override.",
+      "sources": {
+        "sap": [
+          "PRCD_ELEMENTS / KONV (KSCHL, KWERT, KMANU) - manually entered condition values",
+          "VBAP (VBELN, POSNR, NETWR) - the order line overridden",
+          "CDHDR/CDPOS (USERNAME, UDATE) - who changed the price and when",
+          "T685A - the approval threshold the override sits under"
+        ],
+        "oracle": [
+          "QP_PREQ_LINES_TMP (OVERRIDE_FLAG) [Fusion] - manual price override flag",
+          "OE_PRICE_ADJUSTMENTS (CHANGE_REASON_CODE, CREATED_BY) [Fusion]"
+        ]
+      },
+      "layer1_logicalMapping": "Filter condition values flagged as manually entered, join the change document to recover the user, and compute each override's distance below the user's approval threshold.",
+      "layer2_eventSeries": "Sequence Override_Events per user and customer group and measure the dispersion of distance-to-threshold across them.",
+      "layer3_feature": "Threshold_Shadow_Clustering",
+      "conceptualSQL": "SELECT c.USERNAME, v.KUNNR, COUNT(*) AS overrides,\n       AVG(threshold - override_pct) AS avg_gap, STDDEV(threshold - override_pct) AS spread\nFROM KONV v JOIN CDPOS c USING(VBELN)\nWHERE v.KMANU = 'X' GROUP BY 1,2\nHAVING overrides >= 5 AND avg_gap < 1.0 AND spread < 0.4 -> flag Shadow_Cluster",
+      "originalDAG": [
+        "Extract_Manual_Price_Overrides",
+        "Attribute_To_User_And_Customer",
+        "Compute_Distance_To_Approval_Threshold",
+        "Cluster_By_Dispersion",
+        "Route_OTC_Controls_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Overrides < 5 OR Gap_Dispersion_Wide",
+          "actions": [
+            "Log_As_Normal_Commercial_Judgement"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Cluster_Detected AND Margin_Impact >= 50K",
+          "actions": [
+            "Flag_User_Customer_Pair + Require_Second_Approval",
+            "Notify_OTC_Controls_Lead"
+          ],
+          "hitl": "OTC Controls Lead approves enhanced approval requirement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Cluster_Detected AND User_Also_Maintains_Condition_Records",
+          "actions": [
+            "Raise_SoD_Conflict + Freeze_Override_Authority",
+            "Escalate_Internal_Audit"
+          ],
+          "hitl": "Internal Audit approves segregation-of-duties investigation",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 111,
+      "name": "Settlement Without Claim Proof",
+      "category": "Pricing & Rebate Integrity",
+      "priority": "High",
+      "mentalModel": "A settlement run will happily pay a rebate that has no claim document behind it, or pay against a claim that was already settled last quarter. The run is doing exactly what it was told. My job is to check the evidence chain before the money leaves: every settlement line should trace to a claim, every claim to a qualifying volume, and no claim should appear in two settlement runs.",
+      "sources": {
+        "sap": [
+          "KONB / settlement document - what the run proposes to pay",
+          "KONA (KNUMA) - the agreement authorising it",
+          "VBOX - the qualifying volume behind the claim",
+          "BKPF/BSEG - prior settlement postings against the same agreement period"
+        ],
+        "oracle": [
+          "OZF_CLAIMS_ALL (CLAIM_NUMBER, STATUS_CODE) [Fusion] - claim and its state",
+          "OZF_CLAIM_LINES_ALL - claim to volume linkage",
+          "AP_INVOICES_ALL - the settlement payment itself"
+        ]
+      },
+      "layer1_logicalMapping": "Join every proposed settlement line back to its claim, the claim back to qualifying volume, and check prior postings for the same agreement and period.",
+      "layer2_eventSeries": "Sequence Claim_Raised, Volume_Qualified and Settlement_Posted events to expose settlements with a broken or repeated evidence chain.",
+      "layer3_feature": "Settlement_Evidence_Break",
+      "conceptualSQL": "SELECT s.settlement_id, s.KNUMA, s.amount,\n       CASE WHEN c.claim_id IS NULL THEN 'no_claim'\n            WHEN prior.settlement_id IS NOT NULL THEN 'already_settled' END AS defect\nFROM settlements s LEFT JOIN claims c USING(claim_id)\nLEFT JOIN settlements prior ON prior.claim_id = s.claim_id AND prior.id <> s.id\nWHERE defect IS NOT NULL -> flag Evidence_Break",
+      "originalDAG": [
+        "Extract_Proposed_Settlement_Lines",
+        "Trace_To_Claim_And_Volume",
+        "Check_Prior_Settlement_History",
+        "Quantify_Unsupported_Payment",
+        "Route_Rebates_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Evidence_Chain_Complete AND No_Prior_Settlement",
+          "actions": [
+            "Release_Settlement_Line + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF No_Claim_Document AND Amount >= 25K",
+          "actions": [
+            "Hold_Settlement_Line + Request_Claim_Evidence",
+            "Notify_Contract_Rebates_Lead"
+          ],
+          "hitl": "Contract & Rebates Operations Lead approves settlement hold",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Claim_Already_Settled_In_Prior_Period",
+          "actions": [
+            "Block_Payment + Open_Recovery_Case",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves duplicate-settlement recovery",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 112,
+      "name": "Delivery Date Washing",
+      "category": "Logistics & Freight Integrity",
+      "priority": "Critical",
+      "mentalModel": "OTIF is measured against the confirmed date, so the cheapest way to fix OTIF is to change the confirmed date. I have seen a site run 97% on-time for a year while customers were escalating weekly, because the planner reconfirmed every at-risk delivery two days out. The give-away is in the change log, not the report: a delivery whose LFDAT was amended after the original date had already passed, or amended more than once, was never on time. I rebuild OTIF against the FIRST confirmed date and show both numbers side by side.",
+      "sources": {
+        "sap": [
+          "LIKP (VBELN, LFDAT, WADAT_IST) - delivery header, planned and actual goods issue",
+          "CDHDR/CDPOS (OBJECTID=LIKP, FNAME='LFDAT') - every amendment to the promised date",
+          "VBEP (EDATU, ETENR) - original schedule line confirmation on the order",
+          "VBFA - order to delivery document flow"
+        ],
+        "oracle": [
+          "WSH_NEW_DELIVERIES (INITIAL_PICKUP_DATE, ULTIMATE_DROPOFF_DATE) [Fusion]",
+          "OE_ORDER_LINES_ALL (SCHEDULE_SHIP_DATE, ORIGINAL_SCHEDULE_SHIP_DATE) [Fusion]",
+          "WSH_EXCEPTIONS - recorded delivery exceptions"
+        ]
+      },
+      "layer1_logicalMapping": "Recover the first confirmed delivery date from the order schedule line and the change log, then recompute on-time against that date rather than the current LFDAT.",
+      "layer2_eventSeries": "Sequence Original_Confirmation, Date_Amendment_Events and Actual_Goods_Issue to expose deliveries reconfirmed after the original date had lapsed.",
+      "layer3_feature": "Promise_Date_Reset_Rate",
+      "conceptualSQL": "SELECT l.VBELN, first_confirmed, l.LFDAT AS current_promise, l.WADAT_IST,\n       COUNT(c.CHANGENR) AS amendments\nFROM LIKP l JOIN CDPOS c ON c.OBJECTID = l.VBELN AND c.FNAME = 'LFDAT'\nGROUP BY 1,2,3,4\nHAVING amendments >= 1 AND l.WADAT_IST > first_confirmed -> flag Date_Washed",
+      "originalDAG": [
+        "Recover_First_Confirmed_Date",
+        "Extract_Date_Amendment_History",
+        "Recompute_OTIF_On_Original_Promise",
+        "Quantify_Reported_vs_True_Gap",
+        "Route_Logistics_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Amendments = 1 AND Customer_Requested_Change_Documented",
+          "actions": [
+            "Accept_Revised_Date + Log_Customer_Consent"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Amendments >= 2 AND No_Customer_Consent_Recorded",
+          "actions": [
+            "Restate_OTIF_On_Original_Promise + Flag_Site",
+            "Notify_Logistics_Operations_Lead"
+          ],
+          "hitl": "Logistics Operations Lead approves OTIF restatement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Site_Reset_Rate > 15% AND Customer_Is_Scorecarded_Retailer",
+          "actions": [
+            "Model_Chargeback_Exposure + Freeze_Date_Amendment_Authority",
+            "Escalate_Customer_Compliance_Lead"
+          ],
+          "hitl": "Customer Compliance Lead approves amendment-authority freeze",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 113,
+      "name": "Partial Ship Padding",
+      "category": "Logistics & Freight Integrity",
+      "priority": "High",
+      "mentalModel": "Split a late order into two deliveries and the first one ships on time. Line fill looks healthy, order fill quietly collapses, and the customer — who ordered one delivery — counts it as a miss and charges us for it. I measure OTIF at the order the customer placed, not at the delivery we chose to create, and I look for splits that appear within days of the promise date rather than at the point of picking.",
+      "sources": {
+        "sap": [
+          "LIPS (VBELN, VGBEL, VGPOS, LFIMG) - delivery items back to their order line",
+          "VBAP (KWMENG) - originally ordered quantity",
+          "LIKP (LFDAT, ERDAT) - when each split delivery was created versus promised",
+          "VBFA - one order line fanning out to several deliveries"
+        ],
+        "oracle": [
+          "WSH_DELIVERY_DETAILS (SOURCE_LINE_ID, SHIPPED_QUANTITY) [Fusion]",
+          "OE_ORDER_LINES_ALL (ORDERED_QUANTITY) [Fusion]",
+          "WSH_DELIVERY_ASSIGNMENTS - line to delivery fan-out"
+        ]
+      },
+      "layer1_logicalMapping": "Group deliveries by originating order line, count the splits, and compare the creation date of each split to the original promise date.",
+      "layer2_eventSeries": "Sequence Order_Line_Confirmed, Split_Delivery_Created and Goods_Issue events to expose splits created inside the promise window.",
+      "layer3_feature": "Late_Window_Split_Rate",
+      "conceptualSQL": "SELECT p.VGBEL, p.VGPOS, COUNT(DISTINCT p.VBELN) AS splits,\n       MIN(k.ERDAT) AS first_split_created, a.promise_date\nFROM LIPS p JOIN LIKP k USING(VBELN) JOIN VBAP a ON a.VBELN = p.VGBEL\nGROUP BY 1,2,4 HAVING splits > 1 AND first_split_created >= promise_date - 3\n  -> flag Padding_Split",
+      "originalDAG": [
+        "Group_Deliveries_By_Order_Line",
+        "Detect_Splits_In_Promise_Window",
+        "Recompute_Order_Level_Fill",
+        "Quantify_Line_vs_Order_Fill_Gap",
+        "Route_Logistics_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Split_Driven_By_Customer_Request OR Split_At_Pick_Confirmation",
+          "actions": [
+            "Accept_Split + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Late_Window_Splits >= 3 AND Order_Fill_Gap >= 5pp",
+          "actions": [
+            "Report_Order_Level_OTIF + Root_Cause_By_Site",
+            "Notify_Logistics_Operations_Lead"
+          ],
+          "hitl": "Logistics Operations Lead approves order-level OTIF reporting change",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Customer_Charges_For_Split_Deliveries",
+          "actions": [
+            "Model_Compliance_Fine_Exposure + Block_Discretionary_Splits",
+            "Escalate_Customer_Compliance_Lead"
+          ],
+          "hitl": "Customer Compliance Lead approves discretionary split block",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 114,
+      "name": "Accessorial Creep",
+      "category": "Logistics & Freight Integrity",
+      "priority": "High",
+      "mentalModel": "The linehaul rate is negotiated to the cent and then the invoice arrives with detention, redelivery, liftgate and a fuel adjustment nobody has ever seen the derivation of. Accessorials are where carriers recover the margin they conceded in the tender. I trend accessorial charges as a share of linehaul by carrier and lane; when that share drifts up while the rate card is flat, the rate card is not what we are actually paying.",
+      "sources": {
+        "sap": [
+          "VFKP (FKPTY, NETWR) - freight cost items by cost type",
+          "VFKK (FKNUM, TPLST) - freight cost header and planning point",
+          "TVFT / freight condition types - which charges are linehaul vs accessorial",
+          "LFA1 (LIFNR) - carrier master"
+        ],
+        "oracle": [
+          "WSH_FREIGHT_COSTS (FREIGHT_COST_TYPE_ID, TOTAL_AMOUNT) [Fusion]",
+          "FTE_FREIGHT_COST_TYPES - accessorial classification",
+          "OTM shipment cost lines"
+        ]
+      },
+      "layer1_logicalMapping": "Classify every freight cost item as linehaul or accessorial, then compute accessorial share of total spend per carrier and lane per month.",
+      "layer2_eventSeries": "Sequence Monthly_Accessorial_Share per carrier-lane and test for a sustained upward trend against a flat contracted rate.",
+      "layer3_feature": "Accessorial_Share_Drift",
+      "conceptualSQL": "SELECT k.TPLST AS lane, p.LIFNR, period,\n       SUM(CASE WHEN t.class='accessorial' THEN p.NETWR END) /\n       NULLIF(SUM(CASE WHEN t.class='linehaul' THEN p.NETWR END),0) AS acc_share\nFROM VFKP p JOIN VFKK k USING(FKNUM) JOIN TVFT t USING(FKPTY)\nGROUP BY 1,2,3 HAVING trend(acc_share) > 0 AND acc_share > 0.18 -> flag Creep",
+      "originalDAG": [
+        "Classify_Freight_Cost_Items",
+        "Compute_Accessorial_Share_By_Lane",
+        "Trend_Against_Contracted_Rate",
+        "Quantify_Unbudgeted_Accessorial_Spend",
+        "Route_Freight_Settlement_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Accessorial_Share < 12% OR Trend_Flat",
+          "actions": [
+            "Log_As_Within_Tolerance"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Share_Drift >= 5pp AND Annualised_Impact >= 100K",
+          "actions": [
+            "Challenge_Accessorial_Lines + Request_Rate_Card_Reconciliation",
+            "Notify_Logistics_Operations_Lead"
+          ],
+          "hitl": "Logistics Operations Lead approves carrier accessorial challenge",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Accessorial_Type_Absent_From_Contract",
+          "actions": [
+            "Withhold_Disputed_Lines + Open_Carrier_Recovery_Case",
+            "Escalate_Procurement_Category_Manager"
+          ],
+          "hitl": "Procurement approves withholding of uncontracted accessorial charges",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 115,
+      "name": "Lane Rate Divergence",
+      "category": "Logistics & Freight Integrity",
+      "priority": "Critical",
+      "mentalModel": "A carrier bills a lane at a rate that is not the tariff we signed. It is rarely dramatic — eleven dollars a shipment on a lane we run four hundred times a month. Nobody disputes eleven dollars. I re-rate every settled shipment against the contracted tariff for its lane, weight break and service level, and I care about the aggregate variance, not the individual one.",
+      "sources": {
+        "sap": [
+          "VFKP (NETWR, MENGE) - what we were billed per shipment",
+          "TVRO / lane and route master - origin, destination, service level",
+          "Contracted tariff tables (agreement rates by lane and weight break)",
+          "VTTK (SHTYP, TNDR_STATUS) - shipment type and tender status"
+        ],
+        "oracle": [
+          "WSH_FREIGHT_COSTS (UNIT_AMOUNT, CURRENCY_CODE) [Fusion]",
+          "OTM rate offering and rate record tables",
+          "WSH_TRIPS (SHIP_METHOD_CODE) [Fusion] - service level actually used"
+        ]
+      },
+      "layer1_logicalMapping": "For each settled shipment resolve lane, weight break and service level, look up the contracted rate, and compare to the billed amount.",
+      "layer2_eventSeries": "Sequence Tender_Accepted, Shipment_Executed and Invoice_Settled to expose the point at which billed rate detached from contracted rate.",
+      "layer3_feature": "Rate_To_Tariff_Variance",
+      "conceptualSQL": "SELECT lane, weight_break, service_level,\n       SUM(billed_amount - contracted_rate * units) AS variance, COUNT(*) AS shipments\nFROM settled_shipments JOIN tariff USING(lane, weight_break, service_level)\nGROUP BY 1,2,3 HAVING ABS(variance) >= 25000 -> flag Rate_Divergence",
+      "originalDAG": [
+        "Resolve_Lane_And_Weight_Break",
+        "Lookup_Contracted_Tariff",
+        "Re_Rate_Settled_Shipments",
+        "Aggregate_Variance_By_Carrier",
+        "Route_Freight_Settlement_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Variance_Per_Shipment < 2% AND Aggregate < 25K",
+          "actions": [
+            "Log_As_Rounding + Monitor_Next_Cycle"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Aggregate_Variance >= 100K AND Consistent_Direction",
+          "actions": [
+            "Raise_Carrier_Claim + Suspend_Auto_Settlement_On_Lane",
+            "Notify_Logistics_Operations_Lead"
+          ],
+          "hitl": "Logistics Operations Lead approves carrier claim and settlement suspension",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Divergence_Began_At_Contract_Renewal",
+          "actions": [
+            "Audit_Rate_Load_Into_System + Quantify_Since_Renewal",
+            "Escalate_Procurement_Category_Manager"
+          ],
+          "hitl": "Procurement approves contract rate-load audit",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 116,
+      "name": "Fuel Index Lag Arbitrage",
+      "category": "Logistics & Freight Integrity",
+      "priority": "Medium",
+      "mentalModel": "Fuel surcharge is meant to track a published index on a defined weekly lag. When diesel falls, a carrier that keeps applying last month's index is charging a surcharge the market no longer supports — and it only ever seems to lag in one direction. I recompute FSC from the published index for the correct week and compare it to what was billed, then test whether the error is symmetric. Asymmetric error is not an error.",
+      "sources": {
+        "sap": [
+          "VFKP (FKPTY='FSC', NETWR) - fuel surcharge lines",
+          "VFKK (ERDAT) - settlement date, to resolve the applicable index week",
+          "Published fuel index reference table",
+          "Carrier agreement FSC schedule (lag weeks, peg, escalator)"
+        ],
+        "oracle": [
+          "WSH_FREIGHT_COSTS (FREIGHT_COST_TYPE_ID='FUEL') [Fusion]",
+          "OTM accessorial/surcharge definitions"
+        ]
+      },
+      "layer1_logicalMapping": "Resolve the index week each shipment should have used from the agreement lag rule, recompute the entitled surcharge, and difference it against what was billed.",
+      "layer2_eventSeries": "Sequence Index_Published, Entitled_FSC and Billed_FSC events to expose systematic lag in the carrier's favour.",
+      "layer3_feature": "FSC_Lag_Asymmetry",
+      "conceptualSQL": "SELECT carrier, period, SUM(billed_fsc - entitled_fsc) AS overbill,\n       CORR(index_direction, billed_minus_entitled) AS asymmetry\nFROM fsc_lines JOIN fuel_index USING(index_week)\nGROUP BY 1,2 HAVING overbill > 0 AND asymmetry < -0.5 -> flag Lag_Arbitrage",
+      "originalDAG": [
+        "Resolve_Applicable_Index_Week",
+        "Recompute_Entitled_Surcharge",
+        "Difference_Against_Billed",
+        "Test_Directional_Asymmetry",
+        "Route_Freight_Settlement_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Overbill < 5K AND Asymmetry_Not_Significant",
+          "actions": [
+            "Log_As_Timing + Monitor_Next_Cycle"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Overbill >= 25K AND Asymmetry_Significant",
+          "actions": [
+            "Raise_FSC_Recalculation_Claim + Correct_Forward_Rule",
+            "Notify_Logistics_Operations_Lead"
+          ],
+          "hitl": "Logistics Operations Lead approves fuel surcharge recovery claim",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Pattern_Persists_After_Carrier_Notified",
+          "actions": [
+            "Withhold_FSC_Component + Open_Contract_Breach_Review",
+            "Escalate_Procurement_Category_Manager"
+          ],
+          "hitl": "Procurement approves contract breach review",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 117,
+      "name": "Duplicate Freight Settlement",
+      "category": "Logistics & Freight Integrity",
+      "priority": "High",
+      "mentalModel": "The same shipment can be paid twice when it appears on a carrier's individual invoice and again inside a consolidated weekly manifest, or when a corrected invoice is loaded without reversing the original. Freight settlement volume is high and unit values are low, which is exactly the environment duplicates survive in. I fingerprint each settlement on shipment reference, date and amount and look for the same freight event settled more than once.",
+      "sources": {
+        "sap": [
+          "VFKK (FKNUM, REFNR) - freight settlement documents and their references",
+          "VFKP (NETWR) - settled amounts",
+          "RSEG/RBKP - the invoice verification postings behind them",
+          "VTTK (TKNUM) - the shipment the settlement claims to cover"
+        ],
+        "oracle": [
+          "WSH_FREIGHT_COSTS (SHIPMENT_ID, TOTAL_AMOUNT) [Fusion]",
+          "AP_INVOICES_ALL (INVOICE_NUM, VENDOR_ID) [Fusion] - carrier payment",
+          "AP_INVOICE_LINES_ALL - line-level shipment reference"
+        ]
+      },
+      "layer1_logicalMapping": "Fingerprint every freight settlement on carrier, shipment reference, service date and amount, then group to find fingerprints settled more than once without a reversal.",
+      "layer2_eventSeries": "Sequence Shipment_Executed, First_Settlement and Subsequent_Settlement events, checking for an intervening credit.",
+      "layer3_feature": "Freight_Settlement_Duplication",
+      "conceptualSQL": "SELECT TKNUM, LIFNR, COUNT(*) AS settlements, SUM(NETWR) AS paid\nFROM VFKK k JOIN VFKP p USING(FKNUM)\nWHERE NOT EXISTS (SELECT 1 FROM reversals r WHERE r.FKNUM = k.FKNUM)\nGROUP BY 1,2 HAVING settlements > 1 -> flag Duplicate_Settlement",
+      "originalDAG": [
+        "Fingerprint_Freight_Settlements",
+        "Detect_Repeat_Settlement_Without_Reversal",
+        "Confirm_Against_Shipment_Event",
+        "Quantify_Duplicate_Payment",
+        "Route_Freight_Settlement_Analyst"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Reversal_Exists OR Amounts_Differ_By_Correction",
+          "actions": [
+            "Match_And_Close + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Duplicate_Value >= 10K",
+          "actions": [
+            "Block_Second_Payment + Raise_Carrier_Debit_Note",
+            "Notify_Logistics_Operations_Lead"
+          ],
+          "hitl": "Logistics Operations Lead approves carrier debit note",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Already_Paid AND Carrier_Has_Repeat_History",
+          "actions": [
+            "Open_Recovery_Case + Add_Carrier_To_Watchlist",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves duplicate freight recovery",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 118,
+      "name": "Proof-of-Delivery Gap",
+      "category": "Logistics & Freight Integrity",
+      "priority": "Critical",
+      "mentalModel": "A shipment marked delivered with no signed POD behind it is a deduction waiting sixty days to happen. The warehouse closes the delivery, billing fires, and the first anyone hears of it is a short-pay citing non-receipt — by which time the driver is gone and the paperwork is unrecoverable. I check POD capture at the moment of goods issue, not at the moment of dispute, and I chase the gap while the evidence still exists.",
+      "sources": {
+        "sap": [
+          "LIKP (VBELN, PDSTK, WADAT_IST) - POD status and actual goods issue",
+          "TVPOD / VBPOD - proof-of-delivery confirmation records",
+          "VBRK (VBELN, FKDAT) - the invoice raised against it",
+          "BSEG (BLART='DZ') - the short-pay that eventually lands"
+        ],
+        "oracle": [
+          "WSH_DELIVERY_DETAILS (DELIVERY_DETAIL_ID, RECEIVED_QUANTITY) [Fusion]",
+          "WSH_NEW_DELIVERIES (POD_FLAG, ACTUAL_DROPOFF_DATE) [Fusion]",
+          "AR_PAYMENT_SCHEDULES_ALL - the deduction it becomes"
+        ]
+      },
+      "layer1_logicalMapping": "Join delivered shipments to their POD confirmation record and flag deliveries invoiced without one, then age the gap against the customer's typical deduction lag.",
+      "layer2_eventSeries": "Sequence Goods_Issue, POD_Capture_Expected, Invoice_Raised and Deduction_Received to expose the window in which evidence is still recoverable.",
+      "layer3_feature": "POD_Evidence_Gap",
+      "conceptualSQL": "SELECT l.VBELN, l.WADAT_IST, r.VBELN AS invoice, pod.confirm_date\nFROM LIKP l JOIN VBRK r ON r.VGBEL = l.VBELN\nLEFT JOIN VBPOD pod USING(VBELN)\nWHERE l.PDSTK <> 'C' AND pod.confirm_date IS NULL\n  AND l.WADAT_IST <= today - 5 -> flag POD_Gap",
+      "originalDAG": [
+        "Identify_Delivered_Without_POD",
+        "Age_Against_Deduction_Lag",
+        "Trigger_Carrier_Evidence_Request",
+        "Quantify_At_Risk_Invoice_Value",
+        "Route_Logistics_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Gap_Age <= 5 days AND Carrier_Portal_Has_Image",
+          "actions": [
+            "Auto_Retrieve_POD + Attach_To_Invoice"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF At_Risk_Value >= 50K AND Gap_Age > 10 days",
+          "actions": [
+            "Escalate_Carrier_Evidence_Request + Pre_Empt_Customer_Contact",
+            "Notify_Disputes_Deductions_Lead"
+          ],
+          "hitl": "Disputes & Deductions Lead approves pre-emptive customer contact",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Evidence_Unrecoverable AND Deduction_Already_Taken",
+          "actions": [
+            "Concede_And_Book_Loss + Charge_Back_To_Carrier_If_Contracted",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves loss booking and carrier chargeback",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 119,
+      "name": "Incoterm Cost Leakage",
+      "category": "Logistics & Freight Integrity",
+      "priority": "High",
+      "mentalModel": "The incoterm on the order decides who pays the freight. When the order says the customer collects but we ship it on our account, we have given away the freight and nobody notices because it lands in distribution cost, not in a credit note. I reconcile the incoterm on every order against who actually bore the freight cost on the shipment, customer by customer. Delivered-terms creep is one of the quietest margin leaks in the business.",
+      "sources": {
+        "sap": [
+          "VBKD (INCO1, INCO2) - incoterm agreed on the sales order",
+          "VFKP (NETWR) - freight cost actually borne on the shipment",
+          "VBRP (KSCHL freight condition) - freight recovered on the invoice",
+          "LIKP (VSBED) - shipping conditions applied"
+        ],
+        "oracle": [
+          "OE_ORDER_HEADERS_ALL (FOB_POINT_CODE, FREIGHT_TERMS_CODE) [Fusion]",
+          "WSH_FREIGHT_COSTS (TOTAL_AMOUNT) [Fusion]",
+          "RA_CUSTOMER_TRX_LINES_ALL - freight billed to customer"
+        ]
+      },
+      "layer1_logicalMapping": "For each shipment compare the incoterm's cost obligation to the party that actually bore the freight, and to the freight recovered on the invoice.",
+      "layer2_eventSeries": "Sequence Incoterm_Agreed, Freight_Cost_Incurred and Freight_Recovered to expose shipments where obligation and payment diverge.",
+      "layer3_feature": "Incoterm_Obligation_Mismatch",
+      "conceptualSQL": "SELECT d.KUNNR, d.INCO1, SUM(f.NETWR) AS freight_borne,\n       SUM(r.freight_billed) AS freight_recovered\nFROM VBKD d JOIN VFKP f USING(VBELN) LEFT JOIN VBRP r USING(VBELN)\nWHERE d.INCO1 IN ('EXW','FCA') AND freight_borne > 0\nGROUP BY 1,2 HAVING freight_borne - COALESCE(freight_recovered,0) > 0 -> flag Leakage",
+      "originalDAG": [
+        "Extract_Incoterm_Per_Order",
+        "Match_To_Freight_Cost_Borne",
+        "Match_To_Freight_Recovered",
+        "Quantify_Unrecovered_Freight",
+        "Route_Commercial_Finance"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Unrecovered < 2K AND One_Off_Service_Recovery",
+          "actions": [
+            "Log_As_Service_Gesture + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Unrecovered_Annualised >= 75K For_One_Customer",
+          "actions": [
+            "Correct_Shipping_Condition + Quantify_Recoverable",
+            "Notify_Account_Owner"
+          ],
+          "hitl": "Commercial Finance approves freight recovery approach",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Mismatch_Systematic_Across_Sales_Org",
+          "actions": [
+            "Audit_Incoterm_Master_Defaults + Block_Non_Compliant_Shipping",
+            "Escalate_Global_Process_Owner"
+          ],
+          "hitl": "Global Process Owner approves incoterm master data correction",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 120,
+      "name": "Screening Bypass Window",
+      "category": "Logistics & Freight Integrity",
+      "priority": "Critical",
+      "mentalModel": "Denied-party screening has to happen before the goods move, and the result has to be current. The dangerous case is not the order that fails screening — it is the order released in the window between a stale screening result and the re-screen that never ran, or released manually while the block was pending. This is the one exposure in my function that is not measured in dollars. I check every export goods issue against a screening result that was valid at that moment, not merely present.",
+      "sources": {
+        "sap": [
+          "/SAPSLL/ GTS screening result tables - party screening status and timestamp",
+          "VBAK (VBELN, VKORG) + LIKP (WADAT_IST) - the order and when it actually shipped",
+          "CDHDR/CDPOS - manual release of a compliance block and who did it",
+          "EIKP/EIPO - foreign trade header and item data"
+        ],
+        "oracle": [
+          "GTM screening/compliance result tables [Fusion Global Trade]",
+          "OE_ORDER_HOLDS_ALL (HOLD_ID, RELEASE_REASON_CODE) [Fusion] - compliance hold release",
+          "WSH_NEW_DELIVERIES (ACTUAL_DEPARTURE_DATE) [Fusion]"
+        ]
+      },
+      "layer1_logicalMapping": "For every export goods issue, retrieve the screening result in force at that timestamp and test both its existence and its currency against policy.",
+      "layer2_eventSeries": "Sequence Screening_Performed, Screening_Expiry, Compliance_Block_Released and Goods_Issue to expose shipments that moved outside a valid screening window.",
+      "layer3_feature": "Screening_Validity_Breach",
+      "conceptualSQL": "SELECT l.VBELN, l.WADAT_IST, s.screen_date, s.valid_until, h.released_by\nFROM LIKP l JOIN export_orders e USING(VBELN)\nLEFT JOIN screening s USING(KUNNR) LEFT JOIN block_release h USING(VBELN)\nWHERE s.screen_date IS NULL OR l.WADAT_IST > s.valid_until -> flag Screening_Breach",
+      "originalDAG": [
+        "Identify_Export_Goods_Issues",
+        "Retrieve_Screening_Result_At_Ship_Time",
+        "Test_Existence_And_Currency",
+        "Identify_Manual_Block_Releases",
+        "Route_Trade_Compliance_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Screening_Valid_At_Ship_Time",
+          "actions": [
+            "Confirm_Compliant + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Screening_Stale AND Party_Now_Clears_Rescreen",
+          "actions": [
+            "Rescreen_And_Document + Tighten_Validity_Rule",
+            "Notify_Trade_Compliance_Lead"
+          ],
+          "hitl": "Trade Compliance Lead approves retrospective screening evidence",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Shipped_On_Manual_Release OR Party_Fails_Rescreen",
+          "actions": [
+            "Freeze_Further_Shipments + Preserve_Audit_Evidence",
+            "Escalate_Legal_And_Trade_Compliance"
+          ],
+          "hitl": "Legal and Trade Compliance approve voluntary disclosure assessment",
+          "tier": "legal",
+          "escLevel": 3
+        }
+      ]
+    },
+    {
+      "id": 121,
+      "name": "Export Document Mismatch",
+      "category": "Logistics & Freight Integrity",
+      "priority": "High",
+      "mentalModel": "The commercial invoice, the packing list and the customs declaration all describe the same shipment, and if they disagree the shipment stops at the border — or worse, it clears and the discrepancy surfaces in a post-clearance audit two years later. Value, HS code, net weight and country of origin are the four fields that matter. I reconcile them across the document set before the truck leaves, because after that every correction is an amendment with a paper trail.",
+      "sources": {
+        "sap": [
+          "EIKP/EIPO (STAWN, HERKL, EXPVZ) - commodity code, country of origin, export procedure",
+          "VBRK/VBRP (NETWR, FKIMG) - commercial invoice value and quantity",
+          "LIKP/LIPS (BTGEW, NTGEW) - gross and net weight on the delivery",
+          "/SAPSLL/ customs declaration items"
+        ],
+        "oracle": [
+          "Fusion Global Trade classification and declaration tables",
+          "RA_CUSTOMER_TRX_ALL (TRX_NUMBER, INVOICE_CURRENCY_CODE) [Fusion]",
+          "WSH_DELIVERY_DETAILS (NET_WEIGHT, GROSS_WEIGHT) [Fusion]"
+        ]
+      },
+      "layer1_logicalMapping": "Assemble value, HS code, net weight and origin from the commercial invoice, the delivery and the customs declaration for the same shipment and test for field-level agreement.",
+      "layer2_eventSeries": "Sequence Invoice_Issued, Declaration_Filed and Border_Event to expose mismatches before or after clearance.",
+      "layer3_feature": "Trade_Document_Discrepancy",
+      "conceptualSQL": "SELECT shipment, inv.NETWR, dec.declared_value, inv.STAWN, dec.hs_code,\n       ABS(inv.NETWR - dec.declared_value) AS value_gap\nFROM commercial_invoice inv JOIN customs_declaration dec USING(shipment)\nWHERE inv.STAWN <> dec.hs_code OR value_gap > tolerance -> flag Doc_Mismatch",
+      "originalDAG": [
+        "Assemble_Trade_Document_Set",
+        "Reconcile_Value_HS_Weight_Origin",
+        "Classify_Discrepancy_Severity",
+        "Determine_Pre_Or_Post_Clearance",
+        "Route_Export_Documentation_Specialist"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Discrepancy_Within_Tolerance AND Pre_Clearance",
+          "actions": [
+            "Auto_Correct_Document + Refile"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF HS_Code_Mismatch AND Duty_Impact >= 10K",
+          "actions": [
+            "Hold_Shipment + Reclassify_With_Trade_Compliance",
+            "Notify_Trade_Compliance_Lead"
+          ],
+          "hitl": "Trade Compliance Lead approves reclassification and refiling",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Post_Clearance AND Under_Declared_Value",
+          "actions": [
+            "Prepare_Voluntary_Amendment + Quantify_Duty_And_Penalty",
+            "Escalate_Legal_And_Trade_Compliance"
+          ],
+          "hitl": "Legal and Trade Compliance approve voluntary customs amendment",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 122,
+      "name": "Confirmation Optimism",
+      "category": "Availability & Allocation Integrity",
+      "priority": "Critical",
+      "mentalModel": "ATP will happily confirm a date against a planned receipt, and a planned receipt is an opinion. If a plant's inbound consistently lands four days after its planned date, every confirmation resting on that receipt is already late at the moment it is given. I score confirmations by what they lean on — free stock, firm receipt or planned receipt — and I weight the planned-receipt ones by that plant and material's historic receipt reliability. The customer does not care that the confirmation was arithmetically correct.",
+      "sources": {
+        "sap": [
+          "VBEP (EDATU, BMENG, WMENG) - schedule line confirmed date and quantity",
+          "MDVM / MD04 elements - the receipt element ATP confirmed against",
+          "EKET (EINDT, SLFDT) - purchase order planned vs statistical delivery date",
+          "MSEG (BUDAT, BWART=101) - when the receipt actually posted"
+        ],
+        "oracle": [
+          "MTL_SUPPLY (SUPPLY_TYPE_CODE, EXPECTED_DELIVERY_DATE) [Fusion] - supply ATP leaned on",
+          "OE_ORDER_LINES_ALL (SCHEDULE_SHIP_DATE) [Fusion]",
+          "RCV_TRANSACTIONS (TRANSACTION_DATE) [Fusion] - actual receipt"
+        ]
+      },
+      "layer1_logicalMapping": "Attribute each confirmed schedule line to the supply element ATP used, then join that element class to its historic plan-versus-actual receipt variance for the plant and material.",
+      "layer2_eventSeries": "Sequence Confirmation_Given, Supply_Element_Planned_Date and Supply_Actual_Receipt to expose confirmations built on habitually late supply.",
+      "layer3_feature": "Confirmation_Supply_Reliability",
+      "conceptualSQL": "SELECT p.WERKS, p.MATNR, s.supply_class,\n       AVG(actual_receipt - planned_receipt) AS mean_slip, COUNT(*) AS confirmations\nFROM VBEP v JOIN supply_element s USING(line) JOIN receipts r USING(element)\nWHERE s.supply_class = 'planned' GROUP BY 1,2,3\nHAVING mean_slip >= 2 -> flag Optimistic_Confirmation",
+      "originalDAG": [
+        "Attribute_Confirmation_To_Supply_Element",
+        "Score_Supply_Class_Reliability",
+        "Reweight_Confirmed_Date_By_History",
+        "Quantify_At_Risk_Confirmed_Volume",
+        "Route_Order_Management_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Confirmed_Against_Free_Stock OR Mean_Slip < 1 day",
+          "actions": [
+            "Confirm_As_Reliable + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Mean_Slip >= 3 days AND At_Risk_Volume >= 100K",
+          "actions": [
+            "Re_Confirm_On_Reliability_Adjusted_Date + Alert_Customer_Service",
+            "Notify_Order_Management_Lead"
+          ],
+          "hitl": "Order Management Operations Lead approves reliability-adjusted confirmation",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Customer_Is_Scorecarded AND Slip_Would_Breach_OTIF",
+          "actions": [
+            "Trigger_Expedite_Or_Substitute_Assessment + Model_Fine_Exposure",
+            "Escalate_Customer_Compliance_Lead"
+          ],
+          "hitl": "Customer Compliance Lead approves expedite or substitution",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 123,
+      "name": "Allocation Hoarding",
+      "category": "Availability & Allocation Integrity",
+      "priority": "High",
+      "mentalModel": "When stock is short and allocation is by order book, the rational thing for a market to do is order more than it needs. Then, once allocation is locked, the tail quietly cancels. The result is that constrained stock sat reserved against demand that never existed while a market that ordered honestly went short. I compare ordered quantity at allocation lock to shipped quantity, per market and material, across allocation cycles — the ones with a persistent cancellation tail are gaming the mechanism.",
+      "sources": {
+        "sap": [
+          "VBAP (KWMENG, ABGRU) - ordered quantity and rejection reason",
+          "Allocation / product-allocation tables (planned allocation quantity per period)",
+          "LIPS (LFIMG) - what actually shipped",
+          "CDPOS (VBAP, FNAME='KWMENG') - post-allocation quantity reductions"
+        ],
+        "oracle": [
+          "OE_ORDER_LINES_ALL (ORDERED_QUANTITY, CANCELLED_QUANTITY) [Fusion]",
+          "MTL_DEMAND - allocated demand",
+          "OE_ORDER_HOLDS_ALL - allocation holds"
+        ]
+      },
+      "layer1_logicalMapping": "Snapshot ordered quantity at the allocation lock date per market and material, then difference it against shipped quantity and post-lock cancellations.",
+      "layer2_eventSeries": "Sequence Allocation_Lock, Post_Lock_Reduction and Shipment events across cycles to expose a repeating cancellation tail.",
+      "layer3_feature": "Post_Allocation_Cancellation_Tail",
+      "conceptualSQL": "SELECT market, MATNR, cycle,\n       SUM(qty_at_lock) AS claimed, SUM(shipped) AS taken,\n       1 - SUM(shipped)/NULLIF(SUM(qty_at_lock),0) AS tail\nFROM allocation_snapshot JOIN shipments USING(line)\nGROUP BY 1,2,3 HAVING tail >= 0.2 AND cycles_with_tail >= 3 -> flag Hoarding",
+      "originalDAG": [
+        "Snapshot_Order_Book_At_Allocation_Lock",
+        "Difference_Against_Shipped",
+        "Detect_Repeating_Cancellation_Tail",
+        "Quantify_Misallocated_Constrained_Stock",
+        "Route_Order_Management_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Tail < 10% OR Cancellation_Explained_By_Customer_Event",
+          "actions": [
+            "Accept_Variance + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Tail >= 20% Across_3_Cycles",
+          "actions": [
+            "Apply_Allocation_Haircut_Next_Cycle + Publish_Basis",
+            "Notify_Order_Management_Lead"
+          ],
+          "hitl": "Order Management Operations Lead approves allocation haircut",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Hoarding_Starved_A_Compliant_Market",
+          "actions": [
+            "Rebalance_Allocation + Document_Service_Impact",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves allocation rebalance across markets",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 124,
+      "name": "Unconsented Substitution",
+      "category": "Availability & Allocation Integrity",
+      "priority": "High",
+      "mentalModel": "Substituting a material to protect fill rate is fine when the customer has agreed to it and catastrophic when they have not. The fill-rate report counts the substitute as a hit; the customer counts it as a miss and short-pays. I test every substitution for a recorded consent flag or a standing substitution agreement, and I treat consent-less substitutions as future deductions rather than as service saves.",
+      "sources": {
+        "sap": [
+          "VBAP (MATNR, UEPOS) - ordered versus delivered material on the line",
+          "LIPS (MATNR, LFIMG) - what was actually picked",
+          "KNMT (customer material info record) - agreed substitution set",
+          "VBAK (BSTNK) - the customer PO the substitution deviates from"
+        ],
+        "oracle": [
+          "OE_ORDER_LINES_ALL (INVENTORY_ITEM_ID, ORIGINAL_INVENTORY_ITEM_ID) [Fusion]",
+          "MTL_RELATED_ITEMS (RELATIONSHIP_TYPE_ID) [Fusion] - approved substitutes",
+          "OE_LINE_ACKNOWLEDGMENTS - customer acknowledgement"
+        ]
+      },
+      "layer1_logicalMapping": "Compare ordered to delivered material per line, and test the pair against the customer's approved substitution set and any recorded consent event.",
+      "layer2_eventSeries": "Sequence Substitution_Applied, Consent_Recorded and Deduction_Received to expose substitutions that convert into short-pays.",
+      "layer3_feature": "Unconsented_Substitution_Rate",
+      "conceptualSQL": "SELECT a.KUNNR, a.MATNR AS ordered, p.MATNR AS shipped, COUNT(*) AS subs,\n       SUM(CASE WHEN d.deduction_id IS NOT NULL THEN 1 ELSE 0 END) AS became_deduction\nFROM VBAP a JOIN LIPS p USING(VBELN,POSNR)\nLEFT JOIN KNMT k ON k.KUNNR=a.KUNNR AND k.MATNR=p.MATNR\nLEFT JOIN deductions d USING(VBELN)\nWHERE a.MATNR <> p.MATNR AND k.MATNR IS NULL -> flag Unconsented",
+      "originalDAG": [
+        "Detect_Ordered_vs_Shipped_Material_Delta",
+        "Test_Against_Approved_Substitution_Set",
+        "Check_For_Recorded_Consent",
+        "Project_Deduction_Conversion_Risk",
+        "Route_Customer_Service"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Substitution_In_Approved_Set OR Consent_Recorded",
+          "actions": [
+            "Confirm_Fill + Log_Consent_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Unconsented AND Line_Value >= 10K",
+          "actions": [
+            "Hold_Goods_Issue + Request_Customer_Consent",
+            "Notify_Order_Management_Lead"
+          ],
+          "hitl": "Order Management Operations Lead approves shipment without prior consent",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Customer_Deduction_History_On_Substitutions",
+          "actions": [
+            "Block_Substitution + Report_True_Fill_Rate",
+            "Escalate_Disputes_Deductions_Lead"
+          ],
+          "hitl": "Disputes & Deductions Lead approves substitution block for this customer",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 125,
+      "name": "Plan-to-Actual Route Drift",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "High",
+      "mentalModel": "A route plan is built to a sequence and a time window. What actually happens is a driver's own order of work, which is usually shorter for them and longer for us. Drops per day looks acceptable while the plan quietly stops being followed. I compare planned stop sequence and window to the executed timestamps and measure adherence per route and per driver — persistent drift means the plan is wrong or the plan is ignored, and those need different fixes.",
+      "sources": {
+        "sap": [
+          "/DSD/HH_ROUTE - planned route, stop sequence and time windows",
+          "/DSD/HH_VISIT - executed visit timestamps and sequence",
+          "LIKP (WADAT_IST) - goods issue per stop",
+          "TVRO / route master - planned service time per stop"
+        ],
+        "oracle": [
+          "Oracle Field Service activity and route tables - planned versus actual sequence",
+          "WSH_TRIP_STOPS (PLANNED_ARRIVAL_DATE, ACTUAL_ARRIVAL_DATE) [Fusion]",
+          "WSH_TRIPS (TRIP_ID, VEHICLE_ITEM_ID) [Fusion]"
+        ]
+      },
+      "layer1_logicalMapping": "Align planned stop sequence and window against executed visit timestamps per route-day, and compute sequence adherence and window adherence separately.",
+      "layer2_eventSeries": "Sequence Planned_Stop, Actual_Arrival and Departure events to expose systematic resequencing and window breaches.",
+      "layer3_feature": "Route_Plan_Adherence",
+      "conceptualSQL": "SELECT route, driver, day,\n       kendall_tau(planned_seq, actual_seq) AS sequence_adherence,\n       AVG(CASE WHEN actual_arrival BETWEEN win_start AND win_end THEN 1 ELSE 0 END) AS window_adherence\nFROM planned_stops JOIN actual_visits USING(route, day, stop)\nGROUP BY 1,2,3 HAVING sequence_adherence < 0.6 -> flag Route_Drift",
+      "originalDAG": [
+        "Align_Planned_And_Actual_Stops",
+        "Compute_Sequence_And_Window_Adherence",
+        "Separate_Plan_Quality_From_Compliance",
+        "Quantify_Lost_Drops_And_Cost",
+        "Route_DSD_Field_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Adherence >= 0.8 OR Drift_Explained_By_Traffic_Event",
+          "actions": [
+            "Accept_Execution + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Adherence < 0.6 AND Same_Driver_Across_5_Days",
+          "actions": [
+            "Coach_Driver + Re_Baseline_Service_Times",
+            "Notify_DSD_Field_Operations_Lead"
+          ],
+          "hitl": "DSD Field Operations Lead approves driver coaching action",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Adherence_Low_Across_All_Drivers_On_Route",
+          "actions": [
+            "Flag_Plan_As_Infeasible + Trigger_Route_Rebuild",
+            "Escalate_DSD_Route_Planning_Lead"
+          ],
+          "hitl": "DSD Route Planning Lead approves route rebuild",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 126,
+      "name": "Phantom Call Compliance",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "Critical",
+      "mentalModel": "Call compliance is measured by whether the stop was marked visited. That is a button, not a visit. The tell is dwell time and geofence: a store marked served in ninety seconds, or marked served from two kilometres away, did not get served. I score every visit on dwell, distance and whether any transaction resulted, and I look at the driver-level distribution rather than the individual stop, because one bad stop is a bad day and a pattern is something else.",
+      "sources": {
+        "sap": [
+          "/DSD/HH_VISIT (visit start, visit end, status) - dwell time per call",
+          "/DSD/HH_ROUTE - the stop that was meant to be served",
+          "VBAK / LIKP - whether an order or delivery resulted from the call",
+          "Mobile device GPS capture tables - geofence position at confirmation"
+        ],
+        "oracle": [
+          "Oracle Field Service activity records (start, end, coordinates)",
+          "OE_ORDER_HEADERS_ALL (ORDER_DATE, SOURCE) [Fusion] - resulting transaction",
+          "Mobile telemetry / location capture"
+        ]
+      },
+      "layer1_logicalMapping": "For each confirmed visit compute dwell time, distance between confirmation position and store geocode, and whether any order or delivery document resulted.",
+      "layer2_eventSeries": "Sequence Visit_Start, Visit_End, Position_Fix and Transaction_Created to expose confirmations without a plausible service event.",
+      "layer3_feature": "Implausible_Visit_Confirmation",
+      "conceptualSQL": "SELECT driver, COUNT(*) AS calls,\n       SUM(CASE WHEN dwell_sec < 120 OR geo_distance_m > 500 THEN 1 ELSE 0 END) AS implausible,\n       SUM(CASE WHEN txn_id IS NULL THEN 1 ELSE 0 END) AS no_transaction\nFROM visits GROUP BY 1\nHAVING implausible / calls >= 0.15 -> flag Phantom_Calls",
+      "originalDAG": [
+        "Compute_Dwell_And_Geofence_Distance",
+        "Join_Resulting_Transaction",
+        "Score_Visit_Plausibility",
+        "Aggregate_To_Driver_Distribution",
+        "Route_DSD_Field_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Implausible_Rate < 5% OR Store_Closed_Documented",
+          "actions": [
+            "Log_As_Normal_Variation"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Implausible_Rate >= 15% For_One_Driver",
+          "actions": [
+            "Restate_Call_Compliance + Schedule_Supervisor_Ride_Along",
+            "Notify_DSD_Field_Operations_Lead"
+          ],
+          "hitl": "DSD Field Operations Lead approves supervisor ride-along",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Implausible_Calls_Coincide_With_Cash_Variance",
+          "actions": [
+            "Freeze_Route_Settlement + Preserve_Telemetry_Evidence",
+            "Escalate_Internal_Audit"
+          ],
+          "hitl": "Internal Audit approves route settlement freeze and investigation",
+          "tier": "legal",
+          "escLevel": 3
+        }
+      ]
+    },
+    {
+      "id": 127,
+      "name": "Sub-Economic Stop Persistence",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "Medium",
+      "mentalModel": "Every route carries stops that stopped paying their way two years ago. They persist because removing a customer is a conversation nobody wants and because the route plan is inherited rather than rebuilt. I cost each stop properly — service time, drive time, drop cost — and compare it to trailing revenue and margin. A stop below cost to serve is not automatically a stop to drop; it is a stop that needs a different frequency, a different channel, or a minimum order.",
+      "sources": {
+        "sap": [
+          "/DSD/HH_VISIT - service time actually consumed per stop",
+          "VBRP (NETWR, FKIMG) - trailing revenue per ship-to",
+          "TVRO / route master - drive time and drop cost assumptions",
+          "KNVV (KUNNR, VKORG) - customer sales area and price group"
+        ],
+        "oracle": [
+          "Field Service activity duration per stop",
+          "RA_CUSTOMER_TRX_LINES_ALL - trailing revenue by ship-to site",
+          "HZ_CUST_SITE_USES_ALL - the delivery site"
+        ]
+      },
+      "layer1_logicalMapping": "Allocate service, drive and drop cost to each stop and compare to trailing twelve-month margin for that ship-to.",
+      "layer2_eventSeries": "Sequence Monthly_Stop_Margin and Cost_To_Serve to expose stops that crossed below breakeven and stayed there.",
+      "layer3_feature": "Stop_Cost_To_Serve_Gap",
+      "conceptualSQL": "SELECT ship_to, route,\n       SUM(margin_12m) AS margin, SUM(service_cost + drive_cost + drop_cost) AS cost_to_serve\nFROM stop_economics GROUP BY 1,2\nHAVING margin < cost_to_serve AND months_below_breakeven >= 6 -> flag Sub_Economic",
+      "originalDAG": [
+        "Allocate_Cost_To_Serve_Per_Stop",
+        "Compute_Trailing_Stop_Margin",
+        "Identify_Sustained_Sub_Economic_Stops",
+        "Model_Frequency_Or_Channel_Alternatives",
+        "Route_DSD_Route_Planning_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Margin >= Cost_To_Serve OR Strategic_Account_Flag",
+          "actions": [
+            "Retain_Stop + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Sustained_Loss AND Alternative_Frequency_Viable",
+          "actions": [
+            "Propose_Frequency_Reduction + Model_Revenue_Risk",
+            "Notify_DSD_Route_Planning_Lead"
+          ],
+          "hitl": "DSD Route Planning Lead approves call-frequency change",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Sustained_Loss AND No_Viable_Alternative",
+          "actions": [
+            "Propose_Channel_Migration_Or_MOQ + Prepare_Customer_Conversation",
+            "Escalate_Sales_Operations_Manager"
+          ],
+          "hitl": "Sales Operations approves channel migration or minimum order proposal",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 128,
+      "name": "End-of-Shift Batch Confirmation",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "High",
+      "mentalModel": "When eleven deliveries are all confirmed within four minutes at the end of a shift, they were not confirmed as they happened — they were keyed in the cab at the depot. Every timestamp downstream is then fiction: proof of delivery times, temperature compliance windows, service-level evidence. I look at the inter-confirmation interval distribution per route-day; real execution is spread, back-entry is a spike.",
+      "sources": {
+        "sap": [
+          "/DSD/HH_VISIT - confirmation timestamps per stop",
+          "LIKP (WADAT_IST, ERZET) - goods issue date and entry time",
+          "/DSD/SL_SETTLE - settlement record for the shift",
+          "Mobile sync log - when the device actually transmitted"
+        ],
+        "oracle": [
+          "WSH_TRIP_STOPS (ACTUAL_ARRIVAL_DATE, LAST_UPDATE_DATE) [Fusion]",
+          "Field Service activity completion timestamps",
+          "Mobile sync/transmission log"
+        ]
+      },
+      "layer1_logicalMapping": "Order confirmation timestamps within each route-day and compute the distribution of intervals between consecutive confirmations, plus the gap between confirmation and device transmission.",
+      "layer2_eventSeries": "Sequence Stop_Confirmations across the shift to expose clusters inconsistent with physical travel time between stops.",
+      "layer3_feature": "Confirmation_Interval_Compression",
+      "conceptualSQL": "SELECT route, day, COUNT(*) AS stops,\n       SUM(CASE WHEN interval_sec < 120 AND drive_time_required > 600 THEN 1 ELSE 0 END) AS impossible\nFROM confirmations GROUP BY 1,2\nHAVING impossible >= 3 -> flag Batch_Confirmation",
+      "originalDAG": [
+        "Order_Confirmations_Within_Shift",
+        "Compute_Inter_Confirmation_Intervals",
+        "Compare_To_Required_Drive_Time",
+        "Flag_Physically_Impossible_Clusters",
+        "Route_DSD_Field_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Intervals_Consistent_With_Travel OR Offline_Sync_Documented",
+          "actions": [
+            "Accept_Timestamps + Log_Sync_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Impossible_Clusters >= 3 AND Recurring_Weekly",
+          "actions": [
+            "Invalidate_Timestamp_Based_SLA_Evidence + Coach_Driver",
+            "Notify_DSD_Field_Operations_Lead"
+          ],
+          "hitl": "DSD Field Operations Lead approves SLA evidence restatement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Batch_Confirmation_On_Temperature_Controlled_Load",
+          "actions": [
+            "Quarantine_Compliance_Evidence + Assess_Product_Risk",
+            "Escalate_Quality_And_Compliance"
+          ],
+          "hitl": "Quality and Compliance approve cold-chain evidence review",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 129,
+      "name": "Distributor Reporting Opacity",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "High",
+      "mentalModel": "Distributor-operated routes report to me in aggregates — cases delivered, invoices raised — while own-fleet routes report every exception at store and SKU level. So distributor performance always looks better, because the failures never reach my report. I measure reporting granularity itself: the ratio of exception records to drops. When a distributor reports a tenth of the exceptions per drop that own fleet does, the difference is visibility, not performance.",
+      "sources": {
+        "sap": [
+          "/DSD/HH_VISIT - exception records by route and operator type",
+          "LIKP / LIPS - delivery and item level detail received per route",
+          "LFA1 / KNA1 - distributor master and operating model flag",
+          "VBRK - invoices raised against distributor routes"
+        ],
+        "oracle": [
+          "WSH_EXCEPTIONS (EXCEPTION_NAME, DELIVERY_DETAIL_ID) [Fusion]",
+          "HZ_PARTIES (PARTY_TYPE) [Fusion] - distributor identification",
+          "Partner portal submission records"
+        ]
+      },
+      "layer1_logicalMapping": "Compute exception records per hundred drops separately for own-fleet and distributor routes, controlling for territory and product mix.",
+      "layer2_eventSeries": "Sequence Drop_Executed and Exception_Reported by operator type to expose systematically absent exception reporting.",
+      "layer3_feature": "Exception_Reporting_Density",
+      "conceptualSQL": "SELECT operator_type, distributor, COUNT(exception_id)*100.0/COUNT(DISTINCT drop_id) AS exc_per_100\nFROM drops LEFT JOIN exceptions USING(drop_id)\nGROUP BY 1,2\nHAVING operator_type='distributor' AND exc_per_100 < 0.25 * own_fleet_benchmark\n  -> flag Reporting_Opacity",
+      "originalDAG": [
+        "Compute_Exception_Density_By_Operator",
+        "Control_For_Territory_And_Mix",
+        "Compare_To_Own_Fleet_Benchmark",
+        "Quantify_Unreported_Failure_Estimate",
+        "Route_DSD_Field_Operations_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Density_Within_50%_Of_Benchmark",
+          "actions": [
+            "Accept_Reporting + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Density < 25% Of_Benchmark",
+          "actions": [
+            "Require_Line_Level_Reporting + Withhold_Performance_Bonus_Assessment",
+            "Notify_DSD_Field_Operations_Lead"
+          ],
+          "hitl": "DSD Field Operations Lead approves reporting requirement change",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Opacity_Coincides_With_Customer_Complaints",
+          "actions": [
+            "Trigger_Distributor_Audit + Re_Baseline_Contract_KPIs",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves distributor performance audit",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 130,
+      "name": "Repeat Failed Delivery Loop",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "Medium",
+      "mentalModel": "The same store fails on the same reason week after week — no access before ten, no purchase order on file, wrong delivery window — and every week we send a truck anyway. Each individual failure gets closed as an exception. Nobody fixes the master data behind it. I group failed deliveries by store and reason code and count repeats; anything failing three times on one reason is a data defect wearing an operations costume.",
+      "sources": {
+        "sap": [
+          "LIKP (VBELN, LFDAT) + delivery blocking/failure reason codes",
+          "/DSD/HH_VISIT - failed call reason at the stop",
+          "KNVV / KNA1 (delivery window, unloading point) - the master data behind the failure",
+          "TVLS / delivery status tables"
+        ],
+        "oracle": [
+          "WSH_EXCEPTIONS (EXCEPTION_NAME, STATUS) [Fusion]",
+          "HZ_CUST_SITE_USES_ALL (SHIP_TO) [Fusion] - site delivery attributes",
+          "OE_ORDER_HOLDS_ALL - resulting holds"
+        ]
+      },
+      "layer1_logicalMapping": "Group failed deliveries by ship-to and reason code, count repeats within a rolling window, and join the master data field the reason implicates.",
+      "layer2_eventSeries": "Sequence Failure_Events per store and reason to expose repeats that no master-data change ever followed.",
+      "layer3_feature": "Repeat_Failure_Without_Remediation",
+      "conceptualSQL": "SELECT ship_to, reason_code, COUNT(*) AS failures,\n       MAX(master_data_last_changed) AS last_fix\nFROM failed_deliveries GROUP BY 1,2\nHAVING failures >= 3 AND last_fix < MIN(failure_date) -> flag Unremediated_Loop",
+      "originalDAG": [
+        "Group_Failures_By_Store_And_Reason",
+        "Detect_Repeats_Without_Master_Data_Change",
+        "Identify_Implicated_Data_Field",
+        "Quantify_Wasted_Drop_Cost",
+        "Route_OTC_Master_Data_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Failures < 3 OR Master_Data_Already_Corrected",
+          "actions": [
+            "Close_Exception + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Repeats >= 3 AND Field_Is_Self_Correctable",
+          "actions": [
+            "Raise_Master_Data_Change_Request + Suspend_Redelivery",
+            "Notify_OTC_Master_Data_Lead"
+          ],
+          "hitl": "OTC Master Data Lead approves master data change",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Failure_Requires_Customer_Agreement",
+          "actions": [
+            "Open_Customer_Service_Case + Halt_Scheduled_Drops",
+            "Escalate_Sales_Operations_Manager"
+          ],
+          "hitl": "Sales Operations approves suspension of scheduled deliveries",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 131,
+      "name": "Cash Banking Lag",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "Critical",
+      "mentalModel": "In van sales the driver holds company cash from the moment of the first collection to the moment it hits the bank. Every hour of that is float and every day of it is risk. Settlement records tell me when cash was declared; the bank statement tells me when it arrived. The gap between those two, per driver, is the number I care about — and a gap that widens at month end, or for one driver only, is not a logistics problem.",
+      "sources": {
+        "sap": [
+          "/DSD/SL_SETTLE - declared cash at route settlement",
+          "FEBKO/FEBEP - bank statement line items and value dates",
+          "BSEG (HKONT cash-in-transit) - the clearing account the float sits in",
+          "/DSD/HH_VISIT - time of first cash collection on the route"
+        ],
+        "oracle": [
+          "CE_STATEMENT_LINES (TRX_DATE, AMOUNT) [Fusion] - bank arrival",
+          "AR_CASH_RECEIPTS_ALL (RECEIPT_DATE, DEPOSIT_DATE) [Fusion]",
+          "Field cash collection records"
+        ]
+      },
+      "layer1_logicalMapping": "Match declared route cash to its bank credit and compute the elapsed time from first collection to bank value date, per driver and route.",
+      "layer2_eventSeries": "Sequence First_Collection, Settlement_Declared and Bank_Value_Date to expose float held beyond policy.",
+      "layer3_feature": "Cash_In_Transit_Ageing",
+      "conceptualSQL": "SELECT driver, route, settle_date,\n       bank_value_date - first_collection_time AS float_hours, declared_cash\nFROM route_settlement JOIN bank_credit USING(settlement_ref)\nWHERE float_hours > policy_hours -> flag Banking_Lag",
+      "originalDAG": [
+        "Match_Declared_Cash_To_Bank_Credit",
+        "Compute_Float_Duration_Per_Driver",
+        "Compare_To_Banking_Policy",
+        "Quantify_Cash_At_Risk",
+        "Route_DSD_Settlement_Office_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Float_Within_Policy OR Bank_Holiday_Explains_Gap",
+          "actions": [
+            "Clear_Settlement + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Float_Exceeds_Policy_By_24h AND Amount >= 10K",
+          "actions": [
+            "Hold_Route_Clearance + Require_Same_Day_Banking",
+            "Notify_DSD_Settlement_Office_Lead"
+          ],
+          "hitl": "DSD Settlement Office Lead approves route clearance hold",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Lag_Concentrated_On_One_Driver OR Lag_Spikes_At_Period_End",
+          "actions": [
+            "Suspend_Cash_Handling_Authority + Preserve_Settlement_Evidence",
+            "Escalate_Internal_Audit"
+          ],
+          "hitl": "Internal Audit approves suspension of cash-handling authority",
+          "tier": "legal",
+          "escLevel": 3
+        }
+      ]
+    },
+    {
+      "id": 132,
+      "name": "Load-to-Settle Shrinkage",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "Critical",
+      "mentalModel": "Stock loaded must equal stock sold plus stock returned plus stock accounted as damaged. When it does not, the difference walked off the truck. Individually these are a case here and a case there, well inside anyone's tolerance. Aggregated by driver over a quarter they are a number worth acting on. I reconcile every route on a strict three-way basis and I trend the residual per driver rather than judging any single day.",
+      "sources": {
+        "sap": [
+          "MSEG (BWART 601/602, MENGE) - goods issue and return movements per route",
+          "/DSD/SL_SETTLE - declared sales, returns and damages at settlement",
+          "MSKU / special stock at driver or vehicle",
+          "LIPS (LFIMG) - delivered quantity confirmed at stops"
+        ],
+        "oracle": [
+          "MTL_MATERIAL_TRANSACTIONS (TRANSACTION_TYPE_ID, TRANSACTION_QUANTITY) [Fusion]",
+          "Mobile van inventory reconciliation records",
+          "MTL_ONHAND_QUANTITIES_DETAIL - vehicle subinventory"
+        ]
+      },
+      "layer1_logicalMapping": "Build a three-way reconciliation per route-day of loaded, sold, returned and damaged quantities, and carry the unexplained residual to the driver.",
+      "layer2_eventSeries": "Sequence Load, Sale, Return and Settlement events to expose a persistent unexplained residual by driver over time.",
+      "layer3_feature": "Route_Stock_Residual",
+      "conceptualSQL": "SELECT driver, period,\n       SUM(loaded - sold - returned - damaged) AS residual_cases,\n       SUM((loaded - sold - returned - damaged) * std_cost) AS residual_value\nFROM route_reconciliation GROUP BY 1,2\nHAVING residual_value >= threshold AND periods_positive >= 3 -> flag Shrinkage",
+      "originalDAG": [
+        "Build_Three_Way_Route_Reconciliation",
+        "Compute_Unexplained_Residual",
+        "Trend_Residual_By_Driver",
+        "Value_Residual_At_Standard_Cost",
+        "Route_DSD_Settlement_Office_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Residual_Within_Tolerance OR Damage_Documented",
+          "actions": [
+            "Clear_Settlement + Post_Damage_Write_Off"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Residual_Positive_Across_3_Periods",
+          "actions": [
+            "Trigger_Vehicle_Stock_Count + Coach_Driver",
+            "Notify_DSD_Settlement_Office_Lead"
+          ],
+          "hitl": "DSD Settlement Office Lead approves unannounced vehicle stock count",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Residual_Value >= 25K OR Coincides_With_Phantom_Calls",
+          "actions": [
+            "Freeze_Route_Assignment + Preserve_Movement_Evidence",
+            "Escalate_Internal_Audit"
+          ],
+          "hitl": "Internal Audit approves loss investigation",
+          "tier": "legal",
+          "escLevel": 3
+        }
+      ]
+    },
+    {
+      "id": 133,
+      "name": "Settlement Credit Note Spike",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "High",
+      "mentalModel": "When a route will not settle, the fastest way to make it settle is a credit note. Raised at the point of settlement, for a round number, against a customer who never asked for it — that credit is squaring a cash or stock variance, not correcting a billing error. I watch credit notes raised inside the settlement window by the settling user, and I compare their reason-code mix to credits raised through the normal billing correction route.",
+      "sources": {
+        "sap": [
+          "VBRK (FKART='G2', ERDAT, ERZET, ERNAM) - credit memo header, who and when",
+          "/DSD/SL_SETTLE - settlement window timestamps for the route",
+          "VBRP (NETWR) - credit value and the invoice it references",
+          "Credit memo reason codes (AUGRU)"
+        ],
+        "oracle": [
+          "RA_CUSTOMER_TRX_ALL (TRX_CLASS='CM', CREATION_DATE, CREATED_BY) [Fusion]",
+          "AR_CREDIT_MEMO_AMOUNTS - credit application",
+          "Route settlement records"
+        ]
+      },
+      "layer1_logicalMapping": "Select credit memos created within the route settlement window by the settling user and compare volume, value roundness and reason-code mix against the baseline correction population.",
+      "layer2_eventSeries": "Sequence Settlement_Opened, Credit_Note_Raised and Settlement_Cleared to expose credits that exist only to close a variance.",
+      "layer3_feature": "Settlement_Window_Credit_Concentration",
+      "conceptualSQL": "SELECT route, settling_user, COUNT(*) AS credits, SUM(NETWR) AS value,\n       AVG(CASE WHEN MOD(NETWR,100)=0 THEN 1 ELSE 0 END) AS round_ratio\nFROM VBRK c JOIN settlement s ON c.ERDAT BETWEEN s.open AND s.close\nWHERE c.FKART='G2' GROUP BY 1,2\nHAVING credits >= 3 AND round_ratio > 0.6 -> flag Settlement_Credits",
+      "originalDAG": [
+        "Select_Credits_In_Settlement_Window",
+        "Attribute_To_Settling_User",
+        "Test_Value_Roundness_And_Reason_Mix",
+        "Correlate_With_Route_Variance",
+        "Route_DSD_Settlement_Office_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Credit_Traces_To_Customer_Claim AND Reason_Code_Valid",
+          "actions": [
+            "Approve_Credit + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Round_Value_Credits >= 3 AND Match_Route_Variance",
+          "actions": [
+            "Reverse_Credit + Reopen_Route_Settlement",
+            "Notify_DSD_Settlement_Office_Lead"
+          ],
+          "hitl": "DSD Settlement Office Lead approves credit reversal and settlement reopen",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Settling_User_Also_Approves_Credits",
+          "actions": [
+            "Raise_SoD_Conflict + Remove_Credit_Authority",
+            "Escalate_OTC_Controls_Lead"
+          ],
+          "hitl": "OTC Controls Lead approves removal of credit-note authority",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 134,
+      "name": "Empties Return Divergence",
+      "category": "Route Execution & Settlement Integrity",
+      "priority": "High",
+      "mentalModel": "Crates, kegs and pallets are company assets on loan, and the loop only closes if what goes out comes back. Per drop the divergence is trivial; per customer per year it is a fleet of pallets. I track issued against returned by customer and route, age the open balance, and reconcile it to the deposit liability we carry. A customer whose open balance only ever grows is either losing our assets or selling them.",
+      "sources": {
+        "sap": [
+          "MSKU (special stock with customer - returnable packaging balance)",
+          "MSEG (BWART 601/602 with returnable packaging material) - issue and return movements",
+          "/DSD/SL_SETTLE - empties declared at route settlement",
+          "BSEG - deposit liability carried per customer"
+        ],
+        "oracle": [
+          "MTL_ONHAND_QUANTITIES_DETAIL - customer-held returnable stock",
+          "MTL_MATERIAL_TRANSACTIONS - issue and return of returnable items",
+          "AR_DEPOSITS / customer deposit balances"
+        ]
+      },
+      "layer1_logicalMapping": "Net issued against returned returnable units per customer and route, age the open balance, and reconcile it to the carried deposit liability.",
+      "layer2_eventSeries": "Sequence Asset_Issued, Asset_Returned and Balance_Aged to expose customers whose open balance never reduces.",
+      "layer3_feature": "Returnable_Asset_Open_Balance_Ageing",
+      "conceptualSQL": "SELECT KUNNR, material, SUM(issued - returned) AS open_units,\n       AVG(days_open) AS avg_age, open_units * unit_cost AS float_value\nFROM returnable_movements GROUP BY 1,2\nHAVING open_units > threshold AND trend(open_units) > 0 -> flag Return_Divergence",
+      "originalDAG": [
+        "Net_Issued_Against_Returned",
+        "Age_Open_Returnable_Balance",
+        "Reconcile_To_Deposit_Liability",
+        "Value_Asset_Float_At_Risk",
+        "Route_Returnable_Assets_Manager"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Open_Balance_Stable AND Within_Agreed_Pool",
+          "actions": [
+            "Accept_Balance + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Balance_Growing_3_Periods AND Float_Value >= 25K",
+          "actions": [
+            "Trigger_Customer_Asset_Count + Enforce_Deposit_Billing",
+            "Notify_Returnable_Assets_Manager"
+          ],
+          "hitl": "Returnable Assets Manager approves deposit billing enforcement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Non_Return_Persists_After_Billing",
+          "actions": [
+            "Charge_Asset_Loss_To_Customer + Suspend_Further_Issue",
+            "Escalate_Credit_And_Collections"
+          ],
+          "hitl": "Credit & Collections approve asset loss charge and issue suspension",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 135,
+      "name": "Unauthorised Return Receipt",
+      "category": "Returns & Recovery Integrity",
+      "priority": "High",
+      "mentalModel": "Goods come back on a pallet with a handwritten note and the warehouse books them in, because refusing a delivery is a fight nobody at the dock wants. From that moment the return has no authorisation, no reason code and no root cause — and a credit will follow because the stock is on our books. I match every return receipt to an RMA that existed before the goods arrived, and I treat the unmatched ones as a control failure at the dock rather than a paperwork problem in the office.",
+      "sources": {
+        "sap": [
+          "VBAK (AUART='RE', ERDAT) - the return order and when it was raised",
+          "LIKP / LIPS (returns delivery) - the physical receipt",
+          "MSEG (BWART 651/653, BUDAT) - the goods movement back into stock",
+          "VBRK (FKART='G2') - the credit that follows"
+        ],
+        "oracle": [
+          "OE_ORDER_HEADERS_ALL (ORDER_CATEGORY_CODE='RETURN') [Fusion] - the RMA",
+          "RCV_TRANSACTIONS (TRANSACTION_TYPE='RECEIVE') [Fusion] - physical receipt",
+          "RA_CUSTOMER_TRX_ALL (TRX_CLASS='CM') [Fusion] - resulting credit"
+        ]
+      },
+      "layer1_logicalMapping": "Join every return goods movement to a return order and compare the return order creation date to the receipt posting date, flagging receipts with no prior authorisation.",
+      "layer2_eventSeries": "Sequence RMA_Created, Goods_Received and Credit_Issued to expose receipts that preceded their own authorisation or had none.",
+      "layer3_feature": "Unauthorised_Return_Rate",
+      "conceptualSQL": "SELECT m.WERKS, m.KUNNR, COUNT(*) AS receipts,\n       SUM(CASE WHEN r.VBELN IS NULL OR r.ERDAT > m.BUDAT THEN 1 ELSE 0 END) AS unauthorised\nFROM MSEG m LEFT JOIN VBAK r ON r.VBELN = m.return_ref AND r.AUART = 'RE'\nWHERE m.BWART IN ('651','653') GROUP BY 1,2\nHAVING unauthorised * 1.0 / receipts >= 0.1 -> flag Unauthorised_Returns",
+      "originalDAG": [
+        "Extract_Return_Goods_Movements",
+        "Match_To_Prior_Return_Authorisation",
+        "Flag_Receipts_Without_RMA",
+        "Quantify_Credit_Exposure_And_Site_Concentration",
+        "Route_Returns_Claims_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF RMA_Exists_Before_Receipt AND Reason_Code_Captured",
+          "actions": [
+            "Process_Return + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF No_RMA AND Credit_Value >= 10K",
+          "actions": [
+            "Hold_Credit_Issue + Raise_Retrospective_Authorisation",
+            "Notify_Returns_Claims_Lead"
+          ],
+          "hitl": "Returns & Claims Lead approves retrospective return authorisation",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Unauthorised_Rate >= 20% At_One_Site",
+          "actions": [
+            "Enforce_Dock_Refusal_Rule + Retrain_Receiving_Team",
+            "Escalate_Global_Process_Owner"
+          ],
+          "hitl": "Global Process Owner approves dock refusal control",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 136,
+      "name": "Disposition Default Drift",
+      "category": "Returns & Recovery Integrity",
+      "priority": "Critical",
+      "mentalModel": "Scrap is the fastest disposition. It needs no inspection, no relabelling, no decision — so under pressure it becomes the default, and salvage recovery quietly collapses. The give-away is disposition mix moving while return reason mix stays flat: the goods coming back have not changed, only what we decide to do with them. I trend disposition by reason code and by who made the call, and I recompute the recovery we forfeited at the resaleable value we could have realised.",
+      "sources": {
+        "sap": [
+          "MSEG (BWART 653/655/551, MENGE) - return to unrestricted, to blocked, or to scrap",
+          "QMEL / QMFE (quality notification and defect code) - the inspection result",
+          "VBAP (AUGRU) - return reason code on the return order",
+          "MBEW (VERPR, STPRS) - the value forfeited on scrap"
+        ],
+        "oracle": [
+          "MTL_MATERIAL_TRANSACTIONS (TRANSACTION_TYPE_ID) [Fusion] - disposition movement",
+          "QA_RESULTS - inspection disposition",
+          "CST_ITEM_COSTS - value forfeited"
+        ]
+      },
+      "layer1_logicalMapping": "Cross-tabulate return reason code against disposition movement type by period and inspector, and value the difference between scrap and resaleable disposition.",
+      "layer2_eventSeries": "Sequence Return_Reason_Recorded, Inspection_Result and Disposition_Posted to expose scrap decisions taken without an inspection supporting them.",
+      "layer3_feature": "Scrap_Default_Propensity",
+      "conceptualSQL": "SELECT period, inspector, reason_code,\n       SUM(CASE WHEN disposition='scrap' THEN qty END)*1.0/SUM(qty) AS scrap_share,\n       SUM(CASE WHEN disposition='scrap' AND inspection_id IS NULL THEN qty*std_cost END) AS forfeited\nFROM return_dispositions GROUP BY 1,2,3\nHAVING scrap_share > baseline_scrap_share * 1.5 -> flag Disposition_Drift",
+      "originalDAG": [
+        "Cross_Tab_Reason_Against_Disposition",
+        "Detect_Scrap_Without_Inspection",
+        "Trend_Scrap_Share_By_Inspector",
+        "Value_Forfeited_Salvage_Recovery",
+        "Route_Returns_Claims_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Scrap_Supported_By_Inspection OR Reason_Is_Contamination",
+          "actions": [
+            "Confirm_Disposition + Log_Inspection_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Scrap_Share_Above_Baseline AND Forfeited >= 50K",
+          "actions": [
+            "Mandate_Inspection_Before_Scrap + Re_Baseline_Salvage_Target",
+            "Notify_Returns_Claims_Lead"
+          ],
+          "hitl": "Returns & Claims Lead approves mandatory pre-scrap inspection",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Scrap_Concentrated_On_One_Inspector",
+          "actions": [
+            "Suspend_Scrap_Authority + Audit_Recent_Dispositions",
+            "Escalate_OTC_Controls_Lead"
+          ],
+          "hitl": "OTC Controls Lead approves scrap authority suspension",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 137,
+      "name": "Credit Ahead of Receipt",
+      "category": "Returns & Recovery Integrity",
+      "priority": "Critical",
+      "mentalModel": "A customer says the goods are coming back and asks for the credit now. Someone helpful raises it. Then the goods do not arrive, or arrive short, or arrive damaged in a way that would have changed the credit — and the money is already gone. I never let the credit lead the receipt without a documented decision. Every credit raised against a return order with no corresponding goods movement after a reasonable window is an open recovery, not a closed case.",
+      "sources": {
+        "sap": [
+          "VBRK (FKART='G2', FKDAT) - credit memo and its date",
+          "VBFA - document flow from return order to credit and to goods movement",
+          "MSEG (BWART 651/653, BUDAT) - whether the stock ever came back",
+          "VBAP (KWMENG) versus LIPS (LFIMG) - authorised versus received quantity"
+        ],
+        "oracle": [
+          "RA_CUSTOMER_TRX_ALL (TRX_CLASS='CM', TRX_DATE) [Fusion]",
+          "RCV_TRANSACTIONS (TRANSACTION_DATE, QUANTITY) [Fusion]",
+          "OE_ORDER_LINES_ALL (ORDERED_QUANTITY) [Fusion] - RMA quantity"
+        ]
+      },
+      "layer1_logicalMapping": "For each return credit, look for a goods receipt against the same return order and compare quantity and timing; age credits with no receipt beyond the agreed return window.",
+      "layer2_eventSeries": "Sequence Credit_Issued, Expected_Return_Window and Goods_Receipt to expose credits that were never earned.",
+      "layer3_feature": "Credit_Without_Receipt_Ageing",
+      "conceptualSQL": "SELECT c.VBELN AS credit, c.FKDAT, r.VBELN AS rma, SUM(m.MENGE) AS received,\n       c.credit_qty, DATEDIFF(today, c.FKDAT) AS age_days\nFROM VBRK c JOIN VBFA f ON f.VBELN = c.VBELN\nLEFT JOIN MSEG m ON m.return_ref = f.VBELV\nGROUP BY 1,2,3,5 HAVING COALESCE(received,0) < c.credit_qty AND age_days > return_window\n  -> flag Credit_Ahead_Of_Receipt",
+      "originalDAG": [
+        "Match_Return_Credits_To_Goods_Receipts",
+        "Age_Unmatched_Credits_Against_Return_Window",
+        "Compare_Credited_To_Received_Quantity",
+        "Quantify_Open_Recovery",
+        "Route_Returns_Claims_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Receipt_Matches_Credit_Quantity Within_Window",
+          "actions": [
+            "Close_Return_Case + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF No_Receipt AND Age > Window AND Value >= 10K",
+          "actions": [
+            "Raise_Debit_Note_To_Reverse_Credit + Contact_Customer",
+            "Notify_Returns_Claims_Lead"
+          ],
+          "hitl": "Returns & Claims Lead approves credit reversal",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Customer_Has_Repeat_Unreturned_Credits",
+          "actions": [
+            "Block_Credit_Before_Receipt_For_Customer + Open_Recovery_Case",
+            "Escalate_Credit_And_Collections"
+          ],
+          "hitl": "Credit & Collections approve customer-level credit-before-receipt block",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 138,
+      "name": "Concentrated Return Source",
+      "category": "Returns & Recovery Integrity",
+      "priority": "High",
+      "mentalModel": "Returns get managed as a customer behaviour problem when most of the volume is usually a product problem wearing a customer's name. When one SKU, one batch or one pack format accounts for a disproportionate share of returns across unrelated customers, that is not a returns issue — it is quality or specification, and it will keep costing until somebody upstream owns it. I decompose returns by SKU, batch and customer and test whether concentration sits on the product axis or the customer axis before assigning the problem.",
+      "sources": {
+        "sap": [
+          "VBAP (MATNR, CHARG, AUGRU) - returned material, batch and reason",
+          "VBRP (FKIMG, NETWR) - original sales volume as the denominator",
+          "QMEL (defect code, MATNR) - quality notifications raised",
+          "MCHB / batch master - production batch and plant of origin"
+        ],
+        "oracle": [
+          "OE_ORDER_LINES_ALL (INVENTORY_ITEM_ID, LOT_NUMBER, RETURN_REASON_CODE) [Fusion]",
+          "MTL_LOT_NUMBERS - batch and origin",
+          "QA_RESULTS - quality findings"
+        ]
+      },
+      "layer1_logicalMapping": "Compute return rate per SKU, per batch and per customer against matched sales volume, then compare concentration on the product axis to concentration on the customer axis.",
+      "layer2_eventSeries": "Sequence Batch_Produced, Sold and Returned to expose returns clustering on a production window rather than a buyer.",
+      "layer3_feature": "Return_Concentration_Axis",
+      "conceptualSQL": "SELECT MATNR, CHARG, COUNT(DISTINCT KUNNR) AS customers,\n       SUM(returned_qty)*1.0/NULLIF(SUM(sold_qty),0) AS return_rate\nFROM returns_vs_sales GROUP BY 1,2\nHAVING return_rate > 3 * category_baseline AND customers >= 5 -> flag Product_Axis_Concentration",
+      "originalDAG": [
+        "Compute_Return_Rate_By_SKU_Batch_Customer",
+        "Test_Concentration_Axis",
+        "Join_Quality_Notification_Evidence",
+        "Quantify_Recoverable_From_Upstream",
+        "Route_Returns_Claims_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Concentration_On_Customer_Axis",
+          "actions": [
+            "Route_To_Customer_Behaviour_Review + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Concentration_On_Batch AND Customers >= 5",
+          "actions": [
+            "Raise_Quality_Notification + Quarantine_Remaining_Batch",
+            "Notify_Quality_And_Supply"
+          ],
+          "hitl": "Quality approves batch quarantine and containment",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Concentration_On_SKU_Across_Batches",
+          "actions": [
+            "Open_Specification_Review + Charge_Cost_To_Product_Owner",
+            "Escalate_Global_Process_Owner"
+          ],
+          "hitl": "Global Process Owner approves specification review and cost reassignment",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 139,
+      "name": "Silent Field Decay",
+      "category": "Master Data & Channel Integrity",
+      "priority": "Critical",
+      "mentalModel": "Customer masters are created under a governed workflow and then edited freely for the next ten years. The fields that matter most downstream — payment terms, dunning procedure, tax classification, incoterm, credit control area — are exactly the ones a single change can move without anyone approving it. I read the change log rather than the master record: who changed which controlled field, when, and whether any request or approval sat behind it. A controlled field changed outside workflow is a defect regardless of whether the new value is right.",
+      "sources": {
+        "sap": [
+          "CDHDR/CDPOS (OBJECTCLAS='DEBI', FNAME, USERNAME, UDATE) - customer master change log",
+          "KNB1 (ZTERM, MAHNA) - payment terms and dunning procedure",
+          "KNVV (INCO1, KTGRD, VKORG) - sales-area controlled fields",
+          "SWWWIHEAD - the governance workflow instance, where one exists"
+        ],
+        "oracle": [
+          "HZ_CUST_ACCOUNTS / HZ_CUSTOMER_PROFILES (audit columns) [Fusion]",
+          "HZ_CUST_SITE_USES_ALL (PAYMENT_TERM_ID) [Fusion]",
+          "FND_ATTACHED_DOCUMENTS / approval history"
+        ]
+      },
+      "layer1_logicalMapping": "Filter change documents to the controlled field list, join each change to a governance workflow instance, and flag changes with no approving instance.",
+      "layer2_eventSeries": "Sequence Change_Request, Approval and Field_Change to expose changes where the field moved without the first two.",
+      "layer3_feature": "Ungoverned_Field_Change_Rate",
+      "conceptualSQL": "SELECT c.FNAME, c.USERNAME, COUNT(*) AS changes,\n       SUM(CASE WHEN w.workflow_id IS NULL THEN 1 ELSE 0 END) AS ungoverned\nFROM CDPOS c LEFT JOIN workflow w ON w.object_key = c.OBJECTID AND w.field = c.FNAME\nWHERE c.OBJECTCLAS='DEBI' AND c.FNAME IN (controlled_fields)\nGROUP BY 1,2 HAVING ungoverned > 0 -> flag Silent_Change",
+      "originalDAG": [
+        "Extract_Controlled_Field_Changes",
+        "Join_To_Governance_Workflow",
+        "Flag_Changes_Without_Approval",
+        "Quantify_Downstream_Transaction_Exposure",
+        "Route_OTC_Master_Data_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Change_Has_Approved_Workflow",
+          "actions": [
+            "Accept_Change + Log_Approval_Reference"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Ungoverned_Change On_Payment_Terms_Or_Credit_Field",
+          "actions": [
+            "Revert_To_Approved_Value + Raise_Retrospective_Request",
+            "Notify_OTC_Master_Data_Lead"
+          ],
+          "hitl": "OTC Master Data Lead approves field revert and retrospective request",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF One_User_Has_Repeat_Ungoverned_Changes",
+          "actions": [
+            "Remove_Direct_Maintenance_Authority + Audit_All_Their_Changes",
+            "Escalate_OTC_Controls_Lead"
+          ],
+          "hitl": "OTC Controls Lead approves removal of direct maintenance authority",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 140,
+      "name": "Emergency Create Backlog",
+      "category": "Master Data & Channel Integrity",
+      "priority": "High",
+      "mentalModel": "Every master data process has an emergency path, because sometimes an order genuinely cannot wait. The deal is that the record gets created now and validated within a few days. In practice the validation queue is where good intentions go to die, and a year later a third of the customer base was created on the fast path and never checked. I age every emergency-created record by time since creation without completion, because an emergency that is ninety days old was never an emergency.",
+      "sources": {
+        "sap": [
+          "KNA1 (ERDAT, ERNAM) + creation route flag or transaction code from CDHDR",
+          "CDHDR (TCODE) - whether created via the governed path or directly",
+          "KNB1/KNVV completeness - mandatory fields still blank",
+          "VBAK - transactions already booked against the incomplete record"
+        ],
+        "oracle": [
+          "HZ_PARTIES (CREATION_DATE, CREATED_BY, STATUS) [Fusion]",
+          "HZ_CUST_ACCOUNTS (ATTRIBUTE columns / registry status) [Fusion]",
+          "OE_ORDER_HEADERS_ALL - orders taken against provisional accounts"
+        ]
+      },
+      "layer1_logicalMapping": "Identify records created through the emergency route, test mandatory field completeness, and age those still incomplete against the policy validation window.",
+      "layer2_eventSeries": "Sequence Emergency_Create, Validation_Due and Validation_Completed to expose records that never returned for completion.",
+      "layer3_feature": "Emergency_Record_Ageing",
+      "conceptualSQL": "SELECT k.KUNNR, k.ERDAT, k.ERNAM, DATEDIFF(today, k.ERDAT) AS age_days,\n       missing_mandatory_fields, order_value_since_create\nFROM KNA1 k JOIN creation_route r USING(KUNNR)\nWHERE r.route = 'emergency' AND missing_mandatory_fields > 0\n  AND age_days > policy_days -> flag Stale_Emergency_Record",
+      "originalDAG": [
+        "Identify_Emergency_Created_Records",
+        "Test_Mandatory_Field_Completeness",
+        "Age_Against_Validation_Policy",
+        "Quantify_Transaction_Value_At_Risk",
+        "Route_OTC_Master_Data_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Validation_Completed Within_Policy_Window",
+          "actions": [
+            "Close_Record + Log_Completion"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Age > 30 days AND Transactions_Booked >= 50K",
+          "actions": [
+            "Force_Completion_Task + Flag_Record_As_Provisional",
+            "Notify_OTC_Master_Data_Lead"
+          ],
+          "hitl": "OTC Master Data Lead approves provisional flag and completion task",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Age > 90 days OR Emergency_Route_Share > 25%",
+          "actions": [
+            "Block_Further_Orders_On_Record + Review_Emergency_Route_Authority",
+            "Escalate_Global_Process_Owner"
+          ],
+          "hitl": "Global Process Owner approves order block and emergency-route review",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 141,
+      "name": "Stale Tax Classification",
+      "category": "Master Data & Channel Integrity",
+      "priority": "Critical",
+      "mentalModel": "Tax classification and commodity codes are set once and then the law moves. A rate change, a reclassification, a new place-of-supply rule — and every invoice after that date carries the wrong tax while looking entirely normal. Nobody notices until an audit, and by then it is thousands of documents. I compare the effective date of each regulatory change against the last change date of the classification fields it affects, per country and material group, and I treat any classification older than the rule that governs it as an open exposure.",
+      "sources": {
+        "sap": [
+          "MLAN (TAXM1, ALAND) - material tax classification by country",
+          "KNVI (TAXKD) - customer tax classification",
+          "MARC/MARA (STAWN) - commodity code for the material",
+          "A003 / condition records for tax, with validity"
+        ],
+        "oracle": [
+          "ZX_PRODUCT_TAX_CLASSIFICATION [Fusion] - product tax classification",
+          "ZX_RATES_B (EFFECTIVE_FROM, EFFECTIVE_TO) [Fusion] - tax rate validity",
+          "ZX_LINES - tax actually applied on the transaction"
+        ]
+      },
+      "layer1_logicalMapping": "Join classification fields to the regulatory change calendar by country and product group and compare last-changed dates to each rule's effective date.",
+      "layer2_eventSeries": "Sequence Regulation_Effective, Classification_Last_Changed and Invoices_Issued to size the population billed under a stale classification.",
+      "layer3_feature": "Classification_Regulatory_Lag",
+      "conceptualSQL": "SELECT country, product_group, rule_effective_date, MAX(classification_changed) AS last_change,\n       COUNT(inv.VBELN) AS invoices_after, SUM(inv.tax_amount) AS tax_at_risk\nFROM classification c JOIN regulation r USING(country, product_group)\nJOIN invoices inv ON inv.FKDAT >= r.rule_effective_date\nGROUP BY 1,2,3 HAVING last_change < rule_effective_date -> flag Stale_Classification",
+      "originalDAG": [
+        "Join_Classification_To_Regulatory_Calendar",
+        "Detect_Classification_Older_Than_Rule",
+        "Size_Invoice_Population_Affected",
+        "Quantify_Tax_Exposure_And_Direction",
+        "Route_OTC_Master_Data_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Classification_Post_Dates_Rule",
+          "actions": [
+            "Confirm_Current + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Stale AND Tax_At_Risk >= 25K AND Under_Charged",
+          "actions": [
+            "Correct_Classification_Forward + Quantify_Prior_Period_Exposure",
+            "Notify_Tax_And_Trade_Compliance"
+          ],
+          "hitl": "Tax approves classification correction and exposure assessment",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Over_Charged_To_Customers OR Prior_Period_Filed",
+          "actions": [
+            "Prepare_Customer_Credit_And_Filing_Amendment + Preserve_Audit_Trail",
+            "Escalate_Tax_And_Legal"
+          ],
+          "hitl": "Tax and Legal approve filing amendment and customer credits",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 142,
+      "name": "Partner Mapping Decay",
+      "category": "Master Data & Channel Integrity",
+      "priority": "High",
+      "mentalModel": "EDI works until the partner upgrades their ERP, and then one segment starts arriving in a format the map was never told about. It does not fail loudly — a subset of orders fall to error, someone rekeys them manually, and the error rate creeps up while everyone assumes it is normal noise. I trend IDoc failure rate per partner per segment and look for the step change, because the date of the step change is the date of their upgrade and that is the conversation to have.",
+      "sources": {
+        "sap": [
+          "EDIDC (MESTYP, SNDPRN, STATUS, CREDAT) - IDoc control record per partner",
+          "EDIDS (STATUS, STAPA1, STAMID) - status and error message detail",
+          "EDID4 (SEGNAM) - the segment that failed",
+          "VBAK (BSTNK) - the order that had to be rekeyed manually"
+        ],
+        "oracle": [
+          "ECX_DOCLOGS (DOCUMENT_ID, STATUS) [Fusion] - inbound document log",
+          "ECX_EXTERNAL_PARTY_DTL - trading partner setup",
+          "OE_ORDER_HEADERS_ALL (ORDER_SOURCE_ID) [Fusion] - channel of entry"
+        ]
+      },
+      "layer1_logicalMapping": "Aggregate inbound document failures by partner, message type and failing segment per day, and run change-point detection on the failure rate series.",
+      "layer2_eventSeries": "Sequence Inbound_Received, Segment_Error and Manual_Rekey events to expose a step change in one partner's failure profile.",
+      "layer3_feature": "Partner_Failure_Step_Change",
+      "conceptualSQL": "SELECT SNDPRN, MESTYP, SEGNAM, day,\n       failures*1.0/NULLIF(received,0) AS fail_rate,\n       changepoint(fail_rate) AS break_date\nFROM edi_daily GROUP BY 1,2,3,4\nHAVING fail_rate > 0.05 AND break_date IS NOT NULL -> flag Mapping_Decay",
+      "originalDAG": [
+        "Aggregate_Inbound_Failures_By_Partner_Segment",
+        "Detect_Failure_Rate_Change_Point",
+        "Isolate_Failing_Segment_And_Field",
+        "Quantify_Manual_Rekey_Cost",
+        "Route_Digital_Channel_Integration_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Fail_Rate < 2% AND No_Change_Point",
+          "actions": [
+            "Log_As_Background_Noise"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Change_Point_Detected AND Fail_Rate >= 5%",
+          "actions": [
+            "Patch_Segment_Map + Reprocess_Failed_IDocs",
+            "Notify_Digital_Channel_Integration_Lead"
+          ],
+          "hitl": "Digital Channel Integration Lead approves map change and reprocessing",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Partner_Change_Unannounced AND Rekey_Cost >= 25K",
+          "actions": [
+            "Raise_Partner_Change_Control_Breach + Recover_Rekey_Cost",
+            "Escalate_Global_Process_Owner"
+          ],
+          "hitl": "Global Process Owner approves partner change-control escalation",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 143,
+      "name": "Unreturned Acknowledgement",
+      "category": "Master Data & Channel Integrity",
+      "priority": "Critical",
+      "mentalModel": "The dangerous EDI failure is not the one that errors — it is the one where we accept the order, never send the acknowledgement, and both sides believe something different. The customer thinks it is confirmed. We may have rejected a line. Nobody finds out until the delivery is short and the chargeback arrives. I reconcile inbound orders against outbound acknowledgements within the agreed SLA and treat a missing acknowledgement as an open commitment, not a technical backlog item.",
+      "sources": {
+        "sap": [
+          "EDIDC (MESTYP='ORDERS' inbound versus 'ORDRSP' outbound, SNDPRN/RCVPRN)",
+          "EDIDS - dispatch status of the outbound acknowledgement",
+          "VBAK (VBELN, BSTNK) - the order created from the inbound message",
+          "VBAP (ABGRU) - lines rejected that the customer was never told about"
+        ],
+        "oracle": [
+          "ECX_DOCLOGS - inbound and outbound document pairing",
+          "OE_LINE_ACKNOWLEDGMENTS (LAST_ACKNOWLEDGMENT_DATE) [Fusion]",
+          "OE_ORDER_LINES_ALL (CANCELLED_FLAG) [Fusion]"
+        ]
+      },
+      "layer1_logicalMapping": "Pair each inbound order document with its outbound acknowledgement by partner and reference, and measure elapsed time against the partner SLA, flagging unpaired inbound documents.",
+      "layer2_eventSeries": "Sequence Order_Received, Order_Created, Line_Rejected and Acknowledgement_Sent to expose commitments the customer was never told about.",
+      "layer3_feature": "Acknowledgement_SLA_Breach",
+      "conceptualSQL": "SELECT i.SNDPRN, i.DOCNUM, o.DOCNUM AS ack, i.CREDAT,\n       DATEDIFF(hour, i.CREDAT, o.CREDAT) AS ack_hours, v.rejected_lines\nFROM edi_in i LEFT JOIN edi_out o ON o.ref = i.DOCNUM\nJOIN VBAK v ON v.BSTNK = i.po_number\nWHERE o.DOCNUM IS NULL OR ack_hours > sla_hours -> flag Ack_Gap",
+      "originalDAG": [
+        "Pair_Inbound_Orders_To_Acknowledgements",
+        "Measure_Against_Partner_SLA",
+        "Identify_Rejected_Lines_Not_Communicated",
+        "Quantify_Undisclosed_Commitment_Value",
+        "Route_Digital_Channel_Integration_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Acknowledgement_Sent Within_SLA",
+          "actions": [
+            "Close_Cycle + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Ack_Missing AND Lines_Rejected",
+          "actions": [
+            "Send_Corrective_Acknowledgement + Alert_Customer_Service",
+            "Notify_Digital_Channel_Integration_Lead"
+          ],
+          "hitl": "Digital Channel Integration Lead approves corrective acknowledgement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Customer_Is_Scorecarded AND Undisclosed_Value >= 50K",
+          "actions": [
+            "Pre_Empt_Chargeback + Escalate_To_Account_Team",
+            "Escalate_Customer_Compliance_Lead"
+          ],
+          "hitl": "Customer Compliance Lead approves pre-emptive customer contact",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 144,
+      "name": "Channel Price Divergence",
+      "category": "Master Data & Channel Integrity",
+      "priority": "High",
+      "mentalModel": "The webshop caches prices. The portal has its own catalogue. EDI prices from the partner's copy of our price file. Each of those is a place where the price a customer sees can differ from the condition record that will actually invoice them — and the customer will short-pay to the price they were shown, every time, and they will be right to. I reconcile the price presented on each digital channel against the ERP condition record for the same customer and material, and I fix the channel before the deduction arrives.",
+      "sources": {
+        "sap": [
+          "KONP / KONH - the authoritative condition record and its validity",
+          "Channel catalogue and price file extracts per digital channel",
+          "VBAP (NETWR, KBETR) - the price the order was actually created at",
+          "BSEG / dispute records - short-pays citing price"
+        ],
+        "oracle": [
+          "QP_LIST_LINES (OPERAND) [Fusion] - authoritative price",
+          "Commerce catalogue price tables / channel cache",
+          "OE_ORDER_LINES_ALL (UNIT_SELLING_PRICE) [Fusion]"
+        ]
+      },
+      "layer1_logicalMapping": "Compare the price published on each channel to the ERP condition record for the same customer, material and date, and join to any resulting short-pay.",
+      "layer2_eventSeries": "Sequence Price_Changed_In_ERP, Channel_Refresh and Order_Placed to expose the window in which the channel was serving a stale price.",
+      "layer3_feature": "Channel_Price_Staleness",
+      "conceptualSQL": "SELECT channel, KUNNR, MATNR, channel_price, erp_price,\n       channel_price - erp_price AS delta, orders_in_window\nFROM channel_catalogue c JOIN erp_conditions e USING(KUNNR, MATNR, valid_on)\nWHERE ABS(channel_price - erp_price) > tolerance -> flag Channel_Divergence",
+      "originalDAG": [
+        "Extract_Channel_Published_Prices",
+        "Compare_To_ERP_Condition_Record",
+        "Measure_Staleness_Window",
+        "Quantify_Short_Pay_Exposure",
+        "Route_Digital_Channel_Integration_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Prices_Match OR Delta_Within_Rounding",
+          "actions": [
+            "Confirm_Channel_Current + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Channel_Price_Lower AND Orders_Placed >= 20",
+          "actions": [
+            "Honour_Published_Price + Force_Channel_Refresh",
+            "Notify_Digital_Channel_Integration_Lead"
+          ],
+          "hitl": "Digital Channel Integration Lead approves honouring published price",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Channel_Price_Higher AND Customer_Already_Invoiced",
+          "actions": [
+            "Proactively_Credit_Difference + Correct_Channel_Feed",
+            "Escalate_Commercial_Finance"
+          ],
+          "hitl": "Commercial Finance approves proactive customer credit",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 145,
+      "name": "Benefit Double Count",
+      "category": "Transformation Benefit Assurance",
+      "priority": "Critical",
+      "mentalModel": "Two workstreams, two markets, one saving. The automation programme claims the headcount, the process programme claims the same headcount under a different name, and the business case adds up to more than the P&L will ever show. Benefits realisation only means something if every claim traces to a distinct, measurable ledger movement. I reconcile claimed benefits to their underlying cost centre or KPI baseline and look for the same baseline claimed twice.",
+      "sources": {
+        "sap": [
+          "CSKS / cost centre master and COSP actuals - the ledger the saving must appear in",
+          "PROJ / PRPS - the programme and work breakdown claiming it",
+          "Benefit register (claim, baseline reference, owner, value)",
+          "GLPCA / ACDOCA - the actual movement against the baseline"
+        ],
+        "oracle": [
+          "GL_BALANCES (CODE_COMBINATION_ID, PERIOD_NAME) [Fusion] - the ledger movement",
+          "PJF_PROJECTS_ALL_B - programme structure",
+          "Benefit tracking register"
+        ]
+      },
+      "layer1_logicalMapping": "Resolve each benefit claim to the cost centre, KPI and baseline period it rests on, then group claims by that triple and flag any triple claimed by more than one workstream.",
+      "layer2_eventSeries": "Sequence Baseline_Set, Claim_Registered and Ledger_Movement to expose claims sharing a baseline or unsupported by any movement.",
+      "layer3_feature": "Benefit_Baseline_Collision",
+      "conceptualSQL": "SELECT cost_centre, kpi, baseline_period,\n       COUNT(DISTINCT workstream) AS claimants, SUM(claimed_value) AS claimed,\n       MAX(actual_ledger_delta) AS realised\nFROM benefit_register GROUP BY 1,2,3\nHAVING claimants > 1 OR claimed > realised * 1.2 -> flag Double_Count",
+      "originalDAG": [
+        "Resolve_Claims_To_Baseline_Triple",
+        "Detect_Multiple_Claimants_On_One_Baseline",
+        "Reconcile_Claimed_To_Ledger_Movement",
+        "Restate_Net_Benefit_Position",
+        "Route_Transformation_PMO_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Single_Claimant AND Claimed <= Realised",
+          "actions": [
+            "Confirm_Benefit + Log_Ledger_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Multiple_Claimants On_Same_Baseline",
+          "actions": [
+            "Net_Claims_To_Single_Owner + Restate_Programme_Position",
+            "Notify_Transformation_PMO_Lead"
+          ],
+          "hitl": "Transformation PMO Lead approves benefit netting and restatement",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Claimed_Exceeds_Realised AND Reported_Externally",
+          "actions": [
+            "Halt_Reporting + Prepare_Restatement_Pack",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves benefits restatement",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 146,
+      "name": "Post-Go-Live Adoption Decay",
+      "category": "Transformation Benefit Assurance",
+      "priority": "Critical",
+      "mentalModel": "Adoption is measured in the four weeks after go-live, when hypercare is watching and everybody is on best behaviour. Then the support team leaves and the old habits return — the manual spreadsheet, the direct transaction, the workaround that was always faster. The benefit was booked on week-four adoption. I measure the transaction mix continuously and look for the reversion curve, because a benefit that decays is a benefit we are still reporting and no longer earning.",
+      "sources": {
+        "sap": [
+          "STAD / SM20 or equivalent usage statistics by transaction and user",
+          "VBAK (VBTYP, ORDER_SOURCE) - orders arriving via the new path versus the legacy path",
+          "CDHDR (TCODE) - which transaction actually created the document",
+          "Benefit register - the adoption assumption the benefit rests on"
+        ],
+        "oracle": [
+          "FND_LOGIN / audit of responsibility and page usage [Fusion]",
+          "OE_ORDER_HEADERS_ALL (ORDER_SOURCE_ID) [Fusion] - channel mix",
+          "Benefit tracking register"
+        ]
+      },
+      "layer1_logicalMapping": "Measure the share of transactions executed through the target process path per market per week and compare the current share to the hypercare-exit share the benefit assumed.",
+      "layer2_eventSeries": "Sequence Go_Live, Hypercare_Exit and Weekly_Adoption_Share to expose reversion after support withdrawal.",
+      "layer3_feature": "Adoption_Reversion_Slope",
+      "conceptualSQL": "SELECT market, week, target_path_txns*1.0/NULLIF(total_txns,0) AS adoption,\n       adoption - adoption_at_hypercare_exit AS drift\nFROM process_usage GROUP BY 1,2\nHAVING drift <= -0.15 AND weeks_since_golive >= 8 -> flag Adoption_Decay",
+      "originalDAG": [
+        "Measure_Target_Path_Transaction_Share",
+        "Baseline_At_Hypercare_Exit",
+        "Detect_Reversion_Slope",
+        "Revalue_Benefit_At_Current_Adoption",
+        "Route_Transformation_PMO_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Adoption_Stable_Or_Rising",
+          "actions": [
+            "Confirm_Benefit_Run_Rate + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Drift <= -15pp AND Benefit_Value >= 250K",
+          "actions": [
+            "Reinstate_Targeted_Support + Revalue_Benefit_Downward",
+            "Notify_Transformation_PMO_Lead"
+          ],
+          "hitl": "Transformation PMO Lead approves benefit revaluation",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Legacy_Path_Still_Technically_Open",
+          "actions": [
+            "Propose_Legacy_Path_Closure + Model_Service_Risk",
+            "Escalate_Global_Process_Owner"
+          ],
+          "hitl": "Global Process Owner approves legacy path closure",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 147,
+      "name": "Silent Scope Descope",
+      "category": "Transformation Benefit Assurance",
+      "priority": "High",
+      "mentalModel": "Waves hit their dates because scope quietly leaves them. A country drops out, a process variant is deferred, an interface is postponed to a later phase that never gets funded — and the date is met, the status stays green, and the business case is never re-baselined against what actually shipped. I reconcile delivered scope to committed scope wave by wave and revalue the benefit on what was actually deployed, not what was planned.",
+      "sources": {
+        "sap": [
+          "PROJ / PRPS - work breakdown and its status by wave",
+          "Deployment scope register (markets, processes, interfaces committed per wave)",
+          "Transaction evidence per market - whether the process is actually running there",
+          "Benefit register - benefit attributed to each scope item"
+        ],
+        "oracle": [
+          "PJF_PROJECTS_ALL_B / PJF_TASKS_V - wave and task structure",
+          "Deployment scope register",
+          "Transaction evidence by business unit"
+        ]
+      },
+      "layer1_logicalMapping": "Compare committed scope items per wave to those with live transaction evidence after go-live, and re-attribute benefit to delivered scope only.",
+      "layer2_eventSeries": "Sequence Scope_Committed, Scope_Changed and First_Live_Transaction to expose items that left scope without a benefit re-baseline.",
+      "layer3_feature": "Undeclared_Scope_Reduction",
+      "conceptualSQL": "SELECT wave, scope_item, committed_flag, live_evidence_flag, benefit_attributed,\n       rebaselined_flag\nFROM scope_register LEFT JOIN transaction_evidence USING(scope_item)\nWHERE committed_flag = 1 AND live_evidence_flag = 0 AND rebaselined_flag = 0\n  -> flag Silent_Descope",
+      "originalDAG": [
+        "Compare_Committed_To_Delivered_Scope",
+        "Test_Live_Transaction_Evidence",
+        "Identify_Descopes_Without_Rebaseline",
+        "Revalue_Benefit_On_Delivered_Scope",
+        "Route_Transformation_PMO_Lead"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Scope_Delivered OR Descope_Formally_Rebaselined",
+          "actions": [
+            "Confirm_Wave_Position + Log_Change_Reference"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Descoped_Benefit >= 250K AND Status_Reported_Green",
+          "actions": [
+            "Re_Baseline_Business_Case + Correct_Status_Reporting",
+            "Notify_Transformation_PMO_Lead"
+          ],
+          "hitl": "Transformation PMO Lead approves business case re-baseline",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Descope_Affects_Committed_Steering_Milestone",
+          "actions": [
+            "Prepare_Steering_Committee_Disclosure + Reforecast_Programme_Benefit",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves steering committee disclosure",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 148,
+      "name": "Deposit Liability Drift",
+      "category": "Returns & Recovery Integrity",
+      "priority": "Critical",
+      "mentalModel": "Three numbers have to agree: the units physically in the field, the deposits we have billed, and the deposit liability carried on the balance sheet. In practice they are maintained by three different teams and reconciled by nobody. Deposits get billed on issue but never released on return, or released twice, and the liability slowly detaches from reality. I reconcile all three monthly and treat the residual as an audit finding in waiting, because that is what it becomes.",
+      "sources": {
+        "sap": [
+          "MSKU (KUNNR, MATNR, KULAB) - returnable stock physically held at each customer",
+          "BSEG (HKONT deposit liability, DMBTR) - the liability carried in the ledger",
+          "VBRP (KSCHL deposit condition) - deposits billed and released on invoices and credits",
+          "MSEG (BWART 601/602 on returnable packaging) - the movements behind both"
+        ],
+        "oracle": [
+          "MTL_ONHAND_QUANTITIES_DETAIL - customer-held returnable balance [Fusion]",
+          "GL_BALANCES (deposit liability account) [Fusion]",
+          "RA_CUSTOMER_TRX_LINES_ALL - deposit charged and released"
+        ]
+      },
+      "layer1_logicalMapping": "Value physical customer-held units at the deposit rate, sum net deposits billed less released per customer, and difference both against the carried ledger liability.",
+      "layer2_eventSeries": "Sequence Asset_Issued, Deposit_Billed, Asset_Returned and Deposit_Released to expose the leg that stops firing.",
+      "layer3_feature": "Deposit_Three_Way_Residual",
+      "conceptualSQL": "SELECT KUNNR, SUM(KULAB * deposit_rate) AS physical_value,\n       SUM(deposit_billed - deposit_released) AS net_billed,\n       MAX(ledger_liability) AS carried,\n       SUM(KULAB * deposit_rate) - MAX(ledger_liability) AS residual\nFROM MSKU JOIN deposits USING(KUNNR) JOIN ledger USING(KUNNR)\nGROUP BY 1 HAVING ABS(residual) >= threshold -> flag Deposit_Drift",
+      "originalDAG": [
+        "Value_Physical_Customer_Held_Units",
+        "Sum_Net_Deposits_Billed",
+        "Compare_To_Carried_Ledger_Liability",
+        "Isolate_Missing_Billing_Or_Release_Leg",
+        "Route_Returnable_Assets_Manager"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Three_Way_Residual Within_Tolerance",
+          "actions": [
+            "Confirm_Reconciliation + Log_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Residual >= 100K AND Deposit_Release_Leg_Missing",
+          "actions": [
+            "Post_Catch_Up_Release + Correct_Release_Trigger",
+            "Notify_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves deposit liability adjustment",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Residual_Grows_3_Periods OR Liability_Understated",
+          "actions": [
+            "Freeze_Deposit_Automation + Prepare_Restatement_Assessment",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves prior-period deposit restatement",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 149,
+      "name": "Depot Pool Leakage",
+      "category": "Returns & Recovery Integrity",
+      "priority": "High",
+      "mentalModel": "Every empties loss gets charged to the customer by default, because that is the easiest party to blame and the one we can invoice. But when losses cluster on one depot or one route rather than across the customers they serve, the assets are not disappearing at the customer — they are disappearing between the customer and the yard. I test whether loss concentrates on the customer axis or the internal handling axis before anyone raises a deposit charge, because charging a customer for our own handling loss is how you lose the customer and the asset.",
+      "sources": {
+        "sap": [
+          "MSEG (BWART, WERKS, LGORT) - returnable movements by plant and storage location",
+          "MSKU - the customer-held balance the loss is attributed to",
+          "/DSD/SL_SETTLE - empties declared back at route settlement",
+          "LIKP (VSTEL) - shipping point the assets left from"
+        ],
+        "oracle": [
+          "MTL_MATERIAL_TRANSACTIONS (SUBINVENTORY_CODE, ORGANIZATION_ID) [Fusion]",
+          "MTL_ONHAND_QUANTITIES_DETAIL - yard versus customer balance",
+          "Route settlement records"
+        ]
+      },
+      "layer1_logicalMapping": "Attribute every unreturned unit to both its customer and its handling chain (route, depot, shipping point), then compare concentration on each axis.",
+      "layer2_eventSeries": "Sequence Yard_Issue, Route_Load, Customer_Delivery and Yard_Return to find the leg where units stop arriving.",
+      "layer3_feature": "Loss_Concentration_Axis",
+      "conceptualSQL": "SELECT depot, route, COUNT(DISTINCT KUNNR) AS customers_affected,\n       SUM(issued - returned) AS lost_units,\n       lost_units / NULLIF(depot_throughput,0) AS loss_rate\nFROM returnable_flow GROUP BY 1,2\nHAVING loss_rate > 2 * network_baseline AND customers_affected >= 8\n  -> flag Internal_Handling_Loss",
+      "originalDAG": [
+        "Attribute_Loss_To_Customer_And_Handling_Chain",
+        "Compare_Concentration_Across_Axes",
+        "Isolate_Leg_Where_Units_Disappear",
+        "Suppress_Misdirected_Customer_Charges",
+        "Route_Returnable_Assets_Manager"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Loss_Concentrates_On_Customer_Axis",
+          "actions": [
+            "Route_To_Customer_Deposit_Enforcement + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Loss_Concentrates_On_Depot AND Value >= 50K",
+          "actions": [
+            "Hold_Customer_Deposit_Charges + Trigger_Depot_Asset_Count",
+            "Notify_Returnable_Assets_Manager"
+          ],
+          "hitl": "Returnable Assets Manager approves suspension of customer deposit charges",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Depot_Loss_Persists_After_Count",
+          "actions": [
+            "Open_Shrinkage_Investigation + Preserve_Movement_Evidence",
+            "Escalate_Internal_Audit"
+          ],
+          "hitl": "Internal Audit approves asset shrinkage investigation",
+          "tier": "legal",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 150,
+      "name": "Pooler Statement Divergence",
+      "category": "Returns & Recovery Integrity",
+      "priority": "Critical",
+      "mentalModel": "With a third-party pallet or crate pooler we pay hire per unit per day, so every unit their system thinks we still hold costs us money whether we hold it or not. Their statement and our movement records will diverge — transfers they never posted, returns they logged late, units they show at a customer we delivered to months ago. I reconcile the pooler statement line by line against our own issue and return records and challenge the open balance, because hire accrues silently and nobody audits an invoice that arrives every month looking the same.",
+      "sources": {
+        "sap": [
+          "MSEG (BWART on pooled packaging material) - our record of issues and returns",
+          "MSKU / MSLB (special stock with customer and with vendor) - pooled balances",
+          "RSEG / RBKP - the pooler's hire invoice as posted",
+          "MARA (MTART='LEIH') - returnable packaging material master"
+        ],
+        "oracle": [
+          "MTL_MATERIAL_TRANSACTIONS - issue and return of pooled assets [Fusion]",
+          "AP_INVOICE_LINES_ALL - pooler hire charges",
+          "Pooler portal statement extract"
+        ]
+      },
+      "layer1_logicalMapping": "Match pooler statement movements to our own goods movements on reference and date, and age the unmatched open balance the pooler is charging hire on.",
+      "layer2_eventSeries": "Sequence Our_Issue, Our_Return, Pooler_Posted and Hire_Charged to expose units accruing hire after we returned them.",
+      "layer3_feature": "Pooler_Open_Balance_Variance",
+      "conceptualSQL": "SELECT pooler, ref, our_movement_date, pooler_posted_date,\n       DATEDIFF(pooler_posted_date, our_movement_date) AS posting_lag,\n       open_units * hire_rate * days_open AS hire_at_risk\nFROM pooler_statement FULL OUTER JOIN our_movements USING(ref)\nWHERE pooler_posted_date IS NULL OR posting_lag > tolerance_days\n  -> flag Statement_Divergence",
+      "originalDAG": [
+        "Ingest_Pooler_Statement",
+        "Match_To_Our_Goods_Movements",
+        "Age_Unmatched_Open_Balance",
+        "Quantify_Hire_Charged_On_Returned_Units",
+        "Route_Returnable_Assets_Manager"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Statement_Matches Within_Posting_Tolerance",
+          "actions": [
+            "Approve_Hire_Invoice + Log_Reconciliation"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Hire_At_Risk >= 25K AND Our_Return_Evidence_Exists",
+          "actions": [
+            "Withhold_Disputed_Hire + Submit_Transfer_Evidence_To_Pooler",
+            "Notify_Returnable_Assets_Manager"
+          ],
+          "hitl": "Returnable Assets Manager approves withholding of disputed hire",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Divergence_Persists_Across_3_Statements",
+          "actions": [
+            "Trigger_Joint_Physical_Audit + Renegotiate_Reconciliation_SLA",
+            "Escalate_Procurement_Category_Manager"
+          ],
+          "hitl": "Procurement approves joint physical audit with the pooler",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 151,
+      "name": "Seasonal Float Ratchet",
+      "category": "Returns & Recovery Integrity",
+      "priority": "High",
+      "mentalModel": "Float always grows into peak — that is expected and we plan for it. What is not expected is that it never fully unwinds afterwards. Each year the trough is a little higher than the last, and because everyone compares to the same month last year, the ratchet is invisible. I fit the trough, not the peak: if the post-peak minimum keeps rising, we are permanently funding assets that are never coming back, and buying more each season to cover it.",
+      "sources": {
+        "sap": [
+          "MSKU (KULAB) - month-end customer-held balance across several years",
+          "MSEG - seasonal issue and return movement volumes",
+          "MARA / MBEW - unit cost of the returnable asset",
+          "Purchase history for replacement asset buys"
+        ],
+        "oracle": [
+          "MTL_ONHAND_QUANTITIES_DETAIL - period-end balances [Fusion]",
+          "MTL_MATERIAL_TRANSACTIONS - seasonal flow",
+          "PO_LINES_ALL - replacement asset purchases"
+        ]
+      },
+      "layer1_logicalMapping": "Build a multi-year monthly series of customer-held units, extract the post-peak trough each cycle, and regress trough level against cycle number.",
+      "layer2_eventSeries": "Sequence Peak_Float, Post_Peak_Trough and Replacement_Purchase across cycles to expose a rising floor funded by new asset buys.",
+      "layer3_feature": "Float_Trough_Ratchet",
+      "conceptualSQL": "SELECT cycle_year, MIN(month_end_units) AS trough,\n       LAG(MIN(month_end_units)) OVER (ORDER BY cycle_year) AS prior_trough,\n       SUM(replacement_purchases) AS bought\nFROM float_series GROUP BY 1\nHAVING trough > prior_trough * 1.05 -> flag Ratchet",
+      "originalDAG": [
+        "Build_Multi_Year_Float_Series",
+        "Extract_Post_Peak_Trough_Per_Cycle",
+        "Regress_Trough_Against_Cycle",
+        "Value_Permanent_Float_And_Replacement_Spend",
+        "Route_Returnable_Assets_Manager"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Trough_Flat_Or_Falling",
+          "actions": [
+            "Confirm_Loop_Closing + Log_Rationale"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Trough_Rising >= 5% Per_Cycle",
+          "actions": [
+            "Launch_Post_Peak_Recovery_Campaign + Hold_Replacement_Purchases",
+            "Notify_Returnable_Assets_Manager"
+          ],
+          "hitl": "Returnable Assets Manager approves hold on replacement asset purchases",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Permanent_Float >= 500K AND Ratchet_Across_3_Cycles",
+          "actions": [
+            "Re_Baseline_Asset_Pool_Size + Model_Deposit_Rate_Increase",
+            "Escalate_Financial_Controller"
+          ],
+          "hitl": "Financial Controller approves pool re-baseline and deposit rate change",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    },
+    {
+      "id": 152,
+      "name": "Return Substitution Shortfall",
+      "category": "Returns & Recovery Integrity",
+      "priority": "Medium",
+      "mentalModel": "The count reconciles and the value does not. A customer returns the right number of units but they are the cheap ones, the damaged ones, or somebody else's branded asset entirely — and because settlement counts pieces rather than grades, the loop looks closed while the good assets stay out. I reconcile returns by asset type and grade, not just quantity, and I value the mix difference. Over a year, a systematic grade downgrade on returns is worth more than most of the outright losses.",
+      "sources": {
+        "sap": [
+          "MSEG (MATNR, MENGE, BWART) - the specific returnable material returned",
+          "MSKU (MATNR) - what was actually issued to that customer",
+          "MBEW (VERPR) - the value difference between grades or asset types",
+          "QMEL - damage or grading notifications on receipt"
+        ],
+        "oracle": [
+          "MTL_MATERIAL_TRANSACTIONS (INVENTORY_ITEM_ID) [Fusion] - item actually returned",
+          "MTL_SYSTEM_ITEMS_B - asset type and grade",
+          "QA_RESULTS - grading result on receipt"
+        ]
+      },
+      "layer1_logicalMapping": "Match returned asset type and grade to what was issued to the same customer and value the mix difference at standard cost.",
+      "layer2_eventSeries": "Sequence Asset_Issued_By_Grade, Asset_Returned_By_Grade and Grading_Result to expose systematic downgrade on return.",
+      "layer3_feature": "Return_Grade_Mix_Shortfall",
+      "conceptualSQL": "SELECT KUNNR, issued_grade, returned_grade, SUM(qty) AS units,\n       SUM(qty * (issued_cost - returned_cost)) AS value_shortfall\nFROM returnable_matching GROUP BY 1,2,3\nHAVING issued_grade <> returned_grade AND value_shortfall >= threshold\n  -> flag Grade_Substitution",
+      "originalDAG": [
+        "Match_Returned_Grade_To_Issued_Grade",
+        "Value_Mix_Difference_At_Standard_Cost",
+        "Trend_Shortfall_By_Customer",
+        "Quantify_Annualised_Value_Leak",
+        "Route_Returnable_Assets_Manager"
+      ],
+      "branchingDAG": [
+        {
+          "condition": "IF Grades_Match OR Shortfall_Within_Wear_Allowance",
+          "actions": [
+            "Close_Loop + Log_Grading_Evidence"
+          ],
+          "hitl": null,
+          "tier": "primary"
+        },
+        {
+          "condition": "ELSE IF Systematic_Downgrade AND Annualised >= 25K",
+          "actions": [
+            "Charge_Grade_Difference + Introduce_Graded_Settlement",
+            "Notify_Returnable_Assets_Manager"
+          ],
+          "hitl": "Returnable Assets Manager approves graded settlement and difference charge",
+          "tier": "escalation",
+          "escLevel": 1
+        },
+        {
+          "condition": "ELSE IF Foreign_Branded_Assets_Returned",
+          "actions": [
+            "Reject_Non_Own_Assets + Reconcile_With_Pooler_Or_Competitor",
+            "Escalate_Procurement_Category_Manager"
+          ],
+          "hitl": "Procurement approves rejection and inter-company asset reconciliation",
+          "tier": "escalation",
+          "escLevel": 2
+        }
+      ]
+    }
+  ]
+}

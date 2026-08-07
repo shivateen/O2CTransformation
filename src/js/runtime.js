@@ -225,10 +225,28 @@
      so the campaign board and this console can never disagree). Builds the queue
      on demand, so a campaign renders at baseline before anyone presses Step. */
   window.PIQ.missionRuntime = function () {
-    if (!C().patternIds.length) return { started: false, cursor: 0, queued: 0, byMission: {} };
+    if (!C().patternIds.length) return { started: false, cursor: 0, queued: 0, byMission: {}, q: [] };
     ensureSim(false);
     return { started: sim.cursor > 0, cursor: sim.cursor, queued: sim.q.length,
-             byMission: missionProgress() };
+             byMission: missionProgress(), q: sim.q.slice() };
+  };
+
+  /* The queue as one mission sees it: the variations its own patterns matched,
+     plus the happy-path volume every mission shares. Persona View renders this,
+     so an analyst sees only the work that is theirs. */
+  window.PIQ.missionQueue = function (missionId) {
+    var rt = window.PIQ.missionRuntime();
+    var out = [];
+    rt.q.forEach(function (t, i) {
+      var mine = false;
+      if (t.kind === "variation" && t.patternId != null) {
+        mine = window.PIQ.patternAttribution(t.patternId).missionIds.indexOf(missionId) >= 0;
+      } else {
+        mine = true;    // straight-through throughput belongs to every mission
+      }
+      if (mine) out.push({ t: t, idx: i, own: t.kind === "variation" });
+    });
+    return { rows: out, cursor: rt.cursor, started: rt.started };
   };
 
   // baseline → target interpolated by how much of the mission's work is settled

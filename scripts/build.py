@@ -40,7 +40,9 @@ def main():
         read("src", "js", "fitment.js"),
         read("src", "js", "build.js"),
         read("src", "js", "runtime.js"),
-        read("src", "js", "mission_command.js"),   # reads PIQ.missionRuntime from runtime.js
+        # both read PIQ.missionRuntime / PIQ.missionQueue, defined in runtime.js
+        read("src", "js", "mission_command.js"),
+        read("src", "js", "mission_persona.js"),
         read("src", "js", "provocation.js"),
         read("src", "js", "cockpit.js"),
         read("src", "js", "library.js"),
