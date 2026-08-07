@@ -2,7 +2,7 @@
   "meta": {
     "title": "ProcessIQ — ROI & Attribution",
     "year1Total": 8400000,
-    "patternCount": 101,
+    "patternCount": 152,
     "note": "Illustrative model. Figures are attributed to patterns, decisions, and actions — every dollar is traceable."
   },
   "kpis": [
@@ -150,13 +150,22 @@
   ],
   "attribution": [
     {
+      "patternId": 105,
+      "name": "Accrual Attainment Drift",
+      "category": "Pricing & Rebate Integrity",
+      "featureSlug": "accrual-to-attainment-gap",
+      "priority": "Critical",
+      "recovery": 714000.0,
+      "customers": 7
+    },
+    {
       "patternId": 92,
       "name": "Phantom DSO Compression",
       "category": "Cross-Process AR Governance",
       "featureSlug": "phantom-dso-compression",
       "priority": "Critical",
-      "recovery": 758000.0,
-      "customers": 9
+      "recovery": 711000.0,
+      "customers": 10
     },
     {
       "patternId": 20,
@@ -164,8 +173,8 @@
       "category": "Credit Risk & Insolvency Indicators",
       "featureSlug": "min-viable-payment",
       "priority": "Critical",
-      "recovery": 756000.0,
-      "customers": 9
+      "recovery": 708000.0,
+      "customers": 7
     },
     {
       "patternId": 64,
@@ -173,8 +182,17 @@
       "category": "Deductions & Trade-Claim Recovery",
       "featureSlug": "sub-threshold-split-cluster",
       "priority": "Critical",
-      "recovery": 753000.0,
-      "customers": 7
+      "recovery": 706000.0,
+      "customers": 10
+    },
+    {
+      "patternId": 120,
+      "name": "Screening Bypass Window",
+      "category": "Logistics & Freight Integrity",
+      "featureSlug": "screening-validity-breach",
+      "priority": "Critical",
+      "recovery": 696000.0,
+      "customers": 6
     },
     {
       "patternId": 78,
@@ -182,8 +200,17 @@
       "category": "Billing Accuracy & Revenue Integrity",
       "featureSlug": "credit-memo-approval-bypass",
       "priority": "Critical",
-      "recovery": 735000.0,
+      "recovery": 689000.0,
       "customers": 8
+    },
+    {
+      "patternId": 107,
+      "name": "Buying Group Double Dip",
+      "category": "Pricing & Rebate Integrity",
+      "featureSlug": "hierarchy-claim-duplication",
+      "priority": "Critical",
+      "recovery": 678000.0,
+      "customers": 10
     },
     {
       "patternId": 83,
@@ -191,7 +218,16 @@
       "category": "Order Integrity & Fulfilment Control",
       "featureSlug": "credit-hold-override-rate",
       "priority": "Critical",
-      "recovery": 710000.0,
+      "recovery": 666000.0,
+      "customers": 6
+    },
+    {
+      "patternId": 104,
+      "name": "Deal Sheet Divergence",
+      "category": "Pricing & Rebate Integrity",
+      "featureSlug": "contract-to-condition-variance",
+      "priority": "Critical",
+      "recovery": 661000.0,
       "customers": 6
     },
     {
@@ -200,53 +236,17 @@
       "category": "Order Integrity & Fulfilment Control",
       "featureSlug": "post-approval-address-change",
       "priority": "Critical",
-      "recovery": 703000.0,
-      "customers": 8
-    },
-    {
-      "patternId": 73,
-      "name": "Exploitable Price Seed",
-      "category": "Billing Accuracy & Revenue Integrity",
-      "featureSlug": "price-condition-variance",
-      "priority": "Critical",
-      "recovery": 646000.0,
+      "recovery": 659000.0,
       "customers": 6
-    },
-    {
-      "patternId": 60,
-      "name": "RMA Phantom Items",
-      "category": "Dispute Lifecycle Management",
-      "featureSlug": "phantom-return-authorization",
-      "priority": "Critical",
-      "recovery": 635000.0,
-      "customers": 6
-    },
-    {
-      "patternId": 19,
-      "name": "Bust-Out Fraud Precursor",
-      "category": "Credit Risk & Insolvency Indicators",
-      "featureSlug": "credit-limit-velocity",
-      "priority": "Critical",
-      "recovery": 606000.0,
-      "customers": 9
-    },
-    {
-      "patternId": 43,
-      "name": "Duplicate Refund Bait",
-      "category": "Cash Application & Matching Integrity",
-      "featureSlug": "duplicate-payment-fingerprint",
-      "priority": "Critical",
-      "recovery": 586000.0,
-      "customers": 9
     },
     {
       "patternId": null,
-      "name": "91 other patterns",
+      "name": "142 other patterns",
       "category": "Long tail",
       "featureSlug": null,
       "priority": null,
       "recovery": 1512000.0,
-      "customers": 63,
+      "customers": 70,
       "isOther": true
     }
   ]
