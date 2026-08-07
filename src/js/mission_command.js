@@ -351,49 +351,13 @@
     return s;
   }
 
-  /* ---- hover tooltip ---------------------------------------------------- */
-  function tipEl() {
-    var t = document.getElementById('mcTip');
-    if (!t) {
-      t = el("div", "mcs-tip"); t.id = "mcTip";
-      document.body.appendChild(t);
-      document.addEventListener('mousemove', function (e) {
-        if (!t.classList.contains('on')) return;
-        var x = e.clientX + 14, y = e.clientY - 8;
-        if (x + 320 > window.innerWidth) x = e.clientX - 334;
-        t.style.left = x + 'px'; t.style.top = y + 'px';
-      });
-    }
-    return t;
-  }
-  function tipShow(html) { if (!html) return; var t = tipEl(); t.innerHTML = html; t.classList.add('on'); }
-  function tipHide() { var t = document.getElementById('mcTip'); if (t) t.classList.remove('on'); }
+  /* No cursor-following hover tip on the Sankey — the mission nodes expand
+     inline (and the "Show all details" toggle pins every panel open), which
+     already carries the role, share and pattern counts on the canvas itself. */
 
   function rowById(cmp, id) {
     for (var i = 0; i < cmp.rows.length; i++) if (cmp.rows[i].mission.id === id) return cmp.rows[i];
     return null;
-  }
-  function flowTip(cmp, key) {
-    var parts = key.split(':'), r = rowById(cmp, parts[1]);
-    if (!r) return '';
-    var m0 = r.metrics[0];
-    if (parts[0] === 'o') {
-      return '<b>Objective → ' + esc(r.personas.accountable.role) + '</b>' +
-        '<i>' + Math.round(r.share * 100) + '% of the objective · ' + Math.round(r.pct * 100) +
-        '% delivered · ' + money(r.captured) + ' released</i>';
-    }
-    return '<b>' + esc(r.personas.accountable.role) + ' → ' + esc(m0 ? m0.k.kpi : 'outcome') + '</b>' +
-      (m0 ? '<i>' + esc(fmt(m0.k.baseline, m0.k.unit)) + ' → ' + esc(fmt(m0.cur, m0.k.unit)) +
-            ' → target ' + esc(fmt(m0.k.target, m0.k.unit)) + ' · ' + money(r.onTable) + ' still on the table</i>'
-          : '<i>no measured KPI</i>');
-  }
-  function nodeTip(cmp, id) {
-    var r = rowById(cmp, id);
-    if (!r) return '';
-    return '<b>' + esc(r.personas.accountable.role) + '</b>' +
-      '<i>' + esc(r.mission.name) + '</i>' +
-      '<i>' + Math.round(r.share * 100) + '% of the objective · ' + r.active + ' of ' + r.patterns +
-      ' patterns active' + (mcPinAll ? '' : ' · click to expand') + '</i>';
   }
 
   function sankeyBind(host, cmp) {
@@ -404,25 +368,14 @@
         g.addEventListener('click', function (e) {
           if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-persona')) return;
           if (mcPinAll) return;      /* already showing — nothing to toggle */
-          tipHide();
           sankeyToggle(id, cmp);
         });
         g.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!mcPinAll) sankeyToggle(id, cmp); }
         });
-        g.addEventListener('mouseenter', function () { tipShow(nodeTip(cmp, id)); });
-        g.addEventListener('mouseleave', tipHide);
       })(nodes[i]);
     }
 
-    var flows = host.querySelectorAll('[data-flow]');
-    for (i = 0; i < flows.length; i++) {
-      (function (g) {
-        var key = g.getAttribute('data-flow');
-        g.addEventListener('mouseenter', function () { tipShow(flowTip(cmp, key)); });
-        g.addEventListener('mouseleave', tipHide);
-      })(flows[i]);
-    }
     var links = host.querySelectorAll('[data-persona]');
     for (i = 0; i < links.length; i++) {
       (function (rect) {
