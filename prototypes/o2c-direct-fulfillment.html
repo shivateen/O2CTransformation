@@ -412,6 +412,12 @@ th.grp{text-align:center!important;border-bottom:2px solid var(--line)!important
 .calc{display:flex;flex-direction:column;gap:6px;background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:13px}
 .refwrap{margin:6px 0}.refwrap>summary{cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-weight:700}
 .refbody{display:flex;flex-direction:column;gap:16px;margin-top:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.grid4,.grid3{grid-template-columns:1fr}}
+.four{border:1px solid var(--line,#e3e6ea);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.toolrow{display:flex;flex-direction:column;gap:2px;padding:8px;border:1px solid var(--line,#e3e6ea);border-radius:8px}
+.trace{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.trace li{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:8px 10px;border-left:3px solid var(--line,#d5d9de);background:var(--panel2,#f7f8fa);border-radius:4px;opacity:.7}.trace li.on{border-left-color:#e8590c;opacity:1}
+.gloss td,.gl{font-size:12px}.grid th.gl{font-weight:400;color:#5b6573;white-space:normal;min-width:110px}
 </style></head><body>
 
 <header id="hdr"></header>
@@ -485,7 +491,7 @@ const HANDOFFS=[
  {n:'Payment applied within 1 day of receipt',from:'Cash application → Collections',v:81,t:95,w:90,src:'FEBEP × Celonis'},
  {n:'UCX case linked to the invoice',from:'Customer service → Collections',v:63,t:95,w:85,src:'Salesforce Case × VBRK'},
 ];
-/* O2C health check KPIs.
+/* Value calculator KPIs.
    sys: C = client inventory, sourced Celonis → EDF → Gold · E = client inventory, already in EDF · P = proposed by Tiger (not in the client's KPI scope).
    Names and categories for C and E follow the client's "KPIs in Scope" inventory (61 KPIs: 15 Celonis, 46 EDF). Values and peer quartiles are illustrative.
    lt: lag = result reported upward · lead = what a team can move this week and that predicts a lagging result · ctx = volume or value count, shown for drill-down.
@@ -597,7 +603,7 @@ const CFGF={
   ['host','Host / API endpoint','txt','https://s4h-prd.client.example:443','',1],['sid','System ID (SID)','txt','PRD'],['client','Client','txt','100'],
   ['bukrs','Company codes','txt','MX01','',0,'Comma-separated'],['vkorg','Sales organisations','txt','MX10'],
   ['§','Authentication'],['auth','Method','sel','OAuth 2.0 client credentials',['OAuth 2.0 client credentials','X.509 certificate','Basic (technical user)']],
-  ['user','Client ID / technical user','txt','TIGER_O2C_READER'],['secret','Secret reference','txt','kv://otc-mx/sap-s4-reader','',1,'Held in the client’s key vault; never stored in the accelerator'],
+  ['user','Client ID / technical user','txt','TIGER_O2C_READER'],['secret','Secret reference','txt','kv://otc-mx/sap-s4-reader','',1,'Held in the client’s key vault; never stored in the solution'],
   ['§','Extraction'],['load','Load','sel','Initial 18 months, then daily delta',['Initial 18 months, then daily delta','Initial 18 months, then hourly delta','Full reload nightly']],['tz','Time zone','txt','America/Monterrey']],
  sf:[['§','Connection'],['url','Instance URL','txt','https://client-mx.my.salesforce.com','',1],['org','Org ID','txt','00D5g00000XXXXX'],['api','API version','sel','v61.0',['v61.0','v60.0','v59.0']],
   ['objs','Objects','txt','Account, Order, OrderItem, Case, cgcloud__Promotion__c, Visit','',1],
@@ -612,7 +618,7 @@ const CFGF={
   ['§','Authentication'],['auth','Method','sel','OAuth 2.0 (IDCS)',['OAuth 2.0 (IDCS)','Basic (integration user)']],['user','Integration user','txt','MX.TIGER_READER'],['secret','Secret reference','txt','kv://otc-mx/otm-reader','',1,'Held in the client’s key vault'],
   ['§','Extraction'],['load','Load','sel','Hourly delta',['Hourly delta','Every 15 minutes','Nightly']]],
  cel:[['§','Connection'],['team','Team URL','txt','https://client.eu-1.celonis.cloud','',1],['pool','Data pool','txt','OTC Mexico'],['model','Data model','txt','O2C object-centric (OCPM)'],
-  ['kpis','Use Celonis KPI definitions','sel','Yes, where they exist',['Yes, where they exist','No, compute in the accelerator']],
+  ['kpis','Use Celonis KPI definitions','sel','Yes, where they exist',['Yes, where they exist','No, compute in the solution']],
   ['§','Authentication'],['auth','Method','sel','Application key',['Application key','OAuth 2.0 client credentials']],['secret','Key reference','txt','kv://otc-mx/celonis-app-key','',1,'Held in the client’s key vault'],
   ['§','Extraction'],['load','Load','sel','Data Pool export, daily',['Data Pool export, daily','Data Pool export, hourly','Query API on demand']]],
  doc:[['§','Connection'],['src','Repository','sel','SharePoint Online',['SharePoint Online','Google Drive','Amazon S3','Network share via gateway']],['site','Site / folder','txt','https://client.sharepoint.com/sites/OTC-Mexico','',1],
@@ -901,7 +907,7 @@ const RESP_OPTS=['Collections analysts','Route settlement clerks','Cash applicat
 const S={
  conn:{},busy:{},cstep:0,scope:['otif','ded','col'],tables:{},req:[],xtab:'tables',xsel:null,xsys:'all',kg:0,kgLog:[],rf:'all',
  bstep:0,obj:'otif',targets:{},scen:'base',mSel:null,pSel:null,modes:{},locked:false,lockedObj:null,
- cfg:{},cfgOpen:null,cfgEnv:{},wfa:'all',persona:'om',lane:'recl',sel:'INV-90881234',done:{},res:{},dmeta:{},seq:0,seen:{},mPrev:{},hlag:null,hl:'otif',hd:0,hdv:{},hre:60,own:{},threadDone:false,oppSent:{},rulePromoted:{},staleSnooze:false,log:[],
+ cfg:{},cfgOpen:null,cfgEnv:{},wfa:'all',persona:'om',lane:'recl',sel:'INV-90881234',done:{},res:{},dmeta:{},seq:0,seen:{},mPrev:{},hlag:null,app:'top',hl:'otif',hd:0,hdv:{},hre:60,own:{},threadDone:false,oppSent:{},rulePromoted:{},staleSnooze:false,log:[],
  opt:'B',v:null,arules:{promo:true,tier:true,age:false}
 };
 OBJS.forEach(o=>S.targets[o.id]=o.def);
@@ -1004,16 +1010,17 @@ PAGE.home=()=>{header('home');steps(null);
   const nc=SYS.filter(s=>conn(s.k)).length;
   return `<section class="hero"><div class="eyebrow">Order-to-cash transformation · mission-led, measured on outcomes</div>
    <h1>Fix the order upstream, and every result the CFO reports improves downstream.</h1>
-   <p class="lede">Order-to-cash runs across many systems and teams, and each team optimises its own step. A defect made early, such as a change nobody recorded, a stock call made too late or a missing agreement, shows up weeks later as a late delivery, a deduction or a past-due invoice. This accelerator connects the client’s systems and documents, builds a knowledge graph of every order, and runs missions that fix the order upstream and move the results the CFO reports.</p>
+   <p class="lede">Order-to-cash runs across many systems and teams, and each team optimises its own step. A defect made early, such as a change nobody recorded, a stock call made too late or a missing agreement, shows up weeks later as a late delivery, a deduction or a past-due invoice. This solution connects the client’s systems and documents, builds a knowledge graph of every order, and runs missions that fix the order upstream and move the results the CFO reports.</p>
    <div class="btnrow" style="margin-top:14px"><a class="btn pri" href="#ctx">Open the full flow →</a></div></section>
+  ${ontoStrip()}
   <section class="panel"><div class="ph"><div><h3>The order-to-cash process in scope</h3><p class="sub">Five steps, seven hand-offs, six source systems.</p></div></div>
    <div class="o2cflow">${NODES.map(n=>`<div class="node" style="--nc:${n.c}"><b>${esc(n.n)}</b><ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div></section>
   <section class="flow3" aria-label="Modules">
    <a class="lmod" href="#ctx"><span class="lnum">1</span><h3>Client context</h3><p class="note">Connect systems, choose the tables and documents to read, benchmark the process and build the knowledge graph.</p>
-    <ul><li>Sources & scope: ${TABLES.length} tables, ${DOCS.length} documents</li><li>Data explorer</li><li>O2C health check</li><li>Knowledge graph</li></ul><span class="lcta"><span>${S.kg===2?'Graph built':nc?nc+' of 6 sources connected':'Not started'}</span><span>Open →</span></span></a>
+    <ul><li>System ontology: ${TABLES.length} tables, ${DOCS.length} documents</li><li>Data ontology and glossary</li><li>Value calculator</li><li>Knowledge graph</li></ul><span class="lcta"><span>${S.kg===2?'Graph built':nc?nc+' of 6 sources connected':'Not started'}</span><span>Open →</span></span></a>
    <div class="larrow" aria-hidden="true">→</div>
    <a class="lmod" href="#bld"><span class="lnum">2</span><h3>Transformation builder</h3><p class="note">Hold the pilot frame, pick one of three lagging indicators, set the target, and choose the missions and patterns that close the gap.</p>
-    <ul><li>Objective & target</li><li>Global standards, local ownership</li><li>KPI ladder & missions</li><li>Patterns & rules learned</li><li>Owners, then pilot scope</li></ul><span class="lcta"><span>${S.locked?'Blueprint locked · '+OB(S.lockedObj).short:'Objective: '+O().short}</span><span>Open →</span></span></a>
+    <ul><li>Objective & target</li><li>Global standards, local ownership</li><li>KPI ladder & missions</li><li>Patterns & rules learned</li><li>Tools, skills and context</li><li>Business operating model, then pilot scope</li></ul><span class="lcta"><span>${S.locked?'Blueprint locked · '+OB(S.lockedObj).short:'Objective: '+O().short}</span><span>Open →</span></span></a>
    <div class="larrow" aria-hidden="true">→</div>
    <a class="lmod" href="#desk"><span class="lnum">3</span><h3>Mission desk</h3><p class="note">The working surface for each persona the blueprint names.</p>
     <ul><li>Order, allocation, delivery and collections desks, all reading one order passport</li><li>Collector: only what is collectible, with evidence</li><li>Route accounting: short deliveries routed upstream</li><li>Collections lead and Mexico process owner</li></ul><span class="lcta"><span>${S.locked?'Live on the locked blueprint':'Runs on the pilot demo blueprint'}</span><span>Open →</span></span></a>
@@ -1028,7 +1035,7 @@ PAGE.home=()=>{header('home');steps(null);
 };
 
 /* ================= context ================= */
-const CSTEPS=[['Sources & scope',''],['Data explorer',''],['O2C health check',''],['Knowledge graph','']];
+const CSTEPS=[['System ontology',''],['Data ontology',''],['Value calculator',''],['Knowledge graph','']];
 PAGE.ctx=()=>{header('ctx');
   const nc=SYS.filter(s=>conn(s.k)).length;
   CSTEPS[0][1]=`${nc} of 6 connected`;CSTEPS[1][1]=`${TABLES.filter(t=>tOn(t.id)).length} tables included`;
@@ -1037,7 +1044,7 @@ PAGE.ctx=()=>{header('ctx');
   return [cSources,cExplorer,cHealth,cGraph][S.cstep]()+footer;
 };
 function cSources(){
-  const scope=`<section class="panel"><div class="ph"><div><h3>Objectives in scope for this engagement</h3><p class="sub">Sets which tables are recommended and which documents the accelerator asks for. Any table can still be included or excluded.</p></div></div>
+  const scope=`<section class="panel"><div class="ph"><div><h3>Objectives in scope for this engagement</h3><p class="sub">Sets which tables are recommended and which documents the solution asks for. Any table can still be included or excluded.</p></div></div>
    <div class="chips" style="gap:8px">${OBJS.map(o=>{const on=S.scope.includes(o.id);return `<button class="tog ${on?'on':''}" data-act="scope" data-k="${o.id}" aria-pressed="${on}">${on?'✓ ':''}${esc(o.n)}</button>`}).join('')}</div></section>`;
   const cards=SYS.map(s=>{const st=S.busy[s.k]?1:S.conn[s.k]||0;const ts=TABLES.filter(t=>t.sys===s.k),inc=ts.filter(t=>tIncluded(t.id));
     const what=s.k==='doc'?`${DOCS.length} documents`:`${inc.length} of ${ts.length} tables included · ${n0(inc.reduce((a,t)=>a+t.rows,0))} rows`;
@@ -1048,13 +1055,13 @@ function cSources(){
   const any=SYS.some(s=>conn(s.k));
   const picker=SYS.filter(s=>s.k!=='doc'&&conn(s.k)).map(s=>`<div class="tgrp"><div class="xgrp">${esc(s.n)}</div>${TABLES.filter(t=>t.sys===s.k).map(t=>{const on=tIncluded(t.id),need=PATS.filter(p=>p.t.includes(t.id)).length;
     return `<label class="tpick ${on?'on':''}"><input type="checkbox" data-act="tbl" data-k="${esc(t.id)}" ${on?'checked':''}><span class="tp-main"><b>${esc(t.id)}</b><small>${esc(t.name)}</small></span><span class="tp-meta">${defaultOn(t.id)?'<span class="chip acc">Recommended</span>':''}<span class="num muted">${n0(t.rows)} rows</span><span class="muted">${need} pattern${need===1?'':'s'}</span></span></label>`}).join('')}</div>`).join('');
-  return `<div class="head"><div><div class="eyebrow">Client context · Sources & scope</div><h2>Connect the systems that run order-to-cash in Mexico</h2>
+  return `<div class="head"><div><div class="eyebrow">Client context · System ontology</div><h2>Connect the systems that run order-to-cash in Mexico</h2>
     <p class="lede">Context is gathered once and feeds every objective. Choose the objectives in scope, connect read-only, then decide exactly which tables the knowledge graph is built from.</p></div>
     <button class="btn pri" data-act="connall" ${allConn()?'disabled':''}>Connect all</button></div>
    ${scope}<div class="conns">${cards}</div>
    ${any?`<section class="panel"><div class="ph"><div><h3>Tables to include in the knowledge graph</h3><p class="sub">Pre-selected from the objectives in scope. Patterns that need an excluded table become unavailable in the builder.</p></div>
     <div class="btnrow"><button class="btn sm" data-act="tblall">Include all</button><button class="btn sm" data-act="tbldef">Use recommended</button></div></div><div class="tgrid">${picker||'<p class="note">Connect a system to choose its tables.</p>'}</div></section>`:`<div class="empty">Connect a source to choose its tables and documents.</div>`}
-   ${allConn()?nextBtn('cstep',1,'Data explorer'):''}${cfgModal()}`;
+   ${allConn()?nextBtn('cstep',1,'Data ontology'):''}${cfgModal()}`;
 }
 function cfgModal(){const k=S.cfgOpen;if(!k)return '';const sy=SYS.find(x=>x.k===k),env=(S.cfg[k]&&S.cfg[k].env)||ENVS[0];
   const body=CFGF[k].map(f=>{if(f[0]==='§')return `<div class="fsec">${esc(f[1])}</div>`;const v=cfgVal(k,f),id='cf-'+f[0];
@@ -1063,22 +1070,22 @@ function cfgModal(){const k=S.cfgOpen;if(!k)return '';const sy=SYS.find(x=>x.k==
   return `<div class="ovl" id="ovl"><div class="mdl" role="dialog" aria-modal="true" aria-labelledby="cfg-t"><div class="mdl-h"><span class="lg" style="background:${sy.col}">${sy.lg}</span><div><h3 id="cfg-t">${esc(sy.n)} connector</h3><p class="note">${esc(sy.d)}</p></div><button class="x" data-act="cfgclose" aria-label="Close">×</button></div>
    <div class="fgrid"><label class="fld" for="cf-env"><span>Environment</span><select id="cf-env" data-cf="env">${ENVS.map(o=>`<option ${o===env?'selected':''}>${o}</option>`).join('')}</select></label>
     <label class="fld" for="cf-acc"><span>Access</span><input id="cf-acc" value="Read-only" readonly></label>${body}</div>
-   <div class="ctest" id="ctest" aria-live="polite">Nothing is sent from this demo. In a deployment the accelerator runs inside the client’s environment and reads with these settings.</div>
+   <div class="ctest" id="ctest" aria-live="polite">Nothing is sent from this demo. In a deployment the solution runs inside the client’s environment and reads with these settings.</div>
    <div class="btnrow mdl-f" style="justify-content:flex-end"><button class="btn" data-act="cfgtest">Test connection</button><button class="btn" data-act="cfgclose">Cancel</button><button class="btn pri" data-act="cfgsave" data-k="${k}">Save settings</button></div></div></div>`}
 function cExplorer(){
   const ts=TABLES.filter(t=>tOn(t.id)&&(S.xsys==='all'||t.sys===S.xsys));
   const ds=conn('doc')?DOCS:[];
   const tabs=`<div class="seg" role="tablist"><button class="${S.xtab==='tables'?'on':''}" data-act="xtab" data-k="tables">Structured · ${TABLES.filter(t=>tOn(t.id)).length}</button><button class="${S.xtab==='docs'?'on':''}" data-act="xtab" data-k="docs">Documents · ${ds.length}</button></div>`;
   const sysSeg=S.xtab==='tables'?`<div class="seg" role="group" aria-label="System">${[['all','All']].concat(SYS.filter(s=>s.k!=='doc').map(s=>[s.k,s.lg])).map(([k,l])=>`<button class="${S.xsys===k?'on':''}" data-act="xsys" data-k="${k}">${l}</button>`).join('')}</div>`:'';
-  const hdr=`<div class="head"><div><div class="eyebrow">Client context · Data explorer</div><h2>Preview what the accelerator reads</h2><p class="lede">Synthetic extracts shaped like the client’s real tables. Only included tables are shown.</p></div><div class="btnrow">${sysSeg}${tabs}</div></div>`;
+  const hdr=`<div class="head"><div><div class="eyebrow">Client context · Data ontology</div><h2>The data the solution reads, and what it means</h2><p class="lede">Synthetic extracts shaped like the client’s real tables. Only included tables are shown.</p></div><div class="btnrow">${sysSeg}${tabs}</div></div>`;
   let list='',view='';
   if(S.xtab==='tables'){
     if(!ts.length)return hdr+`<div class="empty">No included tables for this filter. Connect sources first.<button class="btn" data-act="cstep" data-i="0">Go to Sources</button></div>`;
     if(!ts.find(t=>t.id===S.xsel))S.xsel=ts.find(t=>t.id==='LIPS')?'LIPS':ts[0].id;
     SYS.forEach(s=>{const g=ts.filter(t=>t.sys===s.k);if(!g.length)return;list+=`<div class="xgrp">${esc(s.n)}</div>`+g.map(t=>`<button class="xi ${t.id===S.xsel?'on':''}" data-act="xsel" data-k="${esc(t.id)}"><b><span class="mono">${esc(t.id)}</span><span class="num muted">${n0(t.rows)}</span></b><small>${esc(t.name)}</small></button>`).join('')});
     const t=TB(S.xsel),r=rng(hash(t.id)),rows=Array.from({length:10},(_,i)=>t.gen(r,i)),feeds=PATS.filter(p=>p.t.includes(t.id));
-    view=`<h4><span class="mono">${esc(t.id)}</span><span class="chip">${esc(SYS.find(s=>s.k===t.sys).n)}</span><span class="chip num">${n0(t.rows)} rows · 18 months</span></h4><p class="note">${esc(t.name)}. Showing 10 rows.</p>
-     <div class="tscroll"><table class="grid"><thead><tr>${t.cols.map(c=>`<th>${esc(c[0])}<small>${esc(c[1])}</small></th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    view=`<h4><span class="mono">${esc(t.id)}</span><span class="chip">${esc(SYS.find(s=>s.k===t.sys).n)}</span><span class="chip num">${n0(t.rows)} rows · 18 months</span></h4><p class="note">${esc(t.name)}. Showing 10 rows. The second heading row gives the business meaning of each field. <span class="chip">Illustrative representation: the values are synthetic</span></p>
+     <div class="tscroll"><table class="grid"><thead><tr>${t.cols.map(c=>`<th>${esc(c[0])}<small>${esc(c[1])}</small></th>`).join('')}</tr><tr>${t.cols.map(c=>`<th class="gl">${esc(gl(c[0])||'')}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
      <div class="chips"><span class="eyebrow" style="margin-right:4px">Informs</span>${t.objs.map(o=>`<span class="chip ${S.scope.includes(o)?'acc':''}">${esc(OB(o).short)}</span>`).join('')}</div>
      <div><div class="eyebrow" style="margin-bottom:5px">Feeds patterns</div><div class="chips">${feeds.length?feeds.map(p=>`<span class="chip">${esc(p.n)}</span>`).join(''):'<span class="note">KPI computation and context only</span>'}</div></div>`;
   } else {
@@ -1091,13 +1098,13 @@ function cExplorer(){
      <div class="docbody ${d.mail?'mail':''}">${d.body.split('\n').map(l=>`<p>${esc(l).replace(/\[\[(.+?)\]\]/g,'<mark>$1</mark>')}</p>`).join('')}</div>
      <div class="chips"><span class="eyebrow" style="margin-right:4px">Informs</span>${d.objs.map(o=>`<span class="chip ${S.scope.includes(o)?'acc':''}">${esc(OB(o).short)}</span>`).join('')}</div>`;
   }
-  return hdr+`<div class="explorer"><div class="xlist">${list}</div><div class="xview">${view}</div></div>`+nextBtn('cstep',2,'O2C health check');
+  return hdr+`<div class="explorer"><div class="xlist">${list}</div><div class="xview">${view}</div></div>`+(S.xtab==='tables'?glossPanel():'')+nextBtn('cstep',2,'Value calculator');
 }
 function qtrack(k){const span=k.hi-k.lo,pc=v=>Math.max(0,Math.min(100,(v-k.lo)/span*100));
   return `<div class="qtrack"><span class="mk" style="left:${pc(k.med)}%"></span><span class="mk tq" style="left:${pc(k.tq)}%"></span><span class="dot" style="left:${pc(k.v)}%"></span></div><div class="qlab"><span>Median ${k.med}${k.u}</span><span style="color:var(--good)">Top quartile ${k.tq}${k.u}</span></div>`}
 function kpos(k){const b=(a,c)=>k.dir<0?a<=c:a>=c;if(b(k.v,k.tq))return['Top quartile','good'];if(b(k.v,k.med))return['Above median','good'];if(b(k.v,k.med+(k.med-k.tq)))return['Below median','warn'];return['Bottom quartile','bad']}
 function cHealth(){
-  if(!conn('sap'))return `<div class="head"><div><div class="eyebrow">Client context · O2C health check</div><h2>O2C health check</h2></div></div><div class="empty">Connect SAP first.<button class="btn pri" data-act="cstep" data-i="0">Go to Sources</button></div>`;
+  if(!conn('sap'))return `<div class="head"><div><div class="eyebrow">Client context · Value calculator</div><h2>Value calculator</h2></div></div><div class="empty">Connect SAP first.<button class="btn pri" data-act="cstep" data-i="0">Go to Sources</button></div>`;
   const nd=id=>NODES.find(n=>n.id===id);
   const ready=k=>k.sys!=='P'||k.always||(k.src||[]).every(tIncluded);
   const val=k=>!ready(k)?'<span class="note">Needs a table excluded in Sources</span>':k.disp?`<div class="kv"><b class="num">${esc(k.disp)}</b><span class="chip">No peer benchmark</span></div><div class="note">${k.note?esc(k.note)+' · ':''}tracked as a trend</div>`
@@ -1124,7 +1131,7 @@ function cHealth(){
     <div class="say" style="margin-top:12px"><b>Worth asking:</b> the KPI scope runs from order to bill. Customer setup and receivables have no KPI in it, yet receivables is where order-to-cash reaches the CFO’s cash. The receivables and end-to-end measures below would close that gap. Is receivables owned by this programme, or by another?</div></section>`;
   const col=S.scope.includes('col');
 
-  return `<div class="head"><div><div class="eyebrow">Client context · O2C health check</div><h2>How the leading measures move the pilot results</h2>
+  return `<div class="head"><div><div class="eyebrow">Client context · Value calculator</div><h2>How the leading measures move the pilot results</h2>
     <p class="lede">Three results the client reports, the leading measures teams can move, and the arithmetic that links them. The full KPI inventory sits below for reference.</p></div><span class="illus">Illustrative values and benchmarks</span></div>
    ${driverExplorer()}
    <details class="refwrap"><summary>Full KPI inventory and hand-off contracts <span class="note">reference: every lagging and leading measure, by process step</span></summary><div class="refbody">
@@ -1156,7 +1163,7 @@ function kgLines(){const ts=TABLES.filter(t=>tOn(t.id));
    `Reading Celonis manual-activity events for rules learned`,`Backtesting ${PATS.filter(p=>!p.mined&&patAvail(p)).length} library patterns over 18 months`,`Mining new patterns against objective KPIs · ${PATS.filter(p=>p.mined).length} candidates`,'Graph ready'];
 }
 function cGraph(){
-  const hd=`<div class="head"><div><div class="eyebrow">Client context · Knowledge graph</div><h2>${S.kg===2?'Mexico O2C knowledge graph':'Build the knowledge graph'}</h2><p class="lede">Tiger’s O2C ontology supplies the meaning; Mexico’s tables and documents populate it. The graph is what lets a pattern ask “was this invoice really owed?”</p></div>${S.kg===1?'':`<button class="btn ${S.kg===2?'':'pri'}" data-act="kg" ${allConn()?'':'disabled'}>${S.kg===2?'Rebuild':'Build knowledge graph'}</button>`}</div>`;
+  const hd=`<div class="head"><div><div class="eyebrow">Client context · Knowledge graph</div><h2>${S.kg===2?'Mexico O2C knowledge graph':'Build the knowledge graph'}</h2><p class="lede">The order passport is a layer on top of the source systems: it reads them and does not replace or copy them. Tiger’s O2C ontology supplies the meaning; Mexico’s tables and documents populate it. The graph is what lets a pattern ask “was this invoice really owed?”</p></div>${S.kg===1?'':`<button class="btn ${S.kg===2?'':'pri'}" data-act="kg" ${allConn()?'':'disabled'}>${S.kg===2?'Rebuild':'Build knowledge graph'}</button>`}</div>`;
   if(S.kg===1)return hd+`<div class="log" aria-live="polite">${S.kgLog.map(l=>`<div><span class="ok">✓</span>${esc(l)}</div>`).join('')}${S.kgReady?'':'<div><span class="spin"></span> Working…</div>'}</div>
    ${S.kgReady?`<div class="done-banner" style="justify-content:space-between;flex-wrap:wrap"><span>✓ Build complete: ${S.kgLog.length} steps processed.</span><button class="btn pri" data-act="kgshow">View the knowledge graph →</button></div>`:''}`;
   if(S.kg!==2)return hd+(allConn()?'':'<div class="empty">Connect all sources first.<button class="btn" data-act="cstep" data-i="0">Go to Sources</button></div>')+ontology();
@@ -1180,20 +1187,20 @@ function ontology(){
   const pos={};N.forEach(n=>pos[n[0]]={x:n[3],y:n[4]});
   const E=[['acc','ord','places'],['term','inv','sets due date'],['promo','ord','prices'],['ord','ship','released to'],['ship','acc2','delivered as'],['acc2','inv','should equal'],['inv','pay','settled by'],['case','inv','disputes'],['rule','pat','thresholds'],['pay','pat','detected by'],['pat','mis','operated by'],['ho','mis','measures'],['pass','mis','carries history to']];
   const w=150,h=50,an=(a,b)=>{const A=pos[a],B=pos[b],ax=A.x+w/2,ay=A.y+h/2,bx=B.x+w/2,by=B.y+h/2;if(Math.abs(ax-bx)<5)return[ax,A.y+(by>ay?h:0),bx,B.y+(by>ay?0:h)];return[A.x+(bx>ax?w:0),ay,B.x+(bx>ax?0:w),by]};
-  return `<section class="panel"><div class="ph"><div><h3>Tiger O2C ontology, populated</h3><p class="sub">Shaded nodes come from the accelerator; the rest from client data.</p></div></div><div class="svgwrap"><svg viewBox="0 0 970 300" style="min-width:720px" role="img" aria-label="O2C ontology">
+  return `<section class="panel"><div class="ph"><div><h3>Tiger O2C ontology, populated</h3><p class="sub">Shaded nodes come from the solution; the rest from client data.</p></div></div><div class="svgwrap"><svg viewBox="0 0 970 300" style="min-width:720px" role="img" aria-label="O2C ontology">
    <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--faint)"/></marker></defs>
    ${E.map(([a,b,l])=>{const[x1,y1,x2,y2]=an(a,b);return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--faint)" stroke-width="1.2" marker-end="url(#ah)"/><text x="${(x1+x2)/2}" y="${(y1+y2)/2-4}" text-anchor="middle" class="lbl2 halo" style="font-size:9.5px">${l}</text>`}).join('')}
    ${N.map(n=>{const hi=['rule','pat','ho','mis'].includes(n[0]);return `<rect x="${n[3]}" y="${n[4]}" width="${w}" height="${h}" rx="9" fill="${hi?'var(--accent-soft)':'var(--surface-2)'}" stroke="${hi?'var(--accent-line)':'var(--line)'}"/><text x="${n[3]+12}" y="${n[4]+21}" class="lbl">${n[1]}</text><text x="${n[3]+12}" y="${n[4]+37}" class="lbl2">${n[2]}</text>`}).join('')}</svg></div></section>`;
 }
 
 /* ================= builder ================= */
-const BSTEPS=[['Pilot frame & target',''],['Standards','GPO vs Mexico'],['KPI ladder & missions',''],['Patterns & rules learned',''],['Owners',''],['Pilot scope','']];
+const BSTEPS=[['Pilot frame & target',''],['Standards','GPO vs Mexico'],['KPI ladder & missions',''],['Patterns & rules learned',''],['Tools, skills and context','Capability universe'],['Business operating model',''],['Pilot scope','']];
 PAGE.bld=()=>{header('bld');ensureSel();
   BSTEPS[0][1]=`${O().short} · ${fmtO(S.targets[S.obj])}`;BSTEPS[2][1]=`${relMissions().filter(m=>S.mSel.has(m.id)).length} missions`;BSTEPS[3][1]=`${selPats().length} patterns`;
-  BSTEPS[4][1]=S.locked?'Blueprint locked':'Owners & channels';BSTEPS[5][1]=`Option ${S.opt}`;
+  BSTEPS[5][1]=S.locked?'Blueprint locked':'Owners, channels, autonomy';BSTEPS[6][1]=`Option ${S.opt}`;
   steps(BSTEPS,S.bstep,'bstep');
   const strip=S.kg===2?`<div class="note">Context: ${TABLES.filter(t=>tOn(t.id)).length} tables · ${DOCS.length} documents · knowledge graph built · <a href="#ctx">Client context →</a></div>`:`<div class="warnline"><b>Client context not built.</b><span>Missions are sized from the knowledge graph.</span><a class="btn sm" href="#ctx">Open Client context</a><button class="btn sm" data-act="democtx">Load demo context</button></div>`;
-  return strip+[bObjective,bStandards,bMissions,bPatterns,bOwners,bPilot][S.bstep]()+footer;
+  return strip+[bObjective,bStandards,bMissions,bPatterns,bTools,bOwners,bPilot][S.bstep]()+footer;
 };
 function hkFor(o){return HKPIS.find(k=>k.o[0]===o.id&&k.n.length)||null}
 function bObjective(){
@@ -1274,7 +1281,7 @@ function bPatterns(){
     ${rl.map(r=>`<tr style="${r.o.includes(S.obj)?'':'opacity:.6'}"><td><b>${r.id} · ${esc(r.rule)}</b><div class="note">${esc(r.who)} · owner: ${esc(r.fn)}</div></td><td class="r num">${n0(r.n)}</td>
      <td><div class="evid"><i style="flex:${r.ok};background:var(--good)"></i><i style="flex:${100-r.ok};background:var(--bad)"></i></div><span class="note num">${r.ok}%</span></td><td><span class="verd ${VERD[r.verdict][1]}">${VERD[r.verdict][0]}</span></td><td>${esc(r.prop)}</td></tr>`).join('')}</tbody></table></div>
     <div class="say" style="margin-top:12px"><b>Say:</b> “The ‘fix upstream’ rules are the ones to remember. They look worth automating, but each one hides a broken hand-off. Automating them would make the workaround permanent.”</div></section>
-   ${nextBtn('bstep',4,'Owners')}`;
+   ${nextBtn('bstep',4,'Tools, skills and context')}`;
 }
 function bOwners(){
   const MODES=['Supervised','Assisted','Balanced','Autonomous'];
@@ -1283,12 +1290,12 @@ function bOwners(){
      <td><select data-act="owna" data-k="${p.id}" aria-label="Accountable for ${esc(p.n)}">${ACC_OPTS.map(x=>`<option value="${x}" ${x===a?'selected':''}>${esc(nm(x))} · ${esc(PEOPLE[x][1].split(' · ')[0])}</option>`).join('')}</select></td>
      <td><select data-act="ownr" data-k="${p.id}" aria-label="Responsible for ${esc(p.n)}">${RESP_OPTS.map(x=>`<option ${x===r?'selected':''}>${esc(x)}</option>`).join('')}</select></td><td>${esc(p.ch)}</td>
      <td><select data-act="mode" data-k="${p.id}" aria-label="Autonomy for ${esc(p.n)}">${MODES.map(x=>`<option ${x===S.modes[p.id]?'selected':''}>${x}</option>`).join('')}</select></td></tr>`}).join('')}).join('');
-  return `<div class="head"><div><div class="eyebrow">Transformation builder · Owners</div><h2>Who owns each pattern, and where the work shows up</h2>
+  return `<div class="head"><div><div class="eyebrow">Transformation builder · Business operating model</div><h2>Who owns each pattern, and where the work shows up</h2>
     <p class="lede">The standard owner is global; accountability is local. Pick the accountable person from the Mexico organisation and the responsible team. Work is delivered where each team already works: the mission desk, Salesforce, or the Celonis task inbox.</p></div>${Object.keys(S.own).length?`<span class="chip acc">${Object.keys(S.own).length} owner change${Object.keys(S.own).length>1?'s':''}</span>`:''}</div>
    <section class="panel"><div class="tw"><table class="t"><thead><tr><th>Pattern</th><th>Standard owner</th><th>Accountable (Mexico)</th><th>Responsible</th><th>Delivered in</th><th>Autonomy</th></tr></thead><tbody>${rows}</tbody></table></div></section>
    <section class="panel"><div class="ph"><div><h3>Lock the blueprint</h3><p class="sub">Generates the desks for every accountable and responsible role.</p></div>${S.locked?'<a class="btn pri" href="#desk">Open Mission desk →</a>':'<button class="btn pri" data-act="lock">Lock blueprint & generate desks</button>'}</div>
     ${S.locked?`<div class="done-banner">✓ Blueprint locked for “${esc(OB(S.lockedObj).n)}”.</div>`:''}</section>
-   <div class="btnrow" style="justify-content:flex-end"><button class="btn" data-act="bstep" data-i="5">Pilot scope →</button></div>`;
+   <div class="btnrow" style="justify-content:flex-end"><button class="btn" data-act="bstep" data-i="6">Pilot scope →</button></div>`;
 }
 const OPTS={
  A:{n:'Order integrity only',sc:'Touchless Order Processing and the order passport, one market',wk:'7 weeks',why:'Smallest footprint; proves order-change capture',risk:'Allocation and credit stay untouched, so OTIF barely moves'},
@@ -1317,11 +1324,12 @@ function bPilot(){
     <tr><td><b>OTIF</b></td><td>Partly, on pilot routes only</td><td>Stock confirmed at dispatch cut-off · substitutions agreed within SLA</td></tr>
     <tr><td><b>Deductions</b></td><td>Deduction rate on pilot customers, yes; claims lag</td><td>PODs with reason code within 24 h · days to resolve · short-pays matched touchlessly</td></tr>
     <tr><td><b>Collections</b></td><td>DSO no; past due for pilot customers, partly</td><td>Credit blocks cleared within 4 h · share of short-pays matched touchlessly · unapplied cash age</td></tr></tbody></table></div></section>
+   ${appetPanel()}
    <section class="panel"><div class="ph"><div><h3>To confirm with the OTC VP</h3></div></div><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13px">
     <li>Which market, and whether Databricks or Celonis is the baseline source (availability and refresh against the source systems)</li>
     <li>OTIF counted against the original or the amended order</li><li>Who owns the substitution decision today</li>
     <li>Whether SAP change documents (CDHDR / CDPOS) are readable and retained long enough for the passport</li>
-    <li>Where this pilot ends and the PwC workstream begins</li><li>Baseline numbers from Celonis for the fields above</li></ol></section>`;
+    <li>Where this pilot ends and the PwC workstream begins</li><li>Which in-flight programmes already ask the same teams for change</li><li>Baseline numbers from Celonis for the fields above</li></ol></section>`;
 }
 
 /* ================= mission desk (collections) ================= */
@@ -1331,7 +1339,7 @@ PAGE.desk=()=>{header('desk');steps(null);
   const banner=S.locked&&S.lockedObj==='col'?'':`<div class="warnline"><b>${S.locked?'Sample desk':'Demo blueprint'}</b><span>${S.locked?'This prototype’s desks are built for the three pilot capabilities.':'No blueprint locked yet, so the desk runs on the pilot demo blueprint.'}</span><a class="btn sm" href="#bld">Open Transformation builder</a></div>`;
   const ctl=`<div class="head"><div><div class="eyebrow">Mission desk · Direct Fulfillment pilot · week 6 since go-live</div><h2>${p[0]==='col'?'Good morning, Ana':esc(p[1])}</h2><p class="lede">${esc(p[2])} · ${PEOPLE[PMAP[p[0]]][2]?'reports to '+esc(nm(PEOPLE[PMAP[p[0]]][2])):'Direct Fulfillment pilot'}</p></div>
    <label class="psel"><span class="av">${p[1].split(' ').map(w=>w[0]).join('')}</span><span><small>Viewing as</small><select id="persona" aria-label="Persona">${PERSONAS.map(x=>`<option value="${x[0]}" ${x[0]===S.persona?'selected':''}>${esc(x[1])} · ${esc(x[2].split(' · ')[0])}</option>`).join('')}</select></span></label></div>`;
-  return banner+ctl+{om:dOrder2,al:dAlloc2,dr:dDeliver,col:dCollector2,lead:dLead,ra:dRoute,po:dOwner}[S.persona]()+history()+footer;
+  return banner+ctl+deskTop()+{om:dOrder2,al:dAlloc2,dr:dDeliver,col:dCollector2,lead:dLead,ra:dRoute,po:dOwner}[S.persona]()+history()+footer;
 };
 function history(){const P=PMAP[S.persona],vis=S.log.filter(e=>canSee(e,P)),hidW=[...new Set(S.log.filter(e=>!canSee(e,P)).map(e=>nm(e.who)))],seen=S.seen[P]||0,isNew=e=>e.id>seen&&e.who!==P,nw=vis.filter(isNew).length,hid=S.log.length-vis.length;
   const scope={ana:'Your own actions, plus anything routed to you or done on your items.',marisol:'Your actions, your four collectors’ actions, and anything routed to them.',
@@ -1500,9 +1508,9 @@ PAGE.src=()=>{header('src');steps(null);
 const presenterGuide=()=>{header('guide');steps(null);
   const A=[
    ['Overview','1 min',['Walk the five process steps and the three modules.'],'“Order-to-cash runs across six systems and each team optimises its own step.”'],
-   ['Context · Sources & scope','2 min',['Keep Collections in scope; show the other five objectives exist.','Connect all. Show the table picker: KNB1, LIPS, Case, FEBEP are recommended for collections.','Untick LMD_STOP_EXECUTION, note the pattern count, then re-tick.'],''],
-   ['Context · Data explorer','1 min',['Open LIPS (accepted quantity), then the Cadena Norte agreement with its highlighted clauses.'],'“The documents are where the rules live.”'],
-   ['Context · Health check','3 min',['Land on 52% touchless per order vs 71–88% by team.','Collections waterfall: MXN 224M of MXN 510M is collectible.','Inventory panel: his 61 KPIs read against the five steps. Setup and receivables have none in scope. Ask who owns receivables.','Lagging: six of his results, then four for receivables and end to end. Click DSO to light up its drivers: three of them are already his KPIs (time to bill, unbilled shipped revenue, days since goods issue).','Leading by step, the volume measures folded away, then the seven hand-off contracts.'],'“The lagging measures tell you where you are. The leading ones are what a team can move this week.”'],
+   ['Context · System ontology','2 min',['Keep Collections in scope; show the other five objectives exist.','Connect all. Show the table picker: KNB1, LIPS, Case, FEBEP are recommended for collections.','Untick LMD_STOP_EXECUTION, note the pattern count, then re-tick.'],''],
+   ['Context · Data ontology','1 min',['Open LIPS (accepted quantity), then the Cadena Norte agreement with its highlighted clauses.'],'“The documents are where the rules live.”'],
+   ['Context · Value calculator','3 min',['Land on 52% touchless per order vs 71–88% by team.','Collections waterfall: MXN 224M of MXN 510M is collectible.','Inventory panel: his 61 KPIs read against the five steps. Setup and receivables have none in scope. Ask who owns receivables.','Lagging: six of his results, then four for receivables and end to end. Click DSO to light up its drivers: three of them are already his KPIs (time to bill, unbilled shipped revenue, days since goods issue).','Leading by step, the volume measures folded away, then the seven hand-off contracts.'],'“The lagging measures tell you where you are. The leading ones are what a team can move this week.”'],
    ['Context · Knowledge graph','2 min',['Build it; let the build log run and talk through each step; click “View the knowledge graph”.','Read the ontology; walk invoice 90881234 to MXN 0 collectible.'],'“No single system holds the truth about this invoice.”'],
    ['Builder','5 min',['Show all six objectives; select Collect what is collectible.','Standards: global definitions, local ownership.','Ladder: two lagging levels on top, three leading levels below. The leading measures are his own KPIs where they exist. Each mission row shows what it moves.','Sankey: collector missions plus feeder missions upstream.','Patterns: tick the mined pattern; read the tables each needs. Rules: R2 and R5 are “fix upstream”.','Owners and channels; lock the blueprint.'],'“The standard travels across markets. The result belongs to Mexico.”'],
    ['Desk · Ana, collector','5 min',['Portfolio waterfall; leading cards move with each action, lagging cards say when they will move.','Reclassified lane: Cadena Norte invoice; approve and route. Routed out ≤ 2 days ticks up; the pipeline shows what is now with other teams.','Collect lane: Super Golfo “Do it” secures a promise; paused lane; send one opportunity.','Open History: Ana sees only her own items, not Luis or Sofía.'],'“Leading measures move today. DSO and past due move when the cash lands, and we will not pretend otherwise.”'],
@@ -1532,14 +1540,14 @@ function pilotLens(compact){
   <p class="note" style="margin-top:8px">The scenarios also touch I (unclear ownership of product substitution) and K (manual allocation and unclear priority rules), which sit between H and J on the same slide.</p>
   ${compact?'':`<div class="say" style="margin-top:12px"><b>Thesis:</b> an order defect made upstream (a change nobody recorded, stock allocated after the truck is loaded, a credit block on the wrong exposure) shows up weeks later as a short-pay, a deduction and a past-due invoice. Carry the order’s history forward and the defect is prevented instead of reconciled.</div>`}</section>`}
 function pathPanel(){
- const st=[['1','Where the three lagging indicators are made','Health check: each lagging KPI with its leading drivers',{ctx:1,c:2,h:'ctx'}],
+ const st=[['1','Where the three lagging indicators are made','Value calculator: each lagging KPI with its leading drivers',{ctx:1,c:2,h:'ctx'}],
   ['2','The order passport is the knowledge graph, read for one order','Knowledge graph',{ctx:1,c:3,h:'ctx'}],
   ['3','Scenario 1 · the customer changes the order','Order management desk, reads the customer’s email',{ctx:1,p:'om',h:'desk',sc:'scen1'}],
   ['4','Scenario 2 · substitute proposed, accepted by email, approved','Allocation analyst desk',{ctx:1,p:'al',h:'desk',sc:'scen2'}],
   ['5','Scenario 3 · what the customer did not accept, recorded at the stop','Delivery associate desk',{ctx:1,p:'dr',h:'desk',sc:'scen3'}],
   ['6','The collector reads the passport','Collections desk',{ctx:1,p:'col',h:'desk',sc:'scen4'}],
   ['7','Optional: the reverse-flow credit panel','Order management desk',{ctx:1,p:'om',h:'desk',sc:'credit'}],
-  ['8','The decision: scope and market','Builder, pilot scope',{ctx:1,b:5,h:'bld'}]];
+  ['8','The decision: scope and market','Builder, pilot scope',{ctx:1,b:6,h:'bld'}]];
  return `<section class="panel"><div class="ph"><div><h3>The ten-minute path</h3><p class="sub">Built to get three decisions from the OTC VP: the archetype, the capabilities and the market. Each step is a button; everything else stays reachable from the top bar.</p></div></div>
   ${st.map(x=>`<div class="act"><span class="anum">${x[0]}</span><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><div><b>${esc(x[1])}</b><div class="note">${esc(x[2])}</div></div><button class="btn sm" data-act="goto" ${Object.entries(x[3]).map(([k,v])=>`data-${k}="${v}"`).join(' ')}>Open →</button></div></div>`).join('')}</section>`}
 function pilotCauses(){
@@ -1834,6 +1842,41 @@ function driverExplorer(){
   ${leadH}
   <p class="note" style="margin-top:12px">A model, not a measurement: it assumes the leading measure and its cause move together. The pilot baseline replaces the shares with a root-cause cut from the client’s own events, and the pilot-versus-comparison design tests the link.</p></section>`}
 
+/* ===== Aswin-driven additions: ontology glossary, tools/skills/context, mission queue, action trace ===== */
+const GLOSS={VBELN:'Document number of the delivery or invoice in SAP',LFIMG:'Cases delivered, as picked in the warehouse',PODMG:'Cases the customer accepted at the stop, from the handheld',ABGRU:'Reason an order line was rejected',KWMENG:'Cases ordered on the line, as amended',MATNR:'Material (product) code',KUNNR:'Customer or store number in SAP',KUNAG:'Sold-to party: the customer that placed the order',LFDAT:'Planned delivery date',FKIMG:'Cases billed',NETWR:'Net value of the document in MXN',GRUND:'Reason code explaining a difference or credit',LIFSK:'Block that stops a delivery from being released',CMGST:'Credit check status of the customer',AUGDT:'Date an open item was cleared',AUGBL:'Document that cleared the item',DPD:'Days an invoice is past its due date',NETDT:'Date payment is due',ROUTE:'Delivery route that serves the store',STOP:'Position of the store on the route',SIGNED_AT:'When the customer signed for the delivery',TouchlessFlag:'Order went from receipt to cash with no manual touch',ManualChanges:'Number of manual edits made to the order',Quantity:'Cases ordered',Promotion__c:'Promotion that applies to the line',Status:'Current state of the record',UUID:'Tax-authority identifier of the electronic invoice',ReceivedAt:'When the payment reached the bank',AppliedAt:'When the payment was matched to invoices',DaysToApply:'Days between receipt and application of cash',KBETR:'Rate of the pricing condition',KSCHL:'Type of pricing condition, e.g. discount or promotion'};
+const gl=c=>GLOSS[String(c).replace('*','')]||'';
+const GLOSSARY=[['OTIF (on time, in full)','Share of cases delivered on the promised date and in the quantity the customer accepted. The rule for amended orders is an open question for the client.'],['Order passport','The order-centric view of the knowledge graph: every change to one order, with actor, time and evidence.'],['Substitution','A different product offered when the ordered one cannot be shipped; needs the customer’s acceptance.'],['Deduction','An amount a customer subtracts from a payment, usually a short delivery, a price difference or a promotion.'],['Short-pay','A payment smaller than the invoice; becomes a deduction case if not explained.'],['Past due over 30 days','Invoice value more than 30 days beyond its due date.'],['Touchless','An order that moves from receipt to cash with no manual edit.'],['Contrarecibo','Receipt a Mexican customer issues when it accepts an invoice for payment scheduling.']];
+function glossPanel(){return `<details class="panel refwrap"><summary><b>Business glossary</b> <span class="note">${GLOSSARY.length} terms the solution uses, defined once</span></summary><div class="refbody tw"><table class="t"><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>${GLOSSARY.map(g=>`<tr><td><b>${esc(g[0])}</b></td><td>${esc(g[1])}</td></tr>`).join('')}</tbody></table></div></details>`}
+function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Client context · System ontology, Data ontology, Knowledge graph'],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Builder · Tools, skills and context'],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Builder · KPI ladder & missions'],['Value calculator','Lagging results, the leading measures that move them, and the arithmetic between.','Client context · Value calculator']];
+ return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3><p class="sub">Four parts. Each is a screen in this demo.</p></div></div><div class="grid4">${c.map((x,i)=>`<div class="four"><span class="lnum">${i+1}</span><b>${x[0]}</b><p class="note">${x[1]}</p><span class="chip">${x[2]}</span></div>`).join('')}</div></section>`}
+const TOOLS=[['Read order and stock','SAP S/4 (VBAK, VBAP, LIPS, MARD)','Tool'],['Read the order mailbox','Shared mailbox','Tool'],['Read route and stop events','OTM, route handheld','Tool'],['Read KPIs and variants','Celonis','Tool']];
+const SKILLS=[['Record an order change','Writes actor, time and evidence to the passport'],['Check stock at cut-off','Compares ordered, allocated and available cases'],['Propose a substitution','Ranks like-for-like products by stock and customer history'],['Read a customer reply','Matches the thread to the PO and extracts accept or refuse'],['Record acceptance at the stop','Reads accepted cases and reason codes from the handheld'],['Build short-pay evidence','Assembles delivery, POD and agreement clauses for the collector']];
+const CONTEXTS=[['Customer agreements','Tolerances, contrarecibo rules, substitution terms'],['Rules learned','Patterns promoted from past cases, approved by an owner'],['Order passport','The history of this order across systems'],['Business glossary','Agreed definitions of OTIF, deduction, past due']];
+function bTools(){const pats=selPats();
+ const col=(t,rows,c)=>`<section class="panel"><div class="ph"><div><h3>${t}</h3></div><span class="chip">${rows.length}</span></div><div style="display:flex;flex-direction:column;gap:8px">${rows.map(r=>`<div class="toolrow"><b>${esc(r[0])}</b><span class="note">${esc(r[1])}</span></div>`).join('')}</div></section>`;
+ return `<div class="head"><div><div class="eyebrow">Transformation builder · Tools, skills and context</div><h2>What the agents can use to do the work</h2><p class="lede">The capability universe: tools to reach the client’s systems, skills that do one job each, and context that tells an agent the rules. The ${pats.length} selected patterns draw only on these, so what an agent can do is written down before it acts.</p></div></div>
+  <div class="grid3">${col('Tools',TOOLS)}${col('Skills',SKILLS)}${col('Context',CONTEXTS)}</div>
+  <p class="note">Illustrative list for the demo. In a deployment each tool shows the permission it holds (read or write) and who approved it.</p>
+  <div class="btnrow" style="justify-content:flex-end"><button class="btn" data-act="bstep" data-i="5">Business operating model →</button></div>`}
+const APPET=[['top','Top customers first','The largest few customers by volume. Fastest read-out, but their people are the busiest.'],['seg','One segment','A single channel or chain. Clean comparison against the rest.'],['reg','One region','A region with a ready team. Easier to staff, harder to compare.']];
+function appetPanel(){return `<section class="panel"><div class="ph"><div><h3>Change appetite and in-flight programmes</h3><p class="sub">How much change the client’s teams can absorb alongside what is already running. Pick the start point.</p></div></div>
+ <div class="opts">${APPET.map(a=>`<button class="opt ${S.app===a[0]?'on':''}" data-act="app" data-k="${a[0]}"><b>${a[1]}</b><p class="note">${a[2]}</p></button>`).join('')}</div>
+ <p class="note" style="margin-top:8px">To confirm with the client: which programmes already touch order management, allocation or collections this year, and which of those teams can take on a pilot now.</p></section>`}
+const MQ={om:{m:'Keep the order right until it ships',k:'Orders with a complete passport',q:[['SO-7784502','Cadena Norte · store 0381','chg','Customer changed 100 to 120 cases'],['SO-7784519','Cadena Norte · store 0412','','Waiting for PO'],['SO-7784533','Sorteo Mx · store 0107','','On track']]},
+ al:{m:'Allocate stock before the route leaves',k:'Orders with stock confirmed at dispatch cut-off',q:[['SO-7784502','Cadena Norte · store 0381','alloc','Short 20 cases, substitute proposed'],['SO-7784540','Super Valle · store 0220','','Stock confirmed'],['SO-7784547','Sorteo Mx · store 0093','','Stock confirmed']]},
+ dr:{m:'Deliver what was agreed and record what was not',k:'PODs with reason code within 24 h',q:[['SO-7784502','Cadena Norte · stop 6, route 214','rej','Delivery at the stop'],['SO-7784488','Super Valle · stop 7','','Next stop'],['SO-7784491','Sorteo Mx · stop 8','','Next stop']]},
+ col:{m:'Collect what is collectible',k:'Past due over 30 days',q:[['INV-90881234','Cadena Norte','','Short-pay under review'],['INV-90881310','Super Valle','','Promise to pay on file'],['INV-90881377','Sorteo Mx','','Due in 6 days']]}};
+const TRACE={om:['Customer email and SAP order read','Order is 100 cases in SAP, email asks for 120','Record the change, check stock, notify allocation','Writes the change to the passport','Passport shows who changed what, when','chg'],
+ al:['Open change on SO-7784502 and stock in MARD','40 of 60 cases available; 20 short','Offer 20 chips 28g in place of snack mix','Sends the proposal to the customer, waits for the reply','Reply read at 96% confidence, then approved by the analyst','suba'],
+ dr:['Handheld stop event for stop 6','Customer accepted 108 of 120 cases','Record accepted quantity and reason codes','Posts accepted quantity and reasons to the passport','Invoice follows accepted quantity','rej'],
+ col:['Invoice and payment lines read','Short-pay MXN 14,580 matches the refused cases','Attach delivery proof and agreement clause','Prepares the case for the collector to send','Deduction avoided if the customer accepts the evidence','']};
+function deskTop(){const P=S.persona,q=MQ[P],t=TRACE[P];if(!q)return '';
+ const done=t[5]?!!S.done[t[5]]:false,st=['Sense','Understand','Plan','Act','Evaluate'];
+ return `<div class="warnline" style="background:var(--accsoft,#eef6ff)"><b>Autonomous within approval rules</b><span>The agent acts alone only where a rule you approved applies. Everything else waits for a person, and every step is logged.</span></div>
+ <section class="panel"><div class="ph"><div><span class="eyebrow">My mission</span><h3>${esc(q.m)}</h3><p class="sub">Measured by: ${esc(q.k)}</p></div></div>
+  <div class="tw"><table class="t"><thead><tr><th>My queue</th><th>Customer</th><th>Where it stands</th></tr></thead><tbody>${q.q.map(r=>`<tr><td><b class="mono">${r[0]}</b></td><td>${esc(r[1])}</td><td>${r[2]&&S.done[r[2]]?'<span class="chip ok">Handled</span> ':''}${esc(r[3])}</td></tr>`).join('')}</tbody></table></div></section>
+ <details class="panel refwrap"><summary><b>What the agent did</b> <span class="note">Sense → Understand → Plan → Act → Evaluate · ${done?'completed':'not yet run'} · illustrative trace</span></summary><div class="refbody"><ol class="trace">${st.map((s,i)=>`<li class="${done?'on':''}"><b>${s}</b><span>${esc(t[i])}</span></li>`).join('')}</ol><p class="note">A deployment logs the real call behind each step, such as the SAP read and the record written, with time and user.</p></div></details>`}
+
 /* ================= router and events ================= */
 function render(){const id=(location.hash||'#home').slice(1);const pid=PAGE[id]?id:'home';$('#main').innerHTML=PAGE[pid]()}
 window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0)});
@@ -1871,6 +1914,7 @@ document.addEventListener('click',ev=>{
   if(a==='psel'){S.pSel.has(k)?S.pSel.delete(k):S.pSel.add(k);S.locked=false;render();return}
   if(a==='lock'){S.locked=true;S.lockedObj=S.obj;logIt('ricardo','locked the blueprint for “'+O().n+'”',['marisol','jorge']);render();return}
   if(a==='opt'){S.opt=k;render();return}
+  if(a==='app'){S.app=k;render();return}
   if(a==='vreset'){S.v={...VDEF};render();return}
   if(a==='lane'){S.lane=k;const f=ITEMS.find(i=>i.lane===k);S.sel=f?f.id:null;render();return}
   if(a==='pick'){const it=ITEMS.find(i=>i.id===k);if(it){S.lane=it.lane;S.sel=k}render();return}
