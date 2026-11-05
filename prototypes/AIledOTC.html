@@ -1141,7 +1141,8 @@ function cGraph(){
   const rules=DOC_RULES.filter(r=>S.rf==='all'||r.o.includes(S.rf));
   const t=THREAD;
   return hd+(S.kgLog.length?`<details class="panel"><summary style="cursor:pointer"><b>Build log</b> <span class="chip">${S.kgLog.length} steps</span></summary><div class="log" style="margin-top:10px">${S.kgLog.map(l=>`<div><span class="ok">✓</span>${esc(l)}</div>`).join('')}</div></details>`:'')+`<div class="tiles">${[[n0(1.84e6*(.4+.6*sc)),'Entities'],[n0(6.2e6*(.4+.6*sc)),'Relationships'],[inc.length+' / '+TABLES.length,'Tables included'],[DOC_RULES.length+'','Rules from documents'],[PATS.filter(patAvail).length+' / '+PATS.length,'Patterns with data']].map(x=>`<div class="tile"><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
-   ${ontology()}`;
+   ${ontology()}
+   <div class="btnrow" style="justify-content:flex-end"><button class="btn pri" data-act="goto" data-h="bld" data-b="0">Next: Mission Builder →</button></div>`;
 }
 function ontology(){
   const N=[['acc','Chain & store','Salesforce · KNA1',20,18],['term','Terms & agreement','KNB1 · documents',20,128],['promo','Promotion','cgcloud · PRCD',20,238],
@@ -1249,7 +1250,8 @@ function bOwners(){
     <p class="lede">The standard owner is global; accountability is local. Pick the accountable person from the Mexico organisation and the responsible team. Work is delivered where each team already works: the mission desk, Salesforce, or the Celonis task inbox.</p></div>${Object.keys(S.own).length?`<span class="chip acc">${Object.keys(S.own).length} owner change${Object.keys(S.own).length>1?'s':''}</span>`:''}</div>
    <section class="panel"><div class="tw"><table class="t"><thead><tr><th>Pattern</th><th>Standard owner</th><th>Accountable (Mexico)</th><th>Responsible</th><th>Delivered in</th><th>Autonomy</th></tr></thead><tbody>${rows}</tbody></table></div></section>
    <section class="panel"><div class="ph"><div><h3>Lock the blueprint</h3><p class="sub">Generates the desks for every accountable and responsible role.</p></div>${S.locked?'<span class="chip good">Locked</span>':'<button class="btn pri" data-act="lock">Lock blueprint & generate desks</button>'}</div>
-    ${S.locked?`<div class="done-banner">✓ Blueprint locked for “${esc(OB(S.lockedObj).n)}”.</div>`:''}</section>`;
+    ${S.locked?`<div class="done-banner">✓ Blueprint locked for “${esc(OB(S.lockedObj).n)}”.</div>`:''}</section>
+   <div class="btnrow" style="justify-content:flex-end"><button class="btn pri" data-act="lockgo">Next: Mission desk →</button></div>`;
 }
 const OPTS={
  A:{n:'Order integrity only',sc:'Touchless Order Processing and the order passport, one market',wk:'7 weeks',why:'Smallest footprint; proves order-change capture',risk:'Allocation and credit stay untouched, so OTIF barely moves'},
@@ -2045,6 +2047,7 @@ document.addEventListener('click',ev=>{
   if(a==='scen'){S.scen=k;render();return}
   if(a==='msel'){S.mSel.has(k)?S.mSel.delete(k):S.mSel.add(k);S.locked=false;render();return}
   if(a==='psel'){S.pSel.has(k)?S.pSel.delete(k):S.pSel.add(k);S.locked=false;render();return}
+  if(a==='lockgo'){if(!S.locked){S.locked=true;S.lockedObj=S.obj;logIt('ricardo','locked the blueprint for “'+O().n+'”',['marisol','jorge'])}location.hash='#desk';window.scrollTo(0,0);return}
   if(a==='lock'){S.locked=true;S.lockedObj=S.obj;logIt('ricardo','locked the blueprint for “'+O().n+'”',['marisol','jorge']);render();return}
   if(a==='opt'){S.opt=k;render();return}
   if(a==='app'){S.app=k;render();return}
