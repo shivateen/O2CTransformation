@@ -423,7 +423,13 @@ th.grp{text-align:center!important;border-bottom:2px solid var(--line)!important
 .navmenu{position:absolute;right:0;top:calc(100% + 8px);min-width:230px;background:var(--surface,#fff);color:var(--ink,#1a1d21);border:1px solid var(--line,#e3e6ea);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:40;display:flex;flex-direction:column}
 .navmenu a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:inherit;text-decoration:none;font-size:14px}.navmenu a:hover{background:var(--surface-2,#f3f4f6)}.navmenu a.on{font-weight:700;background:var(--accent-soft,#fdeede)}
 .navmenu .pn{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2,#eee);font-size:11px}
-.grid3e{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}@media(max-width:900px){.grid3e{grid-template-columns:1fr}}</style></head><body>
+.grid3e{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}@media(max-width:900px){.grid3e{grid-template-columns:1fr}}.tcard{border:1px solid var(--line,#e3e6ea);border-top:3px solid var(--tc);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface,#fff)}
+.tcard .thead{background:none;border:0;padding:0;display:flex;align-items:center;gap:10px;cursor:pointer;text-align:left;font:inherit;color:inherit}.tcard .thead b{font-size:16px}
+.tic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--tc) 14%,#fff);color:var(--tc);flex:none}
+.titems{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.titem{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;background:none;border:0;font:inherit;font-size:13.5px;color:inherit;cursor:pointer;text-align:left}
+.titem:hover,.tcard .thead:hover .tic{background:color-mix(in srgb,var(--tc) 14%,#fff)}.titem .ti{color:var(--tc);display:inline-grid;flex:none}
+</style></head><body>
 
 <header id="hdr"></header>
 <nav class="steps" id="steps" aria-label="Steps" hidden></nav>
@@ -1934,6 +1940,34 @@ function ontoStrip(){const c=[['Semantic ontology','Systems, data, results and t
  ['Mission Builder','Set the OTIF target and choose the missions and patterns that move it, drawing on a mission bank and a capability universe of tools, skills and context. Then set owners and autonomy.','Pilot frame · KPI ladder · Patterns · Tools, skills and context · Operating model','bld','data-b="0"'],
  ['Mission desk','Where each person works the mission: order management, allocation, delivery, collections and the process owner, all reading one order passport.','Order passport · six desks','desk','']];
  return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid3e">${c.map(x=>`<a class="four lk" href="#${x[3]}" data-act="goto" ${x[4]} data-h="${x[3]}"><b>${x[0]}</b><p class="note">${x[1]}</p><span class="chip">${x[2]}</span></a>`).join('')}</div></section>`}
+
+const IC={server:'<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/>',
+ table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
+ chart:'<path d="M5 20V11M11 20V5M17 20v-7M2 20h20"/>',
+ graph:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.3 6.7l7.2 1M7.2 8.3l3.6 7.4M16.8 10.3l-3.6 5.4"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+ ladder:'<path d="M7 3v18M17 3v18M7 8h10M7 13h10M7 18h10"/>',
+ flow:'<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.5 6c5 0 7 2 7 4M8.5 18c5 0 7-2 7-4"/>',
+ tools:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+ users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2.5 0 4.5 2 4.5 5"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+ box:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+ truck:'<path d="M2 6h11v10H2zM13 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+ coin:'<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.4-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1.1 0-2-.5-2.5-1.5M12 6v2M12 16v2"/>',
+ user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/>',
+ gauge:'<path d="M4 17a8 8 0 1116 0"/><path d="M12 17l4-5"/>',
+ network:'<circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5l-6 5.5M12 11.5l6 5.5"/>',
+ layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 17l9 5 9-5"/>',
+ monitor:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'};
+const ico=(n,sz)=>`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+function ontoStrip(){const T=[
+ {t:'Semantic ontology',c:'#2563eb',i:'network',a:'data-c="0" data-h="ctx"',d:'Systems, data, results and the knowledge graph, named once so every team and agent means the same thing.',
+  it:[['server','System ontology','data-c="0" data-h="ctx"'],['table','Data ontology','data-c="1" data-h="ctx"'],['chart','Results and drivers','data-c="2" data-h="ctx"'],['graph','Knowledge graph','data-c="3" data-h="ctx"']]},
+ {t:'Mission Builder',c:'#e8590c',i:'layers',a:'data-b="0" data-h="bld"',d:'Set the OTIF target and choose the missions and patterns that move it, drawing on a mission bank and a capability universe of tools, skills and context. Then set owners and autonomy.',
+  it:[['target','Pilot frame & target','data-b="0" data-h="bld"'],['ladder','KPI ladder & missions','data-b="2" data-h="bld"'],['flow','Patterns & rules learned','data-b="3" data-h="bld"'],['tools','Tools, skills and context','data-b="4" data-h="bld"'],['users','Business operating model','data-b="5" data-h="bld"']]},
+ {t:'Mission desk',c:'#0f9d77',i:'monitor',a:'data-h="desk"',d:'Where each person works the mission, all reading one order passport.',
+  it:[['mail','Order management','data-p="om" data-h="desk"'],['box','Allocation','data-p="al" data-h="desk"'],['truck','Delivery','data-p="dr" data-h="desk"'],['coin','Collections','data-p="col" data-h="desk"'],['user','Collections lead','data-p="lead" data-h="desk"'],['gauge','Process owner','data-p="po" data-h="desk"']]}];
+ return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid3e">${T.map(x=>`<div class="tcard" style="--tc:${x.c}"><button class="thead" data-act="goto" ${x.a}><span class="tic">${ico(x.i,22)}</span><b>${x.t}</b></button><p class="note">${x.d}</p><div class="titems">${x.it.map(y=>`<button class="titem" data-act="goto" ${y[2]}><span class="ti">${ico(y[0],18)}</span>${y[1]}</button>`).join('')}</div></div>`).join('')}</div></section>`}
 
 /* ================= router and events ================= */
 function render(){const id=(location.hash||'#home').slice(1);const pid=PAGE[id]?id:'home';$('#main').innerHTML=PAGE[pid]()}
