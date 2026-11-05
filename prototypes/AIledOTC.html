@@ -1200,7 +1200,7 @@ function bMissions(){
     sel.map(m=>({s:m.id,t:'obj',v:misAch(m.id),c:m.c,title:m.n})),{H:Math.max(300,sel.length*46),ml:300,mr:250,target:gap(),targetLabel:fmtG(gap()),aria:'Mission contribution'}):'<p class="note">Select at least one mission.</p>';
   const lv=(l,t,ks)=>`<div class="lv"><div class="lvl" style="${t[0]==='lead'?'background:var(--accent);color:var(--accent-ink)':''}">${l}</div><div class="lvb" style="${t[0]==='lead'?'border-color:var(--accent-line)':''}"><div style="flex-basis:100%;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="grp-h ${t[0]}"><b>${t[0]==='lead'?'Leading':'Lagging'}</b></span><span class="note">${esc(t[1])}</span></div>${ks.length?ks.map(k=>`<div class="kpi"><small>${esc(k[0])}</small><b class="num">${esc(k[1])}</b><small>${esc(k[2]||'')}</small>${k[3]?`<span class="chips" style="margin-top:3px">${k[3]}</span>`:''}</div>`).join(''):'<span class="note">None yet. Select a mission, or add this objective to the context scope.</span>'}</div></div>`;
   const lagIds=OBJLAG[o.id]||[],lagKs=lagIds.map(LAGK).filter(Boolean);
-  const leadNames=[...new Set(sel.flatMap(m=>MLEAD[m.id]||[]))],leadKs=leadNames.map(KPI).filter(k=>k&&k.sys!=='P');
+  const leadKs=leadUnion(o.id);
   const kchip=k=>`${SYSL[k.sys][0]?`<span class="chip ${SYSL[k.sys][1]}">${SYSL[k.sys][0]}</span>`:''}`;
   const misLead=m=>(MLEAD[m.id]||[]).map(KPI).filter(Boolean);
   const hos=HANDOFFS.filter(h=>sel.some(m=>NODES.findIndex(n=>n.id===m.nd)>=0)).slice(0,7);
@@ -1209,7 +1209,7 @@ function bMissions(){
    <section class="panel"><div class="ph"><div><h3>KPI ladder</h3><p class="sub">The top two levels are results the CFO and process owner report. The levels below are what the missions act on day to day; they move first, and the results follow.</p></div></div><div class="ladder">
     ${lv('L1',['lag','CFO'],[[o.l1[0],o.l1[1]]])}
     ${lv('L2',['lag','Process owner · the objective and the results it reports through'],[[o.kpi,fmtO(o.base),'target '+fmtO(S.targets[o.id])]].concat(lagKs.map(k=>[k.n,kval(k),ktgt(k),kchip(k)])))}
-    ${lv('L3',['lead',`Your KPIs the selected missions move · ${leadKs.length} from the 61-KPI inventory`],leadKs.map(k=>[k.n,kval(k),ktgt(k),kchip(k)]))}
+    ${lv('L3',['lead',`Leading measures the selected missions move · ${leadKs.length}, the same list as in Results and drivers`],leadKs.map(k=>[k.n,kval(k),ktgt(k),kchip(k)]))}
     ${lv('L4',['lead','Hand-off contracts between teams'],hos.map(h=>[h.n,h.v+'%','target '+h.t+'%']))}
     ${lv('L5',['lead','Mission KPIs, owned by each mission team'],sel.map(m=>[m.kpi,m.kb,'target '+m.kt,MKLT[m.id]?'<span class="chip">Lagging for the collector</span>':'']))}</div></section>
    ${coverBox()}
@@ -1733,7 +1733,7 @@ const DEFN={
  ncl:{f:'Past due over 30 days that is paid-unapplied, short-delivered, not yet due or under a valid case ÷ past due over 30 days',tb:['BSID','FEBEP','Case'],own:'Collections',miss:'of past-due value'}};
 const wfs=i=>WF30[i].v/PD30*100;
 const CAUSES={
- otif:[['Stock not allocated before the route left',34,'Orders with stock confirmed at dispatch cut-off'],['Order changed after release',27,'Orders with a complete passport'],['Credit block still open at cut-off',15,'Credit blocks cleared within 4 hours'],['Transport and route execution',24,null]],
+ otif:[['Stock not allocated before the route left',34,'Orders with stock confirmed at dispatch cut-off'],['Orders changed after release',27,'Orders with a complete passport'],['Credit blocks still open at cut-off',15,'Credit blocks cleared within 4 hours'],['Transport and route execution',24,null]],
  ded:[['Short acceptance invoiced in full',38,'Invoice matches accepted delivery'],['Substitution or split not on the order',22,'Substitutions agreed within SLA'],['Promotion price missing at intake',25,'Promotions live ≥ 48 h before start'],['Other',15,null]]};
 CAUSES.dedup=CAUSES.ded;
 CAUSES.pd=[[WF30[0].l,wfs(0),'Payments applied within 1 day'],[WF30[1].l,wfs(1),'Invoice matches accepted delivery'],[WF30[2].l,wfs(2),null],[WF30[3].l,wfs(3),'UCX cases linked to an invoice'],[WF30[4].l,wfs(4),null],['Genuinely collectible',COLL30/PD30*100,null,'keep']];
@@ -1968,6 +1968,47 @@ function ontoStrip(){const T=[
  {t:'Mission desk',c:'#0f9d77',i:'monitor',a:'data-h="desk"',d:'Where each person works the mission, all reading one order passport.',
   it:[['mail','Order management','data-p="om" data-h="desk"'],['box','Allocation','data-p="al" data-h="desk"'],['truck','Delivery','data-p="dr" data-h="desk"'],['coin','Collections','data-p="col" data-h="desk"'],['user','Collections lead','data-p="lead" data-h="desk"'],['gauge','Process owner','data-p="po" data-h="desk"']]}];
  return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid3e">${T.map(x=>`<div class="tcard" style="--tc:${x.c}"><button class="thead" data-act="goto" ${x.a}><span class="tic">${ico(x.i,22)}</span><b>${x.t}</b></button><p class="note">${x.d}</p><div class="titems">${x.it.map(y=>`<button class="titem" data-act="goto" ${y[2]}><span class="ti">${ico(y[0],18)}</span>${y[1]}</button>`).join('')}</div></div>`).join('')}</div></section>`}
+
+/* ===== One list of leading measures, shared by Results and drivers and the KPI ladder ===== */
+function leadUnion(id){const names=[],add=n=>{if(n&&!names.includes(n))names.push(n)};
+ (CAUSES[id]||[]).forEach(c=>add(c[2]));
+ HKPIS.filter(k=>k.lt==='lead'&&k.dr.includes(id)).forEach(k=>add(k.n));
+ if(id===S.obj){ensureSel();relMissions().filter(m=>S.mSel.has(m.id)&&misAch(m.id)>0).flatMap(m=>MLEAD[m.id]||[]).forEach(add)}
+ return names.map(KPI).filter(Boolean)}
+function driverExplorer2(){
+ const id=LAGK(S.hl)?S.hl:'otif',k=LAGK(id),M=hModel(id),D=DEFN[id],better=k.dir>0?M.next>=M.tgt:M.next<=M.tgt;
+ const leadRows=M.rows.filter(x=>x.lead);
+ const sel=M.rows[S.hd]&&M.rows[S.hd].lead?M.rows[S.hd]:leadRows[0],L=sel&&sel.lead,LD=L&&LDEF[L.n]||{};
+ const pc=v=>Math.max(0,Math.min(100,(v-k.lo)/(k.hi-k.lo)*100));
+ const unit=k.u.trim()||'';const lc=t=>t.replace(/^(\w)(\w*)/,(m,a,b)=>/^[A-Z]{2,}/.test(m)?m:a.toLowerCase()+b);
+ const card=i=>{const q=LAGK(i),on=i===id,p=kpos(q);return `<button class="hcard ${on?'on':''}" data-act="hl" data-k="${i}" aria-pressed="${on}"><span class="eyebrow">${esc(q.short)}</span><b class="num">${f1(q.v)}${q.u}</b><span class="note">target ${HLT[i]}${q.u}</span><span class="chips"><span class="chip ${p[1]}">${p[0]}</span></span></button>`};
+ const lcard=x=>{const on=sel&&sel.i===x.i,p=kpos(x.lead);return `<button class="hcard ${on?'on':''}" data-act="hd" data-k="${x.i}" aria-pressed="${on}"><span class="eyebrow">Leading measure</span><b>${esc(x.lead.n)}</b><span class="note num">${esc(kval(x.lead))} → ${x.lead.tq}${x.lead.u}</span><span class="chips"><span class="chip ${p[1]}">${p[0]}</span></span></button>`};
+ const seg=x=>x.keep?'':`<div class="seg" role="group" aria-label="Reach">${[[0,'Today'],[.5,'Halfway'],[1,'At target']].map(([f,l])=>`<button class="${x.f===f?'on':''}" data-act="hdv" data-r="${id}:${x.i}" data-f="${f}">${l}</button>`).join('')}</div>`;
+ const verb=/cases|misses/.test(D.miss)?'trace':'traces';
+ const covered=Math.round(leadRows.reduce((a,x)=>a+x.share,0)),rest=M.rows.filter(x=>!x.lead&&!x.keep);
+ const names=new Set(leadRows.map(x=>x.lead.n)),tracked=leadUnion(id).filter(x=>!names.has(x.n));
+ const detail=L?`<div class="grid2" style="margin-top:14px"><div><span class="eyebrow">How it is computed</span><h4 style="margin:2px 0 6px">${esc(L.n)}</h4>
+   <div class="kv" style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b class="num" style="font-size:22px">${esc(kval(L))}</b><span class="note">peer median ${L.med}${L.u} · top quartile ${L.tq}${L.u}</span><span class="chip ${kpos(L)[1]}">${kpos(L)[0]}</span></div>${qtrack(L)}
+   <p style="margin:10px 0 6px">${esc(LD.f||'Definition to be confirmed.')}</p>${tchips(L.src||[])}<div class="note" style="margin-top:6px">Owner: ${esc(LD.own||'To be confirmed')}</div></div>
+  <div><span class="eyebrow">How it moves ${esc(k.short)}</span>
+   <div class="calc"><div><span class="num">${f1(sel.share)}%</span> ${esc(D.miss)} ${verb} to ${esc(lc(sel.name))}.</div>
+    <div>At target this measure removes <b class="num">${Math.round(sel.rem*100)}%</b> of those misses: <span class="num">${L.dir>0?`(${L.tq} − ${L.v}) ÷ (100 − ${L.v})`:`(${L.v} − ${L.tq}) ÷ ${L.v}`}</span>.</div>
+    <div>Assuming <b class="num">${S.hre}%</b> is realised in the pilot window: <span class="num">${f1(sel.share)} × ${f1(sel.rem*100)}% × ${S.hre}% = ${f1(sel.share*sel.rem*S.hre/100)}</span> points of the miss removed.</div>
+    <div>On its own that moves ${esc(k.short)} from <b class="num">${f1(k.v)}${unit}</b> to <b class="num">${f1(hAfter(id,sel.share*sel.rem*S.hre/100))}${unit}</b>.</div></div>
+   <div style="margin-top:8px"><span class="eyebrow" style="margin-right:6px">Assume this measure reaches</span>${seg(sel)}</div></div></div>`:'<p class="note" style="margin-top:12px">No leading measure is attached to this result in the pilot.</p>';
+ const trk=tracked.length?`<div style="margin-top:20px"><span class="eyebrow">Also tracked · ${tracked.length} more measures that move with the same missions</span>
+   <p class="note" style="margin:4px 0 8px">Not yet quantified: their share of misses comes from the baseline. They appear in the same list in Mission Builder.</p>
+   <div class="tw"><table class="t"><thead><tr><th>Measure</th><th class="r">Today</th><th class="r">Target</th><th>Position</th></tr></thead><tbody>${tracked.map(x=>`<tr><td><b>${esc(x.n)}</b></td><td class="r num">${esc(kval(x))}</td><td class="r num muted">${esc(ktgt(x))}</td><td>${x.disp?'<span class="chip">Tracked as a trend</span>':`<span class="chip ${kpos(x)[1]}">${kpos(x)[0]}</span>`}</td></tr>`).join('')}</tbody></table></div></div>`:'';
+ return `<section class="panel" id="drivers"><div class="ph"><div><h3>Lagging results</h3><p class="sub">Pick a result to see the leading measures that move it and how the numbers connect.</p></div><span class="illus">Illustrative values</span></div>
+  <div class="hsel">${HGROUPS.map(g=>`<div class="hgrp"><div class="grp-h lag" style="margin:0 0 6px"><b>${esc(g[0])}</b></div><div class="hcards">${g[1].map(card).join('')}</div></div>`).join('')}</div>
+  <div style="margin-top:16px"><span class="eyebrow">How ${esc(k.short)} is computed</span><p style="margin:4px 0 8px"><b>${esc(D.f)}</b></p>${tchips(D.tb)}<div class="note" style="margin-top:6px">Owner: ${esc(D.own)}</div></div>
+  <div style="margin-top:18px"><span class="grp-h lead"><b>Quantified leading measures for ${esc(k.short)}</b></span>
+   <p class="note" style="margin:4px 0 0">These ${leadRows.length} explain ${covered}% of ${esc(D.miss.replace(/^of /,''))}${rest.length?`. The other ${Math.round(rest.reduce((a,x)=>a+x.share,0))}%${rest.length===1&&/^other$/i.test(rest[0].name)?'':' ('+rest.map(x=>esc(lc(x.name))).join(', ')+')'} has no lever in the pilot`:''}.</p>
+   <div class="hcards" style="margin-top:8px">${leadRows.map(lcard).join('')}</div>${detail}</div>
+  ${L?`<div style="margin-top:18px"><span class="eyebrow">Result if these measures reach target</span>
+    <div class="proj"><div><span class="note">Today</span><b class="num">${f1(M.now)}${unit}</b></div><span class="pa">→</span><div><span class="note">Modelled</span><b class="num" style="color:${better?'var(--good)':'var(--ink)'}">${f1(M.next)}${unit}</b></div><div><span class="note">Target</span><b class="num">${HLT[id]}${unit}</b></div></div>
+    <div class="qtrack" style="margin-top:14px"><span class="mk tq" style="left:${pc(M.tgt)}%"></span><span class="dot now" style="left:${pc(M.now)}%"></span><span class="dot" style="left:${pc(M.next)}%"></span></div><div class="qlab"><span>grey = today · orange = modelled</span><span style="color:var(--good)">green tick = target</span></div>
+    <div style="margin-top:8px"><span class="eyebrow" style="margin-right:6px">Realised in the pilot window</span><div class="seg" role="group" aria-label="Realisation">${[40,60,80,100].map(v=>`<button class="${S.hre===v?'on':''}" data-act="hre" data-k="${v}">${v}%</button>`).join('')}</div></div></div>`:''}${trk}</section>`}
 
 /* ================= router and events ================= */
 function render(){const id=(location.hash||'#home').slice(1);const pid=PAGE[id]?id:'home';$('#main').innerHTML=PAGE[pid]()}
