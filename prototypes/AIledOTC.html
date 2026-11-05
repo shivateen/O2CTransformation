@@ -1506,9 +1506,9 @@ function pilotLens(compact){
 function pathPanel(){
  const st=[['1','Where the three lagging indicators are made','Results and drivers: each lagging KPI with its leading drivers',{ctx:1,c:2,h:'ctx'}],
   ['2','The order passport is the knowledge graph, read for one order','Knowledge graph',{ctx:1,c:3,h:'ctx'}],
-  ['3','Scenario 1 · the customer changes the order','Order management desk, reads the customer’s email',{ctx:1,p:'om',h:'desk',sc:'scen1'}],
-  ['4','Scenario 2 · substitute proposed, accepted by email, approved','Allocation analyst desk',{ctx:1,p:'al',h:'desk',sc:'scen2'}],
-  ['5','Scenario 3 · what the customer did not accept, recorded at the stop','Delivery associate desk',{ctx:1,p:'dr',h:'desk',sc:'scen3'}],
+  ['3','The customer changes the order','Order management desk, reads the customer’s email',{ctx:1,p:'om',h:'desk',sc:'scen1'}],
+  ['4','Substitute proposed, accepted by email, approved','Allocation analyst desk',{ctx:1,p:'al',h:'desk',sc:'scen2'}],
+  ['5','What the customer did not accept, recorded at the stop','Delivery associate desk',{ctx:1,p:'dr',h:'desk',sc:'scen3'}],
   ['6','The collector reads the passport','Collections desk',{ctx:1,p:'col',h:'desk',sc:'scen4'}],
   ['7','Optional: the reverse-flow credit panel','Order management desk',{ctx:1,p:'om',h:'desk',sc:'credit'}],
   ['8','The decision: scope and market','Builder, pilot scope',{ctx:1,b:6,h:'bld'}]];
@@ -1688,7 +1688,7 @@ function dOrder2(){const d=S.done;
  const subB=`data-act="do" data-k="subp" data-v="Substitution proposal sent" data-l="sent the substitution proposal on SO-7784502: 20 chips 28g in place of snack mix, after the stock check found 40 of 60" data-r="subp" data-ag="1" data-aud="sandra"`;
  const accB=`data-act="adone" data-k="suba" data-v="Acceptance read from the customer’s email" data-l="read the customer’s reply on SO-7784502: accepted 20 chips 28g in place of snack mix (96% confidence) and recorded it on the passport" data-aud="sandra,arturo"`;
  const credit=(dOrderLegacy().match(/<section class="panel" id="credit">[\s\S]*<\/section>/)||[''])[0];
- return `<div class="say"><b>Scenario 1 · the customer changes the order.</b> The agent reads the shared order mailbox, matches each email to an order, and drafts the change. Arturo confirms it. The same mailbox carries the substitution proposal and the customer’s reply.</div>
+ return `<div class="say"><b>The customer changes the order.</b> The agent reads the shared order mailbox, matches each email to an order, and drafts the change. Arturo confirms it. The same mailbox carries the substitution proposal and the customer’s reply.</div>
  ${deskCards(['pass','subs'])}
  <section class="panel" id="scen1"><div class="ph"><div><span class="eyebrow">Capability: Touchless Order Processing · order-change rework</span><h3>Mailbox: SO-7784502, Cadena Norte</h3><p class="sub">Personal details are masked in the passport; the email itself stays in the mailbox. Writes are staged and approved.</p></div><div class="chips"><span class="chip acc">Mission SU</span><span class="chip">P24</span><span class="chip">P25</span></div></div>
   <div class="grid2">${emailCard(EMAILS.chg)}<div><div class="eyebrow">Staged writes</div><ul class="writes"><li class="mono">SAP: sales order change SO-7784502 items 10 / 20 to 60 / 60 (change document written)</li><li class="mono">Order passport: entry “Customer change”, with the email as evidence</li></ul>
@@ -1704,7 +1704,7 @@ function dAlloc2(){const d=S.done;
  const ok=`data-act="do" data-k="subok" data-v="Substitution approved; stock reserved" data-l="approved the substitution on SO-7784502 (20 chips 28g) and reserved stock on route 214; load list updated" data-r="subok" data-ag="1" data-aud="mateo,arturo"`;
  const al=(dAllocLegacy().match(/<section class="panel" id="alloc">[\s\S]*<\/section>/)||[''])[0];
  const state=d.subok?'Approved':d.suba?'Ready to approve':d.subp?'Waiting for the customer’s reply':'Waiting for the proposal';
- return `<div class="say"><b>Scenario 2 · the substitute is proposed, accepted by email, approved.</b> The allocation analyst approves only once the customer has accepted, so the load list matches what the buyer expects.</div>
+ return `<div class="say"><b>The substitute is proposed, accepted by email, approved.</b> The allocation analyst approves only once the customer has accepted, so the load list matches what the buyer expects.</div>
  ${deskCards(['subs','pass','stock'])}
  <section class="panel" id="scen2"><div class="ph"><div><span class="eyebrow">Capability: Intelligent Stock Allocation · unreliable stock availability</span><h3>Substitution awaiting approval: SO-7784502</h3><p class="sub">Route 214, loads Wednesday 05:30. Illustrative quantities.</p></div><span class="chip ${d.subok?'good':d.suba?'acc':'warn'}">${state}</span></div>
   <div class="grid2"><div class="facts"><div class="fact"><span>Requested</span><b>60 snack mix 110g</b></div><div class="fact"><span>Available on route 214</span><b>40</b></div><div class="fact"><span>Proposed substitute</span><b>20 chips 28g ×24</b></div><div class="fact"><span>Customer</span><b>${d.suba?'Accepted by email (96% confidence)':d.subp?'Proposal sent, no reply yet':'Not yet asked'}</b></div></div>
@@ -1716,7 +1716,7 @@ function dAlloc2(){const d=S.done;
 function dDeliver(){const d=S.done,pm=pilotM();
  const rb=`data-act="do" data-k="rej" data-v="Stop recorded: 108 accepted, 12 not accepted" data-l="recorded stop 4 on route 214 for SO-7784502: delivered 120, accepted 108; 8 chips refused (R1), 4 multipack damaged (D1)" data-r="rej" data-ag="1" data-aud="jorge,ana"`;
  const rows=[['Snack mix 110g',40,40,0,''],['Chips 28g ×24 (substitute)',20,12,8,'R1 · store refused'],['Multipack 45g ×12',60,56,4,'D1 · damaged']];
- return `<div class="say"><b>Scenario 3 · what the customer did not accept is recorded at the stop.</b> Mateo’s handheld shows what the buyer agreed, including the substitute, and he codes anything not accepted. The record goes straight onto the passport.</div>
+ return `<div class="say"><b>What the customer did not accept is recorded at the stop.</b> Mateo’s handheld shows what the buyer agreed, including the substitute, and he codes anything not accepted. The record goes straight onto the passport.</div>
  ${deskCards(['pod','pass','match'])}
  <section class="panel" id="scen3"><div class="ph"><div><span class="eyebrow">Capability: Touchless Invoice-to-Cash · incomplete proof of delivery</span><h3>Route 214 · stop 4 of 9 · Cadena Norte, store 0381</h3><p class="sub">${d.subok?'Expected from the passport: 120 cases, including the 20 chips the customer accepted by email.':'The substitution has not been approved yet, so the load list still shows the original order.'}</p></div><div class="chips"><span class="chip acc">Mission RA</span><span class="chip">P06</span></div></div>
   ${d.subok?'':'<div class="warnline"><b>Waiting upstream.</b><span>Sandra Beltrán has to approve the substitution first. Without it Mateo would deliver against an order the buyer no longer expects.</span><button class="btn sm" data-act="goto" data-ctx="1" data-h="desk" data-p="al" data-sc="scen2">Go to the allocation desk →</button></div>'}
