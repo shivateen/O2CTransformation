@@ -1022,13 +1022,13 @@ PAGE.home=()=>{header('home');steps(null);
 };
 
 /* ================= context ================= */
-const CSTEPS=[['Results and drivers','Lagging results and their drivers'],['System ontology',''],['Data ontology',''],['Knowledge graph','']];
+const CSTEPS=[['System ontology',''],['Data ontology',''],['Results and drivers','From the data read'],['Knowledge graph','']];
 PAGE.ctx=()=>{header('ctx');
   const nc=SYS.filter(s=>conn(s.k)).length;
-  CSTEPS[1][1]=`${nc} of 6 connected`;CSTEPS[2][1]=`${TABLES.filter(t=>tOn(t.id)).length} tables included`;
+  CSTEPS[0][1]=`${nc} of 6 connected`;CSTEPS[1][1]=`${TABLES.filter(t=>tOn(t.id)).length} tables included`;
   CSTEPS[3][1]=S.kg===2?'Built':S.kg===1?(S.kgReady?'Ready to view':'Building…'):'Not built';
   steps(CSTEPS,S.cstep,'cstep');
-  return [cHealth,cSources,cExplorer,cGraph][S.cstep]()+footer;
+  return [cSources,cExplorer,cHealth,cGraph][S.cstep]()+footer;
 };
 function cSources(){
   const scope=`<section class="panel"><div class="ph"><div><h3>Objectives in scope for this engagement</h3><p class="sub">Sets which tables are recommended and which documents the solution asks for. Any table can still be included or excluded.</p></div></div>
@@ -1048,7 +1048,7 @@ function cSources(){
    <div class="conns">${cards}</div>
    ${any?`<section class="panel"><div class="ph"><div><h3>Tables to include in the knowledge graph</h3><p class="sub">Pre-selected as recommended. Patterns that need an excluded table become unavailable in the builder.</p></div>
     <div class="btnrow"><button class="btn sm" data-act="tblall">Include all</button><button class="btn sm" data-act="tbldef">Use recommended</button></div></div><div class="tgrid">${picker||'<p class="note">Connect a system to choose its tables.</p>'}</div></section>`:`<div class="empty">Connect a source to choose its tables and documents.</div>`}
-   ${allConn()?nextBtn('cstep',2,'Data ontology'):''}${cfgModal()}`;
+   ${allConn()?nextBtn('cstep',1,'Data ontology'):''}${cfgModal()}`;
 }
 function cfgModal(){const k=S.cfgOpen;if(!k)return '';const sy=SYS.find(x=>x.k===k),env=(S.cfg[k]&&S.cfg[k].env)||ENVS[0];
   const body=CFGF[k].map(f=>{if(f[0]==='§')return `<div class="fsec">${esc(f[1])}</div>`;const v=cfgVal(k,f),id='cf-'+f[0];
@@ -1067,7 +1067,7 @@ function cExplorer(){
   const hdr=`<div class="head"><div><div class="eyebrow">Business context · Data ontology</div><h2>The data the solution reads, and what it means</h2><p class="lede">Synthetic extracts shaped like your real tables. Only included tables are shown.</p></div><div class="btnrow">${sysSeg}${tabs}</div></div>`;
   let list='',view='';
   if(S.xtab==='tables'){
-    if(!ts.length)return hdr+`<div class="empty">No included tables for this filter. Connect sources first.<button class="btn" data-act="cstep" data-i="1">Go to System ontology</button></div>`;
+    if(!ts.length)return hdr+`<div class="empty">No included tables for this filter. Connect sources first.<button class="btn" data-act="cstep" data-i="0">Go to System ontology</button></div>`;
     if(!ts.find(t=>t.id===S.xsel))S.xsel=ts.find(t=>t.id==='LIPS')?'LIPS':ts[0].id;
     SYS.forEach(s=>{const g=ts.filter(t=>t.sys===s.k);if(!g.length)return;list+=`<div class="xgrp">${esc(s.n)}</div>`+g.map(t=>`<button class="xi ${t.id===S.xsel?'on':''}" data-act="xsel" data-k="${esc(t.id)}"><b><span class="mono">${esc(t.id)}</span><span class="num muted">${n0(t.rows)}</span></b><small>${esc(t.name)}</small></button>`).join('')});
     const t=TB(S.xsel),r=rng(hash(t.id)),rows=Array.from({length:10},(_,i)=>t.gen(r,i)),feeds=PATS.filter(p=>p.t.includes(t.id));
@@ -1083,7 +1083,7 @@ function cExplorer(){
      <div class="docbody ${d.mail?'mail':''}">${d.body.split('\n').map(l=>`<p>${esc(l).replace(/\[\[(.+?)\]\]/g,'<mark>$1</mark>')}</p>`).join('')}</div>
      <div class="chips"><span class="eyebrow" style="margin-right:4px">Informs</span>${d.objs.map(o=>`<span class="chip ${S.scope.includes(o)?'acc':''}">${esc(OB(o).short)}</span>`).join('')}</div>`;
   }
-  return hdr+`<div class="explorer"><div class="xlist">${list}</div><div class="xview">${view}</div></div>`+(S.xtab==='tables'?glossPanel():'')+nextBtn('cstep',3,'Knowledge graph');
+  return hdr+`<div class="explorer"><div class="xlist">${list}</div><div class="xview">${view}</div></div>`+(S.xtab==='tables'?glossPanel():'')+nextBtn('cstep',2,'Results and drivers');
 }
 function qtrack(k){const span=k.hi-k.lo,pc=v=>Math.max(0,Math.min(100,(v-k.lo)/span*100));
   return `<div class="qtrack"><span class="mk" style="left:${pc(k.med)}%"></span><span class="mk tq" style="left:${pc(k.tq)}%"></span><span class="dot" style="left:${pc(k.v)}%"></span></div><div class="qlab"><span>Median ${k.med}${k.u}</span><span style="color:var(--good)">Top quartile ${k.tq}${k.u}</span></div>`}
@@ -1118,7 +1118,7 @@ function cHealth(){
   return `<div class="head"><div><div class="eyebrow">Business context · Results and drivers</div><h2>How the leading measures move the pilot results</h2>
     <p class="lede">Pick a result to see the leading measures teams can move and the arithmetic that links them.</p></div><span class="illus">Illustrative values and benchmarks</span></div>
    ${driverExplorer2()}
-   ${nextBtn('cstep',1,'System ontology')}`;
+   ${nextBtn('cstep',3,'Knowledge graph')}`;
 }
 function kgLines(){const ts=TABLES.filter(t=>tOn(t.id));
   return [`Profiling ${ts.length} included tables · ${n0(ts.reduce((a,t)=>a+t.rows,0))} rows`,`Mapping fields to the Tiger O2C ontology · ${ts.reduce((a,t)=>a+t.cols.length,0)} fields bound`,
@@ -1130,7 +1130,7 @@ function cGraph(){
   const hd=`<div class="head"><div><div class="eyebrow">Business context · Knowledge graph</div><h2>${S.kg===2?'Mexico O2C knowledge graph':'Build the knowledge graph'}</h2><p class="lede">The order passport is a layer on top of the source systems: it reads them and does not replace or copy them. Tiger’s O2C ontology supplies the meaning; Mexico’s tables and documents populate it. The graph is what lets a pattern ask “was this invoice really owed?”</p></div>${S.kg===1?'':`<button class="btn ${S.kg===2?'':'pri'}" data-act="kg" ${allConn()?'':'disabled'}>${S.kg===2?'Rebuild':'Build knowledge graph'}</button>`}</div>`;
   if(S.kg===1)return hd+`<div class="log" aria-live="polite">${S.kgLog.map(l=>`<div><span class="ok">✓</span>${esc(l)}</div>`).join('')}${S.kgReady?'':'<div><span class="spin"></span> Working…</div>'}</div>
    ${S.kgReady?`<div class="done-banner" style="justify-content:space-between;flex-wrap:wrap"><span>✓ Build complete: ${S.kgLog.length} steps processed.</span><button class="btn pri" data-act="kgshow">View the knowledge graph →</button></div>`:''}`;
-  if(S.kg!==2)return hd+(allConn()?'':'<div class="empty">Connect all sources first.<button class="btn" data-act="cstep" data-i="1">Go to System ontology</button></div>')+ontology();
+  if(S.kg!==2)return hd+(allConn()?'':'<div class="empty">Connect all sources first.<button class="btn" data-act="cstep" data-i="0">Go to System ontology</button></div>')+ontology();
   const inc=TABLES.filter(t=>tOn(t.id)),sc=inc.reduce((a,t)=>a+t.rows,0)/TABLES.reduce((a,t)=>a+t.rows,0);
   const rules=DOC_RULES.filter(r=>S.rf==='all'||r.o.includes(S.rf));
   const t=THREAD;
@@ -1882,7 +1882,7 @@ document.addEventListener('click',e=>{const a=e.target.closest('.navmenu a');if(
 /* ===== AI-led OTC: payoff, efficacy, autonomy ===== */
 function pilotM(){const d=S.done,f=x=>Math.round(x*10)/10;
  return{subs:f(62+(d.subok?2.4:0)),stock:f(88+(d.subok?3.6:0)),cred:f(61),ocr:f(11.2-(d.subok?0.3:0)),pod:f(71+(d.rej?2.2:0)),inv:f(94+(d.rej?0.6:0)),pass:f(54+(d.chg?1:0)+(d.suba?1.5:0)+(d.subok?1:0)+(d.rej?2.5:0))}}
-function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Business context · System ontology, Data ontology, Knowledge graph','ctx','c',1],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Mission Builder · Tools, skills and context','bld','b',4],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Mission Builder · KPI ladder & missions','bld','b',2],['Value calculator','Lagging results, the leading measures that move them, and the arithmetic between.','Business context · Results and drivers','ctx','c',0]];
+function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Business context · System ontology, Data ontology, Knowledge graph','ctx','c',0],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Mission Builder · Tools, skills and context','bld','b',4],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Mission Builder · KPI ladder & missions','bld','b',2],['Value calculator','Lagging results, the leading measures that move them, and the arithmetic between.','Business context · Results and drivers','ctx','c',2]];
  return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid4">${c.map(x=>`<a class="four lk" href="#${x[3]}" data-act="goto" data-${x[4]}="${x[5]}" data-h="${x[3]}"><b>${x[0]}</b><p class="note">${x[1]}</p><span class="chip">${x[2]}</span></a>`).join('')}</div></section>`}
 
 function dOrder3(){const d=S.done;
@@ -1924,7 +1924,7 @@ function dOwner(){const d=S.done,pm=pilotM();
  return `<div class="head"><div><div class="eyebrow">Process owner · what the pilot has changed</div><h2>One order, read at the level of the process</h2><p class="lede">The leading measures move first, because they are what the teams do on the day. The results the CFO reports follow, and are shown as projections.</p></div></div>
   ${order}
   <section class="panel"><div class="ph"><div><h3>Leading measures</h3><p class="sub">Before the pilot order, and now.</p></div></div><div class="tw"><table class="t"><thead><tr><th>Measure</th><th class="r">Before</th><th class="r">Now</th><th class="r">Target</th><th>Moved by</th></tr></thead><tbody>${rows.map(r=>{const now=pm[r[1]],up=now>r[2];return `<tr><td><b>${esc(r[0])}</b></td><td class="r num">${r[2]}%</td><td class="r num"><b style="color:${up?'var(--good)':'inherit'}">${now}%</b> ${up?'<span class="chip good">▲ '+(Math.round((now-r[2])*10)/10)+'</span>':''}</td><td class="r num muted">${r[3]}%</td><td class="note">${esc(r[4])}</td></tr>`}).join('')}</tbody></table></div></section>
-  <section class="panel"><div class="ph"><div><h3>Results the CFO reports</h3><p class="sub">Projected, never moved by a click. Same model as Results and drivers: each leading measure reaches its target and ${S.hre}% of that is realised in the pilot window.</p></div><div class="btnrow"><button class="btn sm" data-act="goto" data-c="0" data-h="ctx">Open Results and drivers →</button><span class="illus">Illustrative</span></div></div><div class="tiles">${lagM}</div></section>
+  <section class="panel"><div class="ph"><div><h3>Results the CFO reports</h3><p class="sub">Projected, never moved by a click. Same model as Results and drivers: each leading measure reaches its target and ${S.hre}% of that is realised in the pilot window.</p></div><div class="btnrow"><button class="btn sm" data-act="goto" data-c="2" data-h="ctx">Open Results and drivers →</button><span class="illus">Illustrative</span></div></div><div class="tiles">${lagM}</div></section>
   <section class="panel"><div class="ph"><div><h3>What it takes to start</h3><p class="sub">Proposed. Three things we need to start.</p></div></div>
    <div class="grid3"><div class="toolrow"><b>1 · A baseline in two weeks</b><span class="note">OTIF, deductions and past due for the pilot customers from your own data, and the rule for counting OTIF when an order is amended.</span></div>
     <div class="toolrow"><b>2 · A market and a start point</b><span class="note">One market, and whether to begin with the top customers, one segment or one region, given what is already in flight.</span></div>
@@ -1955,7 +1955,7 @@ document.addEventListener('click',ev=>{
   if(a==='xsel'){S.xsel=k;render();return}
   if(a==='kg'){buildKg();return}
   if(a==='wfa'){S.wfa=k;render();return}
-  if(a==='wf30'){S.wfa='30';S.cstep=0;return}
+  if(a==='wf30'){S.wfa='30';S.cstep=2;return}
   if(a==='kgshow'){S.kg=2;S.kgReady=false;render();window.scrollTo({top:0});return}
   if(a==='rf'){S.rf=k;render();return}
   if(a==='bstep'){S.bstep=+b.dataset.i;render();window.scrollTo({top:0});return}
