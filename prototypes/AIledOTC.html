@@ -423,7 +423,7 @@ th.grp{text-align:center!important;border-bottom:2px solid var(--line)!important
 .navmenu{position:absolute;right:0;top:calc(100% + 8px);min-width:230px;background:var(--surface,#fff);color:var(--ink,#1a1d21);border:1px solid var(--line,#e3e6ea);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:40;display:flex;flex-direction:column}
 .navmenu a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:inherit;text-decoration:none;font-size:14px}.navmenu a:hover{background:var(--surface-2,#f3f4f6)}.navmenu a.on{font-weight:700;background:var(--accent-soft,#fdeede)}
 .navmenu .pn{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2,#eee);font-size:11px}
-</style></head><body>
+.grid3e{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}@media(max-width:900px){.grid3e{grid-template-columns:1fr}}</style></head><body>
 
 <header id="hdr"></header>
 <nav class="steps" id="steps" aria-label="Steps" hidden></nav>
@@ -953,7 +953,7 @@ const fmtO=(v,o=O())=>o.u==='%'?(Math.round(v*10)/10)+'%':mxnM(v);
 const fmtG=(v,o=O())=>o.u==='%'?(Math.round(v*10)/10)+' pts':mxnM(v);
 
 /* ================= header and steps ================= */
-const PAGES=[{id:'home',l:'Overview'},{id:'ctx',l:'Business context',n:1},{id:'bld',l:'Mission Builder',n:2},{id:'desk',l:'Mission desk',n:3}];
+const PAGES=[{id:'home',l:'Overview'},{id:'ctx',l:'Semantic ontology',n:1},{id:'bld',l:'Mission Builder',n:2},{id:'desk',l:'Mission desk',n:3}];
 function header(active){
   const cur=PAGES.find(p=>p.id===active)||PAGES[0];
   $('#hdr').innerHTML=`<div class="bar"><a class="brand" href="#home"><i></i>Tiger Mission Control</a><span class="sp"></span>
@@ -1042,7 +1042,7 @@ function cSources(){
   const any=SYS.some(s=>conn(s.k));
   const picker=SYS.filter(s=>s.k!=='doc'&&conn(s.k)).map(s=>`<div class="tgrp"><div class="xgrp">${esc(s.n)}</div>${TABLES.filter(t=>t.sys===s.k).map(t=>{const on=tIncluded(t.id),need=PATS.filter(p=>p.t.includes(t.id)).length;
     return `<label class="tpick ${on?'on':''}"><input type="checkbox" data-act="tbl" data-k="${esc(t.id)}" ${on?'checked':''}><span class="tp-main"><b>${esc(t.id)}</b><small>${esc(t.name)}</small></span><span class="tp-meta">${defaultOn(t.id)?'<span class="chip acc">Recommended</span>':''}<span class="num muted">${n0(t.rows)} rows</span><span class="muted">${need} pattern${need===1?'':'s'}</span></span></label>`}).join('')}</div>`).join('');
-  return `<div class="head"><div><div class="eyebrow">Business context · System ontology</div><h2>Connect the systems that run order-to-cash in Mexico</h2>
+  return `<div class="head"><div><div class="eyebrow">Semantic ontology · System ontology</div><h2>Connect the systems that run order-to-cash in Mexico</h2>
     <p class="lede">Context is gathered once and feeds every objective. Connect read-only, then decide exactly which tables the knowledge graph is built from.</p></div>
     <button class="btn pri" data-act="connall" ${allConn()?'disabled':''}>Connect all</button></div>
    <div class="conns">${cards}</div>
@@ -1064,7 +1064,7 @@ function cExplorer(){
   const ds=conn('doc')?DOCS:[];
   const tabs=`<div class="seg" role="tablist"><button class="${S.xtab==='tables'?'on':''}" data-act="xtab" data-k="tables">Structured · ${TABLES.filter(t=>tOn(t.id)).length}</button><button class="${S.xtab==='docs'?'on':''}" data-act="xtab" data-k="docs">Documents · ${ds.length}</button></div>`;
   const sysSeg=S.xtab==='tables'?`<div class="seg" role="group" aria-label="System">${[['all','All']].concat(SYS.filter(s=>s.k!=='doc').map(s=>[s.k,s.lg])).map(([k,l])=>`<button class="${S.xsys===k?'on':''}" data-act="xsys" data-k="${k}">${l}</button>`).join('')}</div>`:'';
-  const hdr=`<div class="head"><div><div class="eyebrow">Business context · Data ontology</div><h2>The data the solution reads, and what it means</h2><p class="lede">Synthetic extracts shaped like your real tables. Only included tables are shown.</p></div><div class="btnrow">${sysSeg}${tabs}</div></div>`;
+  const hdr=`<div class="head"><div><div class="eyebrow">Semantic ontology · Data ontology</div><h2>The data the solution reads, and what it means</h2><p class="lede">Synthetic extracts shaped like your real tables. Only included tables are shown.</p></div><div class="btnrow">${sysSeg}${tabs}</div></div>`;
   let list='',view='';
   if(S.xtab==='tables'){
     if(!ts.length)return hdr+`<div class="empty">No included tables for this filter. Connect sources first.<button class="btn" data-act="cstep" data-i="0">Go to System ontology</button></div>`;
@@ -1115,7 +1115,7 @@ function cHealth(){
     <div class="say" style="margin-top:12px"><b>Worth asking:</b> the KPI scope runs from order to bill. Customer setup and receivables have no KPI in it, yet receivables is where order-to-cash reaches the CFO’s cash. The receivables and end-to-end measures below would close that gap. Is receivables owned by this programme, or by another?</div></section>`;
   const col=S.scope.includes('col');
 
-  return `<div class="head"><div><div class="eyebrow">Business context · Results and drivers</div><h2>How the leading measures move the pilot results</h2>
+  return `<div class="head"><div><div class="eyebrow">Semantic ontology · Results and drivers</div><h2>How the leading measures move the pilot results</h2>
     <p class="lede">Pick a result to see the leading measures teams can move and the arithmetic that links them.</p></div><span class="illus">Illustrative values and benchmarks</span></div>
    ${driverExplorer2()}
    ${nextBtn('cstep',3,'Knowledge graph')}`;
@@ -1127,7 +1127,7 @@ function kgLines(){const ts=TABLES.filter(t=>tOn(t.id));
    `Reading Celonis manual-activity events for rules learned`,`Backtesting ${PATS.filter(p=>!p.mined&&patAvail(p)).length} library patterns over 18 months`,`Mining new patterns against objective KPIs · ${PATS.filter(p=>p.mined).length} candidates`,'Graph ready'];
 }
 function cGraph(){
-  const hd=`<div class="head"><div><div class="eyebrow">Business context · Knowledge graph</div><h2>${S.kg===2?'Mexico O2C knowledge graph':'Build the knowledge graph'}</h2><p class="lede">The order passport is a layer on top of the source systems: it reads them and does not replace or copy them. Tiger’s O2C ontology supplies the meaning; Mexico’s tables and documents populate it. The graph is what lets a pattern ask “was this invoice really owed?”</p></div>${S.kg===1?'':`<button class="btn ${S.kg===2?'':'pri'}" data-act="kg" ${allConn()?'':'disabled'}>${S.kg===2?'Rebuild':'Build knowledge graph'}</button>`}</div>`;
+  const hd=`<div class="head"><div><div class="eyebrow">Semantic ontology · Knowledge graph</div><h2>${S.kg===2?'Mexico O2C knowledge graph':'Build the knowledge graph'}</h2><p class="lede">The order passport is a layer on top of the source systems: it reads them and does not replace or copy them. Tiger’s O2C ontology supplies the meaning; Mexico’s tables and documents populate it. The graph is what lets a pattern ask “was this invoice really owed?”</p></div>${S.kg===1?'':`<button class="btn ${S.kg===2?'':'pri'}" data-act="kg" ${allConn()?'':'disabled'}>${S.kg===2?'Rebuild':'Build knowledge graph'}</button>`}</div>`;
   if(S.kg===1)return hd+`<div class="log" aria-live="polite">${S.kgLog.map(l=>`<div><span class="ok">✓</span>${esc(l)}</div>`).join('')}${S.kgReady?'':'<div><span class="spin"></span> Working…</div>'}</div>
    ${S.kgReady?`<div class="done-banner" style="justify-content:space-between;flex-wrap:wrap"><span>✓ Build complete: ${S.kgLog.length} steps processed.</span><button class="btn pri" data-act="kgshow">View the knowledge graph →</button></div>`:''}`;
   if(S.kg!==2)return hd+(allConn()?'':'<div class="empty">Connect all sources first.<button class="btn" data-act="cstep" data-i="0">Go to System ontology</button></div>')+ontology();
@@ -1157,7 +1157,7 @@ PAGE.bld=()=>{header('bld');ensureSel();
   BSTEPS[0][1]=`${O().short} · ${fmtO(S.targets[S.obj])}`;BSTEPS[2][1]=`${relMissions().filter(m=>S.mSel.has(m.id)).length} missions`;BSTEPS[3][1]=`${selPats().length} patterns`;
   BSTEPS[5][1]=S.locked?'Blueprint locked':'Owners, channels, autonomy';
   steps(BSTEPS,S.bstep,'bstep');
-  const strip=S.kg===2?`<div class="note">Context: ${TABLES.filter(t=>tOn(t.id)).length} tables · ${DOCS.length} documents · knowledge graph built · <a href="#ctx">Business context →</a></div>`:`<div class="warnline"><b>Business context not built.</b><span>Missions are sized from the knowledge graph.</span><a class="btn sm" href="#ctx">Open Business context</a><button class="btn sm" data-act="democtx">Load demo context</button></div>`;
+  const strip=S.kg===2?`<div class="note">Context: ${TABLES.filter(t=>tOn(t.id)).length} tables · ${DOCS.length} documents · knowledge graph built · <a href="#ctx">Semantic ontology →</a></div>`:`<div class="warnline"><b>Semantic ontology not built.</b><span>Missions are sized from the knowledge graph.</span><a class="btn sm" href="#ctx">Open Semantic ontology</a><button class="btn sm" data-act="democtx">Load demo context</button></div>`;
   return strip+[bObjective,bStandards,bMissions,bPatterns,bTools,bOwners][S.bstep]()+footer;
 };
 function hkFor(o){return HKPIS.find(k=>k.o[0]===o.id&&k.n.length)||null}
@@ -1219,7 +1219,7 @@ function bPatterns(){
     return `<tr style="${on?'':'opacity:.55'}"><td><button class="cb ${on?'on':''}" data-act="psel" data-k="${p.id}" aria-pressed="${on}" aria-label="Select ${esc(p.n)}" ${av?'':'disabled'}></button></td>
      <td><b>${esc(p.n)}</b> ${p.mined?`<span class="chip warn">Newly mined · ${Math.round(p.mined*100)}% confidence · SME review</span>`:'<span class="chip">Tiger library</span>'}${p.rule?` <span class="chip acc">${p.rule}</span>`:''}<div class="note">${esc(p.sig)}</div>
       <div class="chips" style="margin-top:4px">${p.t.map(t=>`<span class="chip src ${tIncluded(t)?'':'off'}">${esc(t)}</span>`).join('')}</div>
-      ${(MLEAD[p.m]||[]).length?`<div class="chips" style="margin-top:4px"><span class="eyebrow" style="margin-right:2px;color:var(--accent)">Moves</span>${(MLEAD[p.m]||[]).map(n=>`<span class="chip">${esc(n)}</span>`).join('')}</div>`:''}${av?'':'<div class="note" style="color:var(--warn)">Unavailable: needs a table excluded in Business context</div>'}</td>
+      ${(MLEAD[p.m]||[]).length?`<div class="chips" style="margin-top:4px"><span class="eyebrow" style="margin-right:2px;color:var(--accent)">Moves</span>${(MLEAD[p.m]||[]).map(n=>`<span class="chip">${esc(n)}</span>`).join('')}</div>`:''}${av?'':'<div class="note" style="color:var(--warn)">Unavailable: needs a table excluded in Semantic ontology</div>'}</td>
      <td class="r num">${n0(p.occ)}</td><td>${esc(p.act)}</td><td class="r num">${on?fmtG(patAch(p)):'—'}</td></tr>`}).join('')).join('');
   const rl=RULES.filter(r=>r.o.includes(S.obj)).concat(RULES.filter(r=>!r.o.includes(S.obj)));
   return `<div class="head"><div><div class="eyebrow">Mission Builder · Patterns & rules learned</div><h2>What each mission actually acts on</h2>
@@ -1790,7 +1790,7 @@ const GLOSS={VBELN:'Document number of the delivery or invoice in SAP',LFIMG:'Ca
 const gl=c=>GLOSS[String(c).replace('*','')]||'';
 const GLOSSARY=[['OTIF (on time, in full)','Share of cases delivered on the promised date and in the quantity the customer accepted. The rule for amended orders is to be agreed.'],['Order passport','The order-centric view of the knowledge graph: every change to one order, with actor, time and evidence.'],['Substitution','A different product offered when the ordered one cannot be shipped; needs the customer’s acceptance.'],['Deduction','An amount a customer subtracts from a payment, usually a short delivery, a price difference or a promotion.'],['Short-pay','A payment smaller than the invoice; becomes a deduction case if not explained.'],['Past due over 30 days','Invoice value more than 30 days beyond its due date.'],['Touchless','An order that moves from receipt to cash with no manual edit.'],['Contrarecibo','Receipt a Mexican customer issues when it accepts an invoice for payment scheduling.']];
 function glossPanel(){return `<details class="panel refwrap"><summary><b>Business glossary</b> <span class="note">${GLOSSARY.length} terms the solution uses, defined once</span></summary><div class="refbody tw"><table class="t"><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>${GLOSSARY.map(g=>`<tr><td><b>${esc(g[0])}</b></td><td>${esc(g[1])}</td></tr>`).join('')}</tbody></table></div></details>`}
-function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Business context · System ontology, Data ontology, Knowledge graph'],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Builder · Tools, skills and context'],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Builder · KPI ladder & missions'],['Results and drivers','Lagging results, the leading measures that move them, and the arithmetic between.','Business context · Results and drivers']];
+function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Semantic ontology · System ontology, Data ontology, Knowledge graph'],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Builder · Tools, skills and context'],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Builder · KPI ladder & missions'],['Results and drivers','Lagging results, the leading measures that move them, and the arithmetic between.','Semantic ontology · Results and drivers']];
  return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid4">${c.map((x,i)=>`<${i===0?'a href="#ctx"':'div'} class="four${i===0?' lk':''}"><span class="lnum">${i+1}</span><b>${x[0]}</b><p class="note">${x[1]}</p><span class="chip">${x[2]}</span></${i===0?'a':'div'}>`).join('')}</div></section>`}
 const TOOLS=[['Read order and stock','SAP S/4 (VBAK, VBAP, LIPS, MARD)','Tool'],['Read the order mailbox','Shared mailbox','Tool'],['Read route and stop events','OTM, route handheld','Tool'],['Read KPIs and variants','Celonis','Tool']];
 const SKILLS=[['Record an order change','Writes actor, time and evidence to the passport'],['Check stock at cut-off','Compares ordered, allocated and available cases'],['Propose a substitution','Ranks like-for-like products by stock and customer history'],['Read a customer reply','Matches the thread to the PO and extracts accept or refuse'],['Record acceptance at the stop','Reads accepted cases and reason codes from the handheld'],['Build short-pay evidence','Assembles delivery, POD and agreement clauses for the collector']];
@@ -1882,7 +1882,7 @@ document.addEventListener('click',e=>{const a=e.target.closest('.navmenu a');if(
 /* ===== AI-led OTC: payoff, efficacy, autonomy ===== */
 function pilotM(){const d=S.done,f=x=>Math.round(x*10)/10;
  return{subs:f(62+(d.subok?2.4:0)),stock:f(88+(d.subok?3.6:0)),cred:f(61),ocr:f(11.2-(d.subok?0.3:0)),pod:f(71+(d.rej?2.2:0)),inv:f(94+(d.rej?0.6:0)),pass:f(54+(d.chg?1:0)+(d.suba?1.5:0)+(d.subok?1:0)+(d.rej?2.5:0))}}
-function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Business context · System ontology, Data ontology, Knowledge graph','ctx','c',0],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Mission Builder · Tools, skills and context','bld','b',4],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Mission Builder · KPI ladder & missions','bld','b',2],['Value calculator','Lagging results, the leading measures that move them, and the arithmetic between.','Business context · Results and drivers','ctx','c',2]];
+function ontoStrip(){const c=[['Semantic ontology','Systems, data and the operating model, named once so every team and agent means the same thing.','Semantic ontology · System ontology, Data ontology, Knowledge graph','ctx','c',0],['Capability universe','The tools, skills and context the solution can use, with the patterns they serve.','Mission Builder · Tools, skills and context','bld','b',4],['Mission bank','Reusable missions with owners, KPIs and approval rules, chosen per objective.','Mission Builder · KPI ladder & missions','bld','b',2],['Value calculator','Lagging results, the leading measures that move them, and the arithmetic between.','Semantic ontology · Results and drivers','ctx','c',2]];
  return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid4">${c.map(x=>`<a class="four lk" href="#${x[3]}" data-act="goto" data-${x[4]}="${x[5]}" data-h="${x[3]}"><b>${x[0]}</b><p class="note">${x[1]}</p><span class="chip">${x[2]}</span></a>`).join('')}</div></section>`}
 
 function dOrder3(){const d=S.done;
@@ -1929,6 +1929,11 @@ function dOwner(){const d=S.done,pm=pilotM();
    <div class="grid3"><div class="toolrow"><b>1 · A baseline in two weeks</b><span class="note">OTIF, deductions and past due for the pilot customers from your own data, and the rule for counting OTIF when an order is amended.</span></div>
     <div class="toolrow"><b>2 · A market and a start point</b><span class="note">One market, and whether to begin with the top customers, one segment or one region, given what is already in flight.</span></div>
     <div class="toolrow"><b>3 · Owners and read access</b><span class="note">A named owner for order management, allocation and delivery, and read-only access to SAP and the order mailbox.</span></div></div></section>`}
+
+function ontoStrip(){const c=[['Semantic ontology','Systems, data, results and the knowledge graph, named once so every team and agent means the same thing.','System ontology · Data ontology · Results and drivers · Knowledge graph','ctx','data-c="0"'],
+ ['Mission Builder','Set the OTIF target and choose the missions and patterns that move it, drawing on a mission bank and a capability universe of tools, skills and context. Then set owners and autonomy.','Pilot frame · KPI ladder · Patterns · Tools, skills and context · Operating model','bld','data-b="0"'],
+ ['Mission desk','Where each person works the mission: order management, allocation, delivery, collections and the process owner, all reading one order passport.','Order passport · six desks','desk','']];
+ return `<section class="panel"><div class="ph"><div><h3>What the solution is made of</h3></div></div><div class="grid3e">${c.map(x=>`<a class="four lk" href="#${x[3]}" data-act="goto" ${x[4]} data-h="${x[3]}"><b>${x[0]}</b><p class="note">${x[1]}</p><span class="chip">${x[2]}</span></a>`).join('')}</div></section>`}
 
 /* ================= router and events ================= */
 function render(){const id=(location.hash||'#home').slice(1);const pid=PAGE[id]?id:'home';$('#main').innerHTML=PAGE[pid]()}
