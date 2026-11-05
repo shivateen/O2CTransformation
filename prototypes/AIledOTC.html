@@ -559,12 +559,12 @@ const HKPIS=[
  /* ---- leading: added for the Direct Fulfillment pilot (Tiger assumptions) ---- */
  {lt:'lead',sys:'P',cat:'ope',nd:'N2',n:'Substitutions agreed within SLA',v:62,u:'%',dir:1,med:80,tq:92,lo:40,hi:100,o:['otif','ded'],src:['Order','VBAP'],dr:['otif','ded','fill'],note:'agreed and recorded on the order before dispatch'},
  {lt:'lead',sys:'P',cat:'ope',nd:'N2',n:'Orders with stock confirmed at dispatch cut-off',v:88,u:'%',dir:1,med:93,tq:97,lo:70,hi:100,o:['otif'],src:['VBAP','LIPS'],dr:['otif','fill','olt']},
- {lt:'lead',sys:'P',cat:'apo',nd:'N2',n:'Credit blocks cleared within 4 hours',v:61,u:'%',dir:1,med:75,tq:90,lo:40,hi:100,o:['otif','col'],src:['VBAK','UKMBP_CMS_SGM'],dr:['otif','pd']},
+ {lt:'lead',sys:'P',cat:'apo',nd:'N2',n:'Credit blocks cleared before dispatch cut-off',v:61,u:'%',dir:1,med:75,tq:90,lo:40,hi:100,o:['otif','col'],src:['VBAK','UKMBP_CMS_SGM'],dr:['otif','pd']},
  {lt:'lead',sys:'P',cat:'cs',nd:'N3',n:'PODs with reason code within 24 h',v:71,u:'%',dir:1,med:85,tq:95,lo:50,hi:100,o:['ded','col'],src:['LMD_STOP_EXECUTION'],dr:['ded','pd','dso']},
  {lt:'lead',sys:'P',cat:'ar',nd:'N5',n:'Short-pays matched touchlessly',v:38,u:'%',dir:1,med:60,tq:80,lo:10,hi:100,o:['ded','col'],src:['FEBEP','BSAD','Case'],dr:['ded','dedup','ncl','dso']},
  {lt:'lead',sys:'P',cat:'ar',nd:'N5',n:'Average days to resolve a deduction',v:21,u:' d',dir:-1,med:14,tq:8,lo:0,hi:30,o:['ded'],src:['Case','BSAD'],dr:['ded','dedup','pd']},
  {lt:'lead',sys:'P',cat:'ar',nd:'N5',n:'Age of unapplied cash (days)',v:6.4,u:' d',dir:-1,med:3,tq:1.5,lo:0,hi:10,o:['cash','col'],src:['FEBEP','o_celonis_Payment'],dr:['ncl','pd','dso']},
- {lt:'lead',sys:'P',cat:'ope',nd:'N2',n:'Orders with a complete passport',v:54,u:'%',dir:1,med:75,tq:90,lo:30,hi:100,o:['otif','ded','col'],src:['Order','VBAP','LMD_STOP_EXECUTION'],dr:['otif','ded','dedup','ncl','fill'],note:'every change recorded with actor, time and evidence'},
+ {lt:'lead',sys:'P',cat:'ope',nd:'N2',n:'Order changes recorded before dispatch cut-off',v:54,u:'%',dir:1,med:75,tq:90,lo:30,hi:100,o:['otif','ded','col'],src:['Order','VBAP','LMD_STOP_EXECUTION'],dr:['otif','ded','dedup','ncl','fill'],note:'every change recorded with actor, time and evidence'},
 ];
 /* The rest of the client's inventory: volume and value counts, shown for drill-down. [name, category, step, sys, pairs with] */
 const KCTX=[
@@ -586,13 +586,13 @@ const LAGK=id=>HKPIS.find(k=>k.lt==='lag'&&k.id===id);
 const KPI=n=>HKPIS.find(k=>k.n===n);
 const addDr=(n,ids)=>{const k=KPI(n);if(k)ids.forEach(i=>{if(!k.dr.includes(i))k.dr.push(i)})};
 addDr('Substitutions agreed within SLA',['dedup']);addDr('PODs with reason code within 24 h',['dedup']);addDr('Invoice matches accepted delivery',['dedup','ncl']);addDr('Promotions live ≥ 48 h before start',['dedup']);addDr('Manual Price Change',['dedup']);
-addDr('Credit blocks cleared within 4 hours',['ncl']);addDr('Payments applied within 1 day',['ncl']);addDr('UCX cases linked to an invoice',['ncl','dedup']);
+addDr('Credit blocks cleared before dispatch cut-off',['ncl']);addDr('Payments applied within 1 day',['ncl']);addDr('UCX cases linked to an invoice',['ncl','dedup']);
 /* Objective → the lagging results it reports through; mission → the leading measures its patterns act on (Tiger's mapping, illustrative) */
 const OBJLAG={col:['pd','ncl','dso'],cash:['dso'],ded:['ded','dedup','rej'],tch:['tch','cyc'],otif:['otif','otd','fill'],ccs:['olt','cyc']};
 const MLEAD={PR:['Promotions live ≥ 48 h before start','Manual Price Change'],MD:['Orders with complete customer & price data','Order Entry Key Field Change Rate','Average Order Validation Time (Days)'],
  OM:['Touchless Order Rate (%)','Blocked Order Rate','Credit Block Rate (%)','Order Change Rate','Manual Block (Count)'],DL:['Delivery Block Rate (%)','Average Delay (Days)','Manual Delivery Date Change','Unshipped Net Value'],
  RA:['Invoice matches accepted delivery','PODs with reason code within 24 h','Short-pays matched touchlessly'],BL:['CFDI re-issue rate','Billing Block Rate (%)','Average Time to Bill (Hours)','Unbilled Shipped Revenue'],
- CS:['UCX cases linked to an invoice','Average days to resolve a deduction'],CA:['Payments applied within 1 day','Age of unapplied cash (days)','Short-pays matched touchlessly'],C1:[],C2:['Promises to pay kept'],C3:[],SU:['Orders with a complete passport','Substitutions agreed within SLA','Order Change Rate','Manual Delivery Date Change'],AL:['Orders with stock confirmed at dispatch cut-off','Unshipped Net Value','Missing Picking (Value)'],CR:['Credit blocks cleared within 4 hours','Credit Block Rate (%)']};
+ CS:['UCX cases linked to an invoice','Average days to resolve a deduction'],CA:['Payments applied within 1 day','Age of unapplied cash (days)','Short-pays matched touchlessly'],C1:[],C2:['Promises to pay kept'],C3:[],SU:['Order changes recorded before dispatch cut-off','Substitutions agreed within SLA','Order Change Rate','Manual Delivery Date Change'],AL:['Orders with stock confirmed at dispatch cut-off','Unshipped Net Value','Missing Picking (Value)'],CR:['Credit blocks cleared before dispatch cut-off','Credit Block Rate (%)']};
 const MKLT={C1:'lag'};
 const kval=k=>k.disp||(k.v+k.u);
 const ktgt=k=>k.disp?'tracked as a trend':'top quartile '+k.tq+k.u;
@@ -798,7 +798,7 @@ const MISSIONS=[
  {id:'C3',n:'Route non-collectible items out within 2 days',nd:'N5',owner:'Collections lead, Mexico',r:'Collections analysts',c:'var(--accent)',kpi:'Routed out ≤ 2 days',kb:'58%',kt:'95%'},
  {id:'SU',n:'Agree order changes and substitutions once, on the order',nd:'N2',owner:'Order management lead (GCC)',r:'Order specialists',c:'var(--s3)',kpi:'Substitutions agreed within SLA',kb:'62%',kt:'92%'},
  {id:'AL',n:'Allocate stock before the route leaves',nd:'N3',owner:'Logistics lead, Monterrey',r:'Allocation planners',c:'var(--s1)',kpi:'Stock confirmed at dispatch cut-off',kb:'88%',kt:'97%'},
- {id:'CR',n:'Credit exposure that matches reality',nd:'N2',owner:'Order management lead (GCC)',r:'Credit analysts',c:'var(--s5)',kpi:'Credit blocks cleared ≤ 4 h',kb:'61%',kt:'90%'},
+ {id:'CR',n:'Credit exposure that matches reality',nd:'N2',owner:'Order management lead (GCC)',r:'Credit analysts',c:'var(--s5)',kpi:'Credit blocks cleared before dispatch cut-off',kb:'61%',kt:'90%'},
 ];
 const MB=id=>MISSIONS.find(m=>m.id===id);
 const PATS=[
@@ -1279,7 +1279,7 @@ function bPilot(){
     <div class="tw"><table class="t"><thead><tr><th>Lagging indicator</th><th>Within two months?</th><th>Bridge measures that move first</th></tr></thead><tbody>
     <tr><td><b>OTIF</b></td><td>Partly, on pilot routes only</td><td>Stock confirmed at dispatch cut-off · substitutions agreed within SLA</td></tr>
     <tr><td><b>Deductions</b></td><td>Deduction rate on pilot customers, yes; claims lag</td><td>PODs with reason code within 24 h · days to resolve · short-pays matched touchlessly</td></tr>
-    <tr><td><b>Collections</b></td><td>DSO no; past due for pilot customers, partly</td><td>Credit blocks cleared within 4 h · share of short-pays matched touchlessly · unapplied cash age</td></tr></tbody></table></div></section>
+    <tr><td><b>Collections</b></td><td>DSO no; past due for pilot customers, partly</td><td>Credit blocks cleared before dispatch cut-off · share of short-pays matched touchlessly · unapplied cash age</td></tr></tbody></table></div></section>
    ${appetPanel()}
    <section class="panel"><div class="ph"><div><h3>To confirm with the OTC VP</h3></div></div><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13px">
     <li>Which market, and whether Databricks or Celonis is the baseline source (availability and refresh against the source systems)</li>
@@ -1506,11 +1506,11 @@ function pathPanel(){
 function pilotCauses(){
  const sh=v=>Math.round(v/PD30*100);
  const SET=[
-  {t:'OTIF',lag:['otif'],lead:['Orders with a complete passport','Orders with stock confirmed at dispatch cut-off','Substitutions agreed within SLA','Credit blocks cleared within 4 hours','Order Change Rate'],
+  {t:'OTIF',lag:['otif'],lead:['Order changes recorded before dispatch cut-off','Orders with stock confirmed at dispatch cut-off','Substitutions agreed within SLA','Credit blocks cleared before dispatch cut-off','Order Change Rate'],
    causes:[['Stock not allocated before the route left',34],['Order changed after release',27],['Credit block still open at cut-off',15],['Transport and route execution',24]]},
-  {t:'Deductions',lag:['ded','dedup'],lead:['Orders with a complete passport','PODs with reason code within 24 h','Substitutions agreed within SLA','Invoice matches accepted delivery','Short-pays matched touchlessly','Average days to resolve a deduction'],
+  {t:'Deductions',lag:['ded','dedup'],lead:['Order changes recorded before dispatch cut-off','PODs with reason code within 24 h','Substitutions agreed within SLA','Invoice matches accepted delivery','Short-pays matched touchlessly','Average days to resolve a deduction'],
    causes:[['Short acceptance invoiced in full',38],['Substitution or split not on the order',22],['Promotion price missing at intake',25],['Other',15]]},
-  {t:'Collections',lag:['pd','ncl'],lead:['Orders with a complete passport','Credit blocks cleared within 4 hours','Payments applied within 1 day','Age of unapplied cash (days)','Invoice matches accepted delivery','UCX cases linked to an invoice'],
+  {t:'Collections',lag:['pd','ncl'],lead:['Order changes recorded before dispatch cut-off','Credit blocks cleared before dispatch cut-off','Payments applied within 1 day','Age of unapplied cash (days)','Invoice matches accepted delivery','UCX cases linked to an invoice'],
    causes:WF30.map(w=>[w.l,sh(w.v)]).concat([['Genuinely collectible',sh(COLL30)]])}];
  const kline=k=>`<div class="hrow" style="grid-template-columns:minmax(0,1.6fr) auto auto;padding:7px 0"><span>${esc(k.n)}</span><b class="num">${esc(kval(k))}</b><span class="note">${esc(ktgt(k))}</span></div>`;
  return `<section class="panel"><div class="ph"><div><h3>Pilot KPI set: each lagging indicator and the leading indicators that move it</h3><p class="sub">A headline result you already recognise, a pilot-specific result that tests the thesis, and the leading measures a team can move this week. Below each: where the miss comes from, mostly upstream of the team that reports it.</p></div><span class="illus">Illustrative</span></div>
@@ -1538,12 +1538,12 @@ function pilotM(){const d=S.done,f=x=>Math.round(x*10)/10;
  return{subs:f(62+(d.subok?2.4:0)+(d.alloc?1.6:0)),stock:f(88+(d.alloc?3.6:0)),cred:f(61+(d.credit?5.2:0)),ocr:f(11.2-(d.subok?0.3:0)),pod:f(71+(d.rej?2.2:0)),inv:f(94+(d.rej?0.6:0)),pass:f(54+(d.chg?1:0)+(d.suba?1.5:0)+(d.subok?1:0)+(d.rej?2.5:0))}}
 function pilotTiles(){const pm=pilotM();
  return `<div class="grp-h lead"><b>Pilot · leading</b><span class="note">Direct Fulfillment measures that move with the desks</span></div><div class="tiles">
- ${[['Substitutions agreed within SLA',pm.subs+'%','target 92%','p-subs'],['Stock confirmed at dispatch cut-off',pm.stock+'%','target 97%','p-stock'],['Credit blocks cleared ≤ 4 h',pm.cred+'%','target 90%','p-cred'],['PODs with reason code ≤ 24 h',pm.pod+'%','target 95%','p-pod'],['Orders with a complete passport',pm.pass+'%','target 90%','p-pass']].map(x=>`<div class="tile"><span class="eyebrow">${x[0]}</span><b class="${bump(x[3],x[1])}">${x[1]}</b><small>${x[2]}</small></div>`).join('')}</div>`}
+ ${[['Substitutions agreed within SLA',pm.subs+'%','target 92%','p-subs'],['Stock confirmed at dispatch cut-off',pm.stock+'%','target 97%','p-stock'],['Credit blocks cleared before dispatch cut-off',pm.cred+'%','target 90%','p-cred'],['PODs with reason code ≤ 24 h',pm.pod+'%','target 95%','p-pod'],['Order changes recorded before dispatch cut-off',pm.pass+'%','target 90%','p-pass']].map(x=>`<div class="tile"><span class="eyebrow">${x[0]}</span><b class="${bump(x[3],x[1])}">${x[1]}</b><small>${x[2]}</small></div>`).join('')}</div>`}
 
 function dOrderLegacy(){const d=S.done,pm=pilotM(),C={lim:11.0,exp:12.4,open:7.9,paid:2.6,disp:1.9},fixed=!!d.sub1,rel=!!d.credit;
  const leadC=[{key:'o-subs',id:'SU',n:'Substitutions agreed within SLA',v:pm.subs+'%',t:'target 92%',bar:pm.subs/92,d:fixed?'▲ SO-7784502 recorded on its passport':''},
   {key:'o-ocr',id:'SU',n:'Order change rate',v:pm.ocr+'%',t:'target 6%',d:fixed?'▼ change recorded once, not reworked':''},
-  {key:'o-cred',id:'CR',n:'Credit blocks cleared within 4 hours',v:pm.cred+'%',t:'target 90%',bar:pm.cred/90,d:rel?'▲ Cadena Norte released on corrected exposure':''}];
+  {key:'o-cred',id:'CR',n:'Credit blocks cleared before dispatch cut-off',v:pm.cred+'%',t:'target 90%',bar:pm.cred/90,d:rel?'▲ Cadena Norte released on corrected exposure':''}];
  const lagC=[{key:'o-otif',lag:1,id:'DL',n:'OTIF % (cases)',v:'91.5%',t:'target 95%',d:(fixed||d.alloc||rel)?'Projected up when the pilot orders deliver. Unchanged today.':'',s:'warn',sl:'Moves when deliveries complete'},
   {key:'o-ded',lag:1,id:'RA',n:'Deduction rate, pilot customers',v:'8.5%',t:'target 7.0%',d:fixed?'Projected: MXN 24,300 not deducted on SO-7784502':'',s:'bad',sl:'Moves when claims post'},
   {key:'o-dedup',lag:1,id:'SU',n:'Upstream-caused share of deductions',v:'85%',t:'target 55%',d:fixed?'Projected: this order no longer produces an upstream-caused deduction':'',s:'bad',sl:'Moves as claims are coded'},
@@ -1661,7 +1661,7 @@ function passportPanel2(){const keep=S.done;S.done={chg:1,subp:1,suba:1,subok:1,
  return h.replace(/<span class="eyebrow">The same record on every desk<\/span><h3>Order passport · SO-7784502<\/h3><p class="sub">[^<]*<\/p>/,'<span class="eyebrow">Knowledge graph · one order</span><h3>The order passport is the knowledge graph, read for one order</h3><p class="sub">The graph holds every order, email, allocation, stop and payment. The passport is the slice connected to one order, so a downstream team reads what was actually agreed. Illustrative; SAP change documents (CDHDR / CDPOS) and mailbox access to confirm with the client.</p>')}
 function deskCards(leadKeys){const d=S.done,pm=pilotM();
  const LC={subs:{key:'x-subs',id:'SU',n:'Substitutions agreed within SLA',v:pm.subs+'%',t:'target 92%',bar:pm.subs/92,d:d.subok?'▲ SO-7784502 agreed and approved before dispatch':''},
-  pass:{key:'x-pass',id:'SU',n:'Orders with a complete passport',v:pm.pass+'%',t:'target 90%',bar:pm.pass/90,d:d.chg?'▲ entries recorded on SO-7784502':''},
+  pass:{key:'x-pass',id:'SU',n:'Order changes recorded before dispatch cut-off',v:pm.pass+'%',t:'target 90%',bar:pm.pass/90,d:d.chg?'▲ entries recorded on SO-7784502':''},
   stock:{key:'x-stock',id:'AL',n:'Orders with stock confirmed at dispatch cut-off',v:pm.stock+'%',t:'target 97%',bar:pm.stock/97,d:d.subok?'▲ route 214 stock reserved before it loads':''},
   pod:{key:'x-pod',id:'RA',n:'PODs with reason code within 24 h',v:pm.pod+'%',t:'target 95%',bar:pm.pod/95,d:d.rej?'▲ 12 not-accepted cases coded at the stop':''},
   match:{key:'x-match',id:'RA',n:'Invoice matches accepted delivery',v:pm.inv+'%',t:'target 99%',bar:pm.inv/99,d:d.rej?'▲ SO-7784502 invoiced at what the store accepted':''}};
@@ -1735,15 +1735,15 @@ const DEFN={
  ncl:{f:'Past due over 30 days that is paid-unapplied, short-delivered, not yet due or under a valid case ÷ past due over 30 days',tb:['BSID','FEBEP','Case'],own:'Collections',miss:'of past-due value'}};
 const wfs=i=>WF30[i].v/PD30*100;
 const CAUSES={
- otif:[['Stock not allocated before the route left',34,'Orders with stock confirmed at dispatch cut-off'],['Orders changed after release',27,'Orders with a complete passport'],['Credit blocks still open at cut-off',15,'Credit blocks cleared within 4 hours'],['Transport and route execution',24,null]],
+ otif:[['Stock not allocated before the route left',34,'Orders with stock confirmed at dispatch cut-off'],['Orders changed after release',27,'Order changes recorded before dispatch cut-off'],['Credit blocks still open at cut-off',15,'Credit blocks cleared before dispatch cut-off'],['Transport and route execution',24,null]],
  ded:[['Short acceptance invoiced in full',38,'Invoice matches accepted delivery'],['Substitution or split not on the order',22,'Substitutions agreed within SLA'],['Promotion price missing at intake',25,'Promotions live ≥ 48 h before start'],['Other',15,null]]};
 CAUSES.dedup=CAUSES.ded;
 CAUSES.pd=[[WF30[0].l,wfs(0),'Payments applied within 1 day'],[WF30[1].l,wfs(1),'Invoice matches accepted delivery'],[WF30[2].l,wfs(2),null],[WF30[3].l,wfs(3),'UCX cases linked to an invoice'],[WF30[4].l,wfs(4),null],['Genuinely collectible',COLL30/PD30*100,null,'keep']];
 CAUSES.ncl=CAUSES.pd;
 const LDEF={
  'Orders with stock confirmed at dispatch cut-off':{f:'Orders released that day with every line stock-confirmed at the dispatch cut-off ÷ orders released that day',own:'Allocation analyst',desk:['al','scen2','Allocation analyst desk']},
- 'Orders with a complete passport':{f:'Orders whose every change (customer change, substitution, approval, delivery record) has an actor, a time and evidence ÷ orders in the pilot',own:'Order management lead',desk:['om','scen1','Order management desk']},
- 'Credit blocks cleared within 4 hours':{f:'Credit blocks released within 4 hours of being set ÷ credit blocks set',own:'Credit and order management',desk:['om','credit','Credit panel on the order management desk']},
+ 'Order changes recorded before dispatch cut-off':{f:'Customer-requested order changes recorded on the order before the route’s dispatch cut-off ÷ order changes requested',own:'Order management lead',desk:['om','scen1','Order management desk']},
+ 'Credit blocks cleared before dispatch cut-off':{f:'Credit blocks released before the route’s dispatch cut-off ÷ credit blocks set on orders due to ship',own:'Credit and order management',desk:['om','credit','Credit panel on the order management desk']},
  'Invoice matches accepted delivery':{f:'Invoices whose quantity equals what the store accepted at the stop ÷ invoices',own:'Route accounting',desk:['dr','scen3','Delivery associate desk']},
  'Substitutions agreed within SLA':{f:'Substitutions with the customer’s acceptance recorded before dispatch ÷ substitutions proposed',own:'Order management lead',desk:['om','scen1','Order management desk']},
  'Promotions live ≥ 48 h before start':{f:'Promotions live in S/4HANA at least 48 hours before start ÷ promotions started',own:'Revenue management',desk:null},
@@ -1813,7 +1813,7 @@ const APPET=[['top','Top customers first','The largest few customers by volume. 
 function appetPanel(){return `<section class="panel"><div class="ph"><div><h3>Change appetite and in-flight programmes</h3><p class="sub">How much change your teams can absorb alongside what is already running. Pick the start point.</p></div></div>
  <div class="opts">${APPET.map(a=>`<button class="opt ${S.app===a[0]?'on':''}" data-act="app" data-k="${a[0]}"><b>${a[1]}</b><p class="note">${a[2]}</p></button>`).join('')}</div>
  <p class="note" style="margin-top:8px">To be confirmed: which programmes already touch order management, allocation or collections this year, and which of those teams can take on a pilot now.</p></section>`}
-const MQ={om:{m:'Keep the order right until it ships',k:'Orders with a complete passport',q:[['SO-7784502','Cadena Norte · store 0381','chg',()=>S.done.chg?'Change recorded':'Customer email waiting'],['SO-7784519','Cadena Norte · store 0412','','Waiting for PO'],['SO-7784533','Sorteo Mx · store 0107','','On track']]},
+const MQ={om:{m:'Keep the order right until it ships',k:'Order changes recorded before dispatch cut-off',q:[['SO-7784502','Cadena Norte · store 0381','chg',()=>S.done.chg?'Change recorded':'Customer email waiting'],['SO-7784519','Cadena Norte · store 0412','','Waiting for PO'],['SO-7784533','Sorteo Mx · store 0107','','On track']]},
  al:{m:'Allocate stock before the route leaves',k:'Orders with stock confirmed at dispatch cut-off',q:[['SO-7784502','Cadena Norte · store 0381','subok',()=>S.done.subok?'Substitution approved':S.done.chg?'Stock check ready':'Waiting for the order change'],['SO-7784540','Super Valle · store 0220','','Stock confirmed'],['SO-7784547','Sorteo Mx · store 0093','','Stock confirmed']]},
  dr:{m:'Deliver what was agreed and record what was not',k:'PODs with reason code within 24 h',q:[['SO-7784502','Cadena Norte · stop 6, route 214','rej','Delivery at the stop'],['SO-7784488','Super Valle · stop 7','','Next stop'],['SO-7784491','Sorteo Mx · stop 8','','Next stop']]},
  col:{m:'Collect what is collectible',k:'Past due over 30 days',q:[['INV-90881234','Cadena Norte','','Short-pay under review'],['INV-90881310','Super Valle','','Promise to pay on file'],['INV-90881377','Sorteo Mx','','Due in 6 days']]}};
@@ -1926,7 +1926,7 @@ function dAlloc3(){const d=S.done;
  ${ppPanel('al')}`}
 
 function dOwner(){const d=S.done,pm=pilotM();
- const rows=[['Orders with a complete passport','pass',54,90,'Order change, substitution and stop recorded on the passport'],['Substitutions agreed within SLA','subs',62,92,'Customer accepted by email, approved before dispatch'],['Orders with stock confirmed at dispatch cut-off','stock',88,97,'Stock reserved on route 214 before it loaded'],['PODs with reason code within 24 h','pod',71,95,'Not-accepted cases coded at the stop'],['Invoice matches accepted delivery','inv',94,99,'Invoiced at what the store accepted']];
+ const rows=[['Order changes recorded before dispatch cut-off','pass',54,90,'Order change, substitution and stop recorded on the passport'],['Substitutions agreed within SLA','subs',62,92,'Customer accepted by email, approved before dispatch'],['Orders with stock confirmed at dispatch cut-off','stock',88,97,'Stock reserved on route 214 before it loaded'],['PODs with reason code within 24 h','pod',71,95,'Not-accepted cases coded at the stop'],['Invoice matches accepted delivery','inv',94,99,'Invoiced at what the store accepted']];
  const lagM=['otif','ded'].map(id=>{const k=LAGK(id),M=hModel(id),u=k.u.trim()||'';return `<div class="tile"><span class="eyebrow">${esc(k.short)}</span><div class="proj" style="margin-top:6px"><div><span class="note">Today</span><b class="num">${f1(M.now)}${u}</b></div><span class="pa">→</span><div><span class="note">Modelled</span><b class="num">${f1(M.next)}${u}</b></div><div><span class="note">Target</span><b class="num">${HLT[id]}${u}</b></div></div></div>`}).join('');
  const order=d.rej?`<div class="done-banner">✓ SO-7784502 closed the loop: 120 cases ordered after the change, 108 accepted, invoiced at MXN 131,220. A short-pay of MXN 14,580 did not happen, and Ana made no call.</div>`:`<p class="note">Run order SO-7784502 through the order management, allocation, delivery and collections desks to see it land here.</p>`;
  return `<div class="head"><div><div class="eyebrow">Process owner · what the pilot has changed</div><h2>One order, read at the level of the process</h2><p class="lede">The leading measures move first, because they are what the teams do on the day. The results the CFO reports follow, and are shown as projections.</p></div></div>
