@@ -429,6 +429,16 @@ th.grp{text-align:center!important;border-bottom:2px solid var(--line)!important
 .titems{display:flex;flex-direction:column;gap:2px;margin-top:2px}
 .titem{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;background:none;border:0;font:inherit;font-size:13.5px;color:inherit;cursor:pointer;text-align:left}
 .titem:hover,.tcard .thead:hover .tic{background:color-mix(in srgb,var(--tc) 14%,#fff)}.titem .ti{color:var(--tc);display:inline-grid;flex:none}
+.trl{list-style:none;margin:12px 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.trh{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:13px}
+.trh.cur{border-color:var(--accent-line);background:var(--accent-soft)}
+.trh small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.trn{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:12px;font-weight:700}
+.trrec{margin:12px 0;padding:12px 14px;border:1px solid var(--good);background:var(--good-soft);border-radius:10px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.trcmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.trcmp>div{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.trcmp p{margin:4px 0 0;font-size:13px}
+@media(max-width:700px){.trcmp{grid-template-columns:1fr}}
 </style></head><body>
 
 <header id="hdr"></header>
@@ -1142,6 +1152,7 @@ function cGraph(){
   const t=THREAD;
   return hd+(S.kgLog.length?`<details class="panel"><summary style="cursor:pointer"><b>Build log</b> <span class="chip">${S.kgLog.length} steps</span></summary><div class="log" style="margin-top:10px">${S.kgLog.map(l=>`<div><span class="ok">✓</span>${esc(l)}</div>`).join('')}</div></details>`:'')+`<div class="tiles">${[[n0(1.84e6*(.4+.6*sc)),'Entities'],[n0(6.2e6*(.4+.6*sc)),'Relationships'],[inc.length+' / '+TABLES.length,'Tables included'],[DOC_RULES.length+'','Rules from documents'],[PATS.filter(patAvail).length+' / '+PATS.length,'Patterns with data']].map(x=>`<div class="tile"><b>${x[0]}</b><small>${x[1]}</small></div>`).join('')}</div>
    ${ontology()}
+   ${efTrace()}
    <div class="btnrow" style="justify-content:flex-end"><button class="btn pri" data-act="goto" data-h="bld" data-b="0">Next: Mission Builder →</button></div>`;
 }
 function ontology(){
@@ -1155,7 +1166,7 @@ function ontology(){
   return `<section class="panel"><div class="ph"><div><h3>Tiger O2C ontology, populated</h3><p class="sub">Shaded nodes come from the solution; the rest from your data.</p></div></div><div class="svgwrap"><svg viewBox="0 0 970 300" style="min-width:720px" role="img" aria-label="O2C ontology">
    <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--faint)"/></marker></defs>
    ${E.map(([a,b,l])=>{const[x1,y1,x2,y2]=an(a,b);return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--faint)" stroke-width="1.2" marker-end="url(#ah)"/><text x="${(x1+x2)/2}" y="${(y1+y2)/2-4}" text-anchor="middle" class="lbl2 halo" style="font-size:9.5px">${l}</text>`}).join('')}
-   ${N.map(n=>{const hi=['rule','pat','ho','mis'].includes(n[0]);return `<rect x="${n[3]}" y="${n[4]}" width="${w}" height="${h}" rx="9" fill="${hi?'var(--accent-soft)':'var(--surface-2)'}" stroke="${hi?'var(--accent-line)':'var(--line)'}"/><text x="${n[3]+12}" y="${n[4]+21}" class="lbl">${n[1]}</text><text x="${n[3]+12}" y="${n[4]+37}" class="lbl2">${n[2]}</text>`}).join('')}</svg></div></section>`;
+   ${N.map(n=>{const hi=['rule','pat','ho','mis'].includes(n[0]),tn=trNodes().includes(n[0]);return `<rect x="${n[3]}" y="${n[4]}" width="${w}" height="${h}" rx="9" fill="${tn?'var(--accent-soft)':hi?'var(--accent-soft)':'var(--surface-2)'}" stroke="${tn?'var(--accent)':hi?'var(--accent-line)':'var(--line)'}" stroke-width="${tn?3:1}"/><text x="${n[3]+12}" y="${n[4]+21}" class="lbl">${n[1]}</text><text x="${n[3]+12}" y="${n[4]+37}" class="lbl2">${n[2]}</text>`}).join('')}</svg></div></section>`;
 }
 
 /* ================= builder ================= */
@@ -2012,6 +2023,24 @@ function driverExplorer2(){
     <div class="qtrack" style="margin-top:14px"><span class="mk tq" style="left:${pc(M.tgt)}%"></span><span class="dot now" style="left:${pc(M.now)}%"></span><span class="dot" style="left:${pc(M.next)}%"></span></div><div class="qlab"><span>grey = today · orange = modelled</span><span style="color:var(--good)">green tick = target</span></div>
     <div style="margin-top:8px"><span class="eyebrow" style="margin-right:6px">Realised in the pilot window</span><div class="seg" role="group" aria-label="Realisation">${[40,60,80,100].map(v=>`<button class="${S.hre===v?'on':''}" data-act="hre" data-k="${v}">${v}%</button>`).join('')}</div></div></div>`:''}${trk}</section>`}
 
+/* ===== Efficacy trace on the knowledge graph ===== */
+const TRH=[
+ {n:'Order',nodes:['ord','acc'],h:'The order changed after release',v:'SO-7784502, Cadena Norte store 0381. Placed at 100 cases (50 snack mix, 50 multipack). The store asked for 20 more of each, so the order is now 120 (60 / 60).',s:'Salesforce order · SAP VBAK'},
+ {n:'Change',nodes:['ord','pass'],h:'The change is tied to the order',v:'The buyer’s email and the order sit on one record. The change arrived Tuesday 08:40; without the link it would be keyed hours later, or not at all.',s:'Mailbox matched by thread and PO'},
+ {n:'Stock',nodes:['pat'],h:'Stock does not cover it',v:'Snack mix 55g has 40 cases free against 60 needed, so 20 cases are short. Chips 28g has 96 cases free.',s:'Allocation pattern · inventory (illustrative quantities)'},
+ {n:'Route',nodes:['ship'],h:'There is still time to act',v:'Route 214 loads Wednesday 05:30. The shortfall is known with a full working day before the cut-off, not at the stop.',s:'OTM route 214'},
+ {n:'History',nodes:['acc2'],h:'This customer usually accepts the swap',v:'Cadena Norte accepted 7 of the last 8 chips-for-snack-mix swaps at the same price per case.',s:'Store acceptance history (illustrative)'},
+ {n:'Terms',nodes:['term','rule'],h:'A miss would cost money, not just a case',v:'Cases the store does not accept are deducted at MXN 1,215 a case. Twenty short cases is MXN 24,300 and one missed OTIF order.',s:'Customer terms · policy rule (illustrative)'}];
+function efTrace(){const k=S.tr||0,n=TRH.length;
+ const head=`<section class="panel" id="trace"><div class="ph"><div><span class="eyebrow">Efficacy in action</span><h3>One decision, read from the graph</h3><p class="sub">Question: order SO-7784502 changed after release and 20 cases of snack mix are short. Substitute, or let it miss? Step through what the graph connects.</p></div></div>`;
+ const hops=TRH.slice(0,k).map((t,i)=>`<li class="trh${i===k-1?' cur':''}"><span class="trn">${i+1}</span><div><b>${esc(t.h)}</b><div>${esc(t.v)}</div><small>${esc(t.s)}</small></div></li>`).join('');
+ const rec=k>=n?`<div class="trrec"><span class="eyebrow">What the graph recommends</span><b>Offer 20 cases of chips 28g in place of 20 snack mix, same price per case, and ship Wednesday.</b><div>Likely accepted (7 of 8 past swaps, about 88%). It protects one OTIF order and avoids a probable MXN 24,300 deduction. Sandra approves the substitution on her desk.</div></div>
+  <div class="trcmp"><div><span class="eyebrow">Without the graph</span><p>The email, stock, route and customer history sit in different systems. The shortfall shows up at the stop, and the miss appears in a report weeks later.</p></div><div><span class="eyebrow">With the graph</span><p>The change, the shortage and the customer’s history are one connected record, so the decision is made before the route leaves.</p></div></div>
+  <div class="note">Quantities, acceptance history and costs on this panel are illustrative. The structure, the graph reading the order, the stock, the route and the terms together, is the design.</div>`:'';
+ const ctl=`<div class="btnrow">${k<n?`<button class="btn pri" data-act="trstep">${k?'Next hop':'Trace the decision'} ${k?`(${k+1} of ${n})`:''} →</button>`:''}${k?'<button class="btn" data-act="trreset">Start again</button>':''}</div>`;
+ return head+(k?`<ol class="trl">${hops}</ol>`:'')+rec+ctl+'</section>'}
+
+function trNodes(){return [...new Set(TRH.slice(0,S.tr||0).flatMap(t=>t.nodes))]}
 /* ================= router and events ================= */
 function render(){const id=(location.hash||'#home').slice(1);const pid=PAGE[id]?id:'home';$('#main').innerHTML=PAGE[pid]()}
 window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0)});
@@ -2047,6 +2076,8 @@ document.addEventListener('click',ev=>{
   if(a==='scen'){S.scen=k;render();return}
   if(a==='msel'){S.mSel.has(k)?S.mSel.delete(k):S.mSel.add(k);S.locked=false;render();return}
   if(a==='psel'){S.pSel.has(k)?S.pSel.delete(k):S.pSel.add(k);S.locked=false;render();return}
+  if(a==='trstep'){S.tr=Math.min((S.tr||0)+1,TRH.length);render();setTimeout(()=>{const e=document.getElementById('trace');e&&e.scrollIntoView({block:'nearest'})},50);return}
+  if(a==='trreset'){S.tr=0;render();return}
   if(a==='lockgo'){if(!S.locked){S.locked=true;S.lockedObj=S.obj;logIt('ricardo','locked the blueprint for “'+O().n+'”',['marisol','jorge'])}location.hash='#desk';window.scrollTo(0,0);return}
   if(a==='lock'){S.locked=true;S.lockedObj=S.obj;logIt('ricardo','locked the blueprint for “'+O().n+'”',['marisol','jorge']);render();return}
   if(a==='opt'){S.opt=k;render();return}
