@@ -59,6 +59,9 @@ def main():
         shutil.rmtree(p, ignore_errors=True) if os.path.isdir(p) else os.remove(p)
     for f in PUBLISH:
         shutil.copy2(os.path.join(PUB, f), os.path.join(TMP, f))
+    extra = os.path.join(ROOT, "src", "apps", "ontology")  # standalone prototype pages
+    if os.path.isdir(extra):
+        shutil.copytree(extra, os.path.join(TMP, "ontology"))
     open(os.path.join(TMP, ".nojekyll"), "w").close()  # tell Pages not to run Jekyll
 
     # 5. commit + push (skip if nothing changed)

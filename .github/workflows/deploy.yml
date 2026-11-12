@@ -41,6 +41,8 @@ jobs:
           test -f public/processiq.html && test -f public/index.html
           rm -rf _site && mkdir _site
           cp public/index.html public/processiq.html _site/
+          # Standalone pages (e.g. the semantic-ontology prototype) live under src/apps/ontology/<version>/
+          if [ -d src/apps/ontology ]; then cp -r src/apps/ontology _site/ontology; fi
           touch _site/.nojekyll
           cd _site
           git init -q
